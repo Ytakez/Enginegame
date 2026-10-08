@@ -7,11 +7,18 @@
 <link rel="icon" type="image/png" href="Icon.png">
 <link rel="apple-touch-icon" href="Icon.png">
 <link rel="shortcut icon" href="Icon.png">
-<link rel="stylesheet" href="style.css?v=1">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
 <header>Двигатель внутреннего сгорания</header>
+
+<div class="engines">
+  <button class="engbtn on" data-eng="r4" type="button">R4</button>
+  <button class="engbtn" data-eng="v6" type="button">V6</button>
+  <button class="engbtn" data-eng="v12" type="button">V12</button>
+</div>
+
 <button id="repairBtn" type="button">🔧</button>
 
 <main>
@@ -55,8 +62,9 @@
 <div id="breakBanner"></div>
 <div id="err"></div>
 
-<script src="physics.js?v=1" defer></script>
-<script src="engine.js?v=1" defer></script>
-<script src="sound.js?v=1" defer></script>
+<script src="physics.js?v=3" defer></script>
+<script src="engine.js?v=3" defer></script>
+<script src="sound.js?v=3" defer></script>
+<script src="admin.js?v=2" defer></script>
 </body>
 </html>
