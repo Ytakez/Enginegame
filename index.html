@@ -7,7 +7,8 @@
 <link rel="icon" type="image/png" href="Icon.png">
 <link rel="apple-touch-icon" href="Icon.png">
 <link rel="shortcut icon" href="Icon.png">
-<link rel="stylesheet" href="style.css?v=40000">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css?v=50000">
 <style>
 .gears-auto{display:none;gap:6px;background:#0d1319;border:1px solid #2a3a4c;border-radius:10px;padding:6px}
 body.auto-mode .gears-auto{display:grid;grid-template-columns:repeat(3,1fr)}
@@ -77,17 +78,24 @@ body.auto-mode #gearsManual{display:none}
 </div>
 <div id="breakBanner"></div>
 <div id="err"></div>
-<script src="physics.js?v=40000" defer></script>
-<script src="render-base.js?v=40000" defer></script>
-<script src="re-1.js?v=40000" defer></script>
-<script src="re-2.js?v=40000" defer></script>
-<script src="re-3.js?v=40000" defer></script>
-<script src="re-4.js?v=40000" defer></script>
-<script src="re-5.js?v=40000" defer></script>
-<script src="render.js?v=40000" defer></script>
-<script src="engine.js?v=40000" defer></script>
-<script src="sound.js?v=40000" defer></script>
-<script src="menu.js?v=40000" defer></script>
-<script src="settings.js?v=40000" defer></script>
+<script src="physics.js?v=50000" defer></script>
+<script src="render-base.js?v=50000" defer></script>
+<script src="re-1.js?v=50000" defer></script>
+<script src="re-2.js?v=50000" defer></script>
+<script src="re-3.js?v=50000" defer></script>
+<script src="re-4.js?v=50000" defer></script>
+<script src="re-5.js?v=50000" defer></script>
+<script src="render.js?v=50000" defer></script>
+<script src="engine.js?v=50000" defer></script>
+<script src="sound.js?v=50000" defer></script>
+<script src="menu.js?v=50000" defer></script>
+<script src="settings.js?v=50000" defer></script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('sw.js').catch(function(e){ console.log('SW:', e); });
+  });
+}
+</script>
 </body>
 </html>
