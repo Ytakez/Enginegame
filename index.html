@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="launchericon-192x192.png">
 <link rel="shortcut icon" href="launchericon-96x96.png">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css?v=80000">
+<link rel="stylesheet" href="style.css?v=90000">
 <style>
 .gears-auto{display:none;gap:6px;background:#0d1319;border:1px solid #2a3a4c;border-radius:10px;padding:6px}
 body.auto-mode .gears-auto{display:grid;grid-template-columns:repeat(3,1fr)}
@@ -36,6 +36,8 @@ body.auto-mode #gearsManual{display:none}
 #ignBtn.start{background:linear-gradient(180deg,#c98a2b,#7a5a1a);border-color:#ffc93c;color:#fff;font-weight:900;letter-spacing:3px;box-shadow:0 0 20px rgba(255,201,60,.5)}
 #view3dBtn{position:absolute;top:8px;right:8px;z-index:20;padding:6px 12px;border-radius:20px;border:1px solid #2c4a63;background:rgba(20,28,38,.9);color:#8fd8ff;font:800 11px/1 inherit;letter-spacing:1px;cursor:pointer;touch-action:manipulation}
 #view3dBtn:hover{border-color:#4a7ea6}
+#ghostBtn{position:absolute;top:8px;right:110px;z-index:20;padding:6px 12px;border-radius:20px;border:1px solid #2c4a63;background:rgba(20,28,38,.9);color:#8fd8ff;font:800 11px/1 inherit;letter-spacing:1px;cursor:pointer;touch-action:manipulation;display:none}
+#ghostBtn:hover{border-color:#4a7ea6}
 </style>
 </head>
 <body>
@@ -46,6 +48,7 @@ body.auto-mode #gearsManual{display:none}
 <div class="panel" id="engineWrap">
   <canvas id="engineCv" width="640" height="430"></canvas>
   <button id="view3dBtn" type="button">🎥 3D</button>
+  <button id="ghostBtn" type="button">👁 Скрыто</button>
 </div>
 <div class="panel" id="dash">
 <canvas id="gaugeCv" width="340" height="190"></canvas>
@@ -84,19 +87,19 @@ body.auto-mode #gearsManual{display:none}
 <div id="breakBanner"></div>
 <div id="err"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="physics.js?v=80000" defer></script>
-<script src="render-base.js?v=80000" defer></script>
-<script src="re-1.js?v=80000" defer></script>
-<script src="re-2.js?v=80000" defer></script>
-<script src="re-3.js?v=80000" defer></script>
-<script src="re-4.js?v=80000" defer></script>
-<script src="re-5.js?v=80000" defer></script>
-<script src="render.js?v=80000" defer></script>
-<script src="engine.js?v=80000" defer></script>
-<script src="sound.js?v=80000" defer></script>
-<script src="menu.js?v=80000" defer></script>
-<script src="settings.js?v=80000" defer></script>
-<script src="view3d.js?v=1" defer></script>
+<script src="physics.js?v=90000" defer></script>
+<script src="render-base.js?v=90000" defer></script>
+<script src="re-1.js?v=90000" defer></script>
+<script src="re-2.js?v=90000" defer></script>
+<script src="re-3.js?v=90000" defer></script>
+<script src="re-4.js?v=90000" defer></script>
+<script src="re-5.js?v=90000" defer></script>
+<script src="render.js?v=90000" defer></script>
+<script src="engine.js?v=90000" defer></script>
+<script src="sound.js?v=90000" defer></script>
+<script src="menu.js?v=90000" defer></script>
+<script src="settings.js?v=90000" defer></script>
+<script src="view3d.js?v=2" defer></script>
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function(){
