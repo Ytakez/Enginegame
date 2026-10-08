@@ -11,6 +11,13 @@ var ENGINES = {
     subGain:0.5, sawGain:0.9, sqGain:0.4, noiseBase:0.08,
     cvt:true, auto:true, mass:200
   },
+  tdi: {
+    name:'1.9 TDI', cyls:4,
+    maxTorque:310, idle:850, redline:4800, breakRpm:5500, stallRpm:300,
+    fireDiv:30, lpBase:380, lpRpm:0.10,
+    subGain:1.8, sawGain:0.35, sqGain:0.08, noiseBase:0.10,
+    mass:1350, diesel:true
+  },
   r4: {
     name:'R4', cyls:4,
     maxTorque:250, idle:900, redline:6800, breakRpm:8000, stallRpm:350,
@@ -57,6 +64,10 @@ function torqueCurve(r, E){
   var hi = E.redline - (E.redline - E.idle) * 0.15;
   if (hi <= lo) hi = lo + 1;
   var x = Math.max(lo, Math.min(hi, r));
+  if (E.diesel){
+    // Дизель: ровная полка момента с самого низа
+    return 0.9 + 0.1 * Math.sin(Math.PI * (x - lo) / (hi - lo));
+  }
   return 0.55 + 0.45 * Math.sin(Math.PI * (x - lo) / (hi - lo));
 }
 
@@ -116,7 +127,6 @@ S.physics=function(dt){
     return;
   }
 
-  /* ===== ПЕРЕДАТОЧНОЕ ЧИСЛО ===== */
   var ratio;
   if (E.cvt){
     var vv = Math.abs(S.speed);
@@ -130,7 +140,6 @@ S.physics=function(dt){
     else ratio=gearRatios[S.gear]*finalDrive;
   }
 
-  /* ===== СЦЕПЛЕНИЕ / CVT ===== */
   var eng;
   if (E.auto){
     if (S.gear === 0 || S.stalled || !S.running){
@@ -149,7 +158,6 @@ S.physics=function(dt){
   var omegaDirect=omegaWheel*ratio;
   var omegaEngine=S.rpm*Math.PI/30;
 
-  /* ===== МОМЕНТ ДВИГАТЕЛЯ (с ОГРАНИЧЕННЫМ регулятором) ===== */
   var Te=0;
   if(S.running&&!S.stalled){
     var thr=S.throttle;
@@ -159,20 +167,14 @@ S.physics=function(dt){
     Te -= friction;
     if (thr < 0.05){
       var err = E.idle - S.rpm;
-      if (err > 0){
-        // Регулятор холостого хода: максимум +40 Н·м
-        Te += Math.min(err * 0.8, 40);
-      } else {
-        // Торможение при сбросе газа: максимум −15 Н·м (плавно)
-        Te += Math.max(err * 0.05, -15);
-      }
-      Te += friction * 0.3;  // вернуть часть трения для стабильности
+      if (err > 0) Te += Math.min(err * 0.8, 40);
+      else Te += Math.max(err * 0.05, -15);
+      Te += friction * 0.3;
     } else {
       if (S.rpm < E.idle * 0.7) Te += (E.idle * 0.7 - S.rpm) * 0.5;
     }
   }
 
-  /* ===== МОМЕНТ СЦЕПЛЕНИЯ ===== */
   var slip = omegaEngine - omegaDirect;
   var Tc;
   if (E.cvt){
@@ -189,11 +191,9 @@ S.physics=function(dt){
     if (eng < 0.001) Tc = 0;
   }
 
-  /* Увеличенная инерция для CVT = плавные обороты */
   var Iengine = E.cvt ? 1.4 : 0.55;
   var dE=(Te-Tc)/Iengine;
 
-  /* ===== СОПРОТИВЛЕНИЕ ===== */
   var v=Math.abs(S.speed)/3.6;
   var dragF=0.42*v*v + (E.cvt ? 60 : 150);
   var dragT=dragF*wheelRadius*(omegaWheel>=0?1:-1);
