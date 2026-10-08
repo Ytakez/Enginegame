@@ -8,14 +8,14 @@ var LANGS={
 };
 var ENGINES_INFO=[
   {id:'scooter',label:'🛵 Скутер (S1)',sub:'1 цилиндр · 4-тактный · АКПП · 50 cc'},
-  {id:'tdi',label:'🚐 1.9 TDI',sub:'4 цилиндра · турбодизель · Passat B5'},
+  {id:'tdi',label:'🚗 1.9 TDI',sub:'4 цилиндра · турбодизель · Passat B5'},
   {id:'mt82',label:'🚜 МТЗ-82 (Д-240)',sub:'4 цилиндра · тракторный дизель · 4,75 л'},
   {id:'passatb3',label:'🚙 1.8 B3',sub:'4 цилиндра · бензин · Passat B3 универсал'},
   {id:'bluebird',label:'🚗 2.0 CA20',sub:'4 цилиндра · бензин · Nissan Bluebird 1990'},
   {id:'galant6',label:'🚘 2.0 V6',sub:'6 цилиндров · V-образный · Galant 6'},
   {id:'r4',label:'🚗 R4 (рядная)',sub:'4 цилиндра · в ряд · механика'},
-  {id:'v8',label:'🏎️ V8',sub:'8 цилиндров · V-образный'},
-  {id:'v16',label:'🔥 V16',sub:'16 цилиндров · мощный'}
+  {id:'v8',label:'🏎️ V10',sub:'10 цилиндров · V-образный'},
+  {id:'v16',label:'🔥 V20',sub:'20 цилиндров · монстр'}
 ];
 var curLang='ru';try{curLang=localStorage.getItem(LANG_KEY)||'ru';}catch(e){}
 if(!LANGS[curLang])curLang='ru';
@@ -23,7 +23,7 @@ function t(key){var L=LANGS[curLang]||LANGS.ru;return L[key]||(LANGS.ru[key]||ke
 function applyLang(){var header=document.querySelector('header');if(header)header.textContent=t('title');
 var map={'pClutch':'clutch','pBrake':'brake','pGas':'gas','ignBtn':'ignition'};
 for(var id in map){var el=document.getElementById(id);if(!el)continue;
-if(el.tagName==='BUTTON'){el.textContent=t(map[id]);}else{var spans=el.querySelectorAll('span');for(var i=0;i<spans.length;i++){if(spans[i].classList.contains('icon'))continue;if(spans[i].classList.contains('sub')){spans[i].textContent=t('hold');continue;}spans[i].textContent=t(map[id]);}}}
+if(el.tagName==='BUTTON'){if(el.textContent!=='СТОП'&&el.textContent!=='▶ ПУСК'&&el.textContent!=='КАЧАЕТ...')el.textContent=t(map[id]);}else{var spans=el.querySelectorAll('span');for(var i=0;i<spans.length;i++){if(spans[i].classList.contains('icon'))continue;if(spans[i].classList.contains('sub')){spans[i].textContent=t('hold');continue;}spans[i].textContent=t(map[id]);}}}
 var roLabels=document.querySelectorAll('.ro .lbl');if(roLabels.length>=2){roLabels[0].textContent=t('speed');roLabels[1].textContent=t('gear');}}
 function injectStyles(){if(document.getElementById('settingsStyle'))return;var st=document.createElement('style');st.id='settingsStyle';
 st.textContent='.eng-badge{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(20,30,40,.9);border:1px solid #3a5170;border-radius:20px;padding:4px 14px;font-size:11px;font-weight:800;letter-spacing:2px;color:#8fd8ff;pointer-events:none;z-index:10;font-family:inherit}'+
