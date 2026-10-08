@@ -3,7 +3,7 @@
 var S=window.S;var RB=window.RB;var RE=window.RE;
 if(!S||!RB||!RE)return;
 var ecv,ectx,gcv,gctx;
-var _temp=20,_lastT=0;
+var _temp=20,_lastT=0,_overheatTime=0;
 var MAXR=10000,MAXS=240;
 function init(){
   ecv=document.getElementById('engineCv');
@@ -12,6 +12,7 @@ function init(){
   if(gcv)gctx=gcv.getContext('2d');
 }
 function safe(n){return (typeof n==='number'&&isFinite(n))?n:0;}
+
 function drawEngine(){var c=ectx,W=ecv.width,H=ecv.height;c.clearRect(0,0,W,H);
 var bg=c.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0e151d');bg.addColorStop(1,'#070a0e');c.fillStyle=bg;c.fillRect(0,0,W,H);
 var t=S.engineType;var drawn=false;
@@ -36,12 +37,107 @@ function updateTemp(){
   var E=S.engines[S.engineType]||S.engines.r4;
   var run=S.running&&!S.stalled&&!S.broken;
   var rpm=safe(S.rpm);
-  if(!run){_temp-=dt*12;}
-  else if(rpm>E.redline*0.9){_temp+=dt*11;}
-  else if(rpm>E.idle*2.5){_temp+=dt*1.3;}
-  else{_temp-=dt*3;}
+  var thr=safe(S.throttle);
+  if(S.broken){_overheatTime=0;return;}
+  if(!run){_temp-=dt*10;}
+  else if(rpm>E.redline*0.9&&thr>0.7){
+    /* Только ПОЛНЫЙ ГАЗ в красной зоне греет по-настоящему */
+    _temp+=dt*2.0;
+  }
+  else if(rpm>E.idle*3&&thr>0.5){
+    _temp+=dt*0.35;
+  }
+  else if(rpm>E.idle*1.5){
+    _temp+=dt*0.05;
+  }
+  else if(thr<0.1){
+    _temp-=dt*2.5;
+  }
+  else{
+    _temp-=dt*0.3;
+  }
   if(_temp<20)_temp=20;
-  if(_temp>110)_temp=110;
+  if(_temp>115)_temp=115;
+  if(_temp>=105){
+    _overheatTime+=dt;
+    if(_overheatTime>8){
+      S.breakEngine('КЛИН МОТОРА — перегрев '+Math.round(_temp)+'°C');
+      _overheatTime=0;
+    }
+  }else if(_temp<98){
+    _overheatTime=Math.max(0,_overheatTime-dt*1.5);
+  }
+}
+
+function drawOilIcon(c,x,y,color){
+  var fill=color==='red'?'#ff5b5b':(color==='yellow'?'#ffc93c':(color==='green'?'#43c98a':'#4a5c70'));
+  c.save();c.translate(x,y);
+  c.fillStyle=fill;
+  c.beginPath();
+  c.moveTo(-7,-1);c.lineTo(-7,-7);c.lineTo(-3,-9);c.lineTo(-3,-10);
+  c.lineTo(3,-10);c.lineTo(3,-7);c.lineTo(6,-7);c.lineTo(8,-4);
+  c.lineTo(8,6);c.lineTo(-7,6);c.closePath();
+  c.fill();
+  c.beginPath();
+  c.moveTo(3,-10);c.lineTo(7,-10);c.lineTo(7,-12);c.lineTo(3,-12);c.closePath();
+  c.fill();
+  c.fillStyle=color==='dim'?'#2a3340':'#0a0e13';
+  c.beginPath();
+  c.moveTo(0,-2);c.quadraticCurveTo(-3,2,0,4);c.quadraticCurveTo(3,2,0,-2);
+  c.fill();
+  c.restore();
+}
+function drawCheckIcon(c,x,y,color){
+  var fill=color==='yellow'?'#ffc93c':(color==='red'?'#ff5b5b':(color==='green'?'#43c98a':'#4a5c70'));
+  c.save();c.translate(x,y);
+  c.fillStyle=fill;
+  c.beginPath();
+  c.moveTo(-9,-5);c.lineTo(-5,-5);c.lineTo(-3,-8);c.lineTo(3,-8);
+  c.lineTo(5,-5);c.lineTo(9,-5);c.lineTo(9,6);c.lineTo(-9,6);c.closePath();
+  c.fill();
+  c.fillStyle=color==='dim'?'#1a232e':'#0a0e13';
+  c.beginPath();
+  c.moveTo(0,-5);c.lineTo(-3,0);c.lineTo(0,0);c.lineTo(-1,5);c.lineTo(3,0);
+  c.lineTo(0,0);c.closePath();
+  c.fill();
+  c.restore();
+}
+function drawFuelIcon(c,x,y,color){
+  var fill=color==='red'?'#ff5b5b':(color==='green'?'#43c98a':(color==='yellow'?'#ffc93c':'#4a5c70'));
+  c.save();c.translate(x,y);
+  c.fillStyle=fill;
+  c.beginPath();
+  c.moveTo(-8,-10);c.lineTo(3,-10);c.lineTo(3,8);c.lineTo(-8,8);c.closePath();
+  c.fill();
+  c.fillStyle=color==='dim'?'#1a232e':'#0a0e13';
+  c.beginPath();c.rect(-6,-7,6,4);c.fill();
+  c.strokeStyle=fill;c.lineWidth=2;
+  c.beginPath();
+  c.moveTo(3,-6);c.quadraticCurveTo(9,-6,9,2);c.stroke();
+  c.fillStyle=fill;
+  c.beginPath();
+  c.moveTo(6,3);c.lineTo(10,3);c.lineTo(10,7);c.lineTo(6,7);c.closePath();
+  c.fill();
+  c.restore();
+}
+function drawTempIcon(c,x,y,color){
+  var fill=color==='red'?'#ff5b5b':(color==='yellow'?'#ffc93c':(color==='green'?'#43c98a':'#4a5c70'));
+  c.save();c.translate(x,y);
+  c.fillStyle=fill;
+  c.beginPath();
+  c.arc(0,5,4.5,0,7);c.fill();
+  c.beginPath();
+  c.rect(-2,-10,4,14);c.fill();
+  if(color!=='dim'){
+    c.fillStyle='#0a0e13';
+    c.beginPath();c.rect(-0.7,-8,3,1.2);c.fill();
+    c.beginPath();c.rect(-0.7,-5,3,1.2);c.fill();
+    c.beginPath();c.rect(-0.7,-2,3,1.2);c.fill();
+    c.beginPath();c.rect(-0.7,1,3,1.2);c.fill();
+    c.fillStyle=fill;
+    c.beginPath();c.rect(-0.7,3,2.2,3);c.fill();
+  }
+  c.restore();
 }
 
 function drawGauge(c,cx,cy,R,value,maxV,redline,label,bigNum){
@@ -95,30 +191,34 @@ function drawGauge(c,cx,cy,R,value,maxV,redline,label,bigNum){
   c.fillText(label,cx,cy-2);
 }
 
-function drawIndicator(c,x,y,color,label){
-  var r=11;
+function drawIndicatorRing(c,x,y,r,color,blinkOn){
   var g=c.createRadialGradient(x-r*.3,y-r*.3,1,x,y,r);
-  if(color==='red'){g.addColorStop(0,'#ff7a7a');g.addColorStop(1,'#8a0a0a');}
-  else if(color==='yellow'){g.addColorStop(0,'#ffe28a');g.addColorStop(1,'#8a6a0a');}
-  else if(color==='green'){g.addColorStop(0,'#7bffb0');g.addColorStop(1,'#0a6a3a');}
+  if(color==='red'){g.addColorStop(0,'#3a1515');g.addColorStop(1,'#1a0808');}
+  else if(color==='yellow'){g.addColorStop(0,'#3a2f10');g.addColorStop(1,'#1a1408');}
+  else if(color==='green'){g.addColorStop(0,'#0f2a1c');g.addColorStop(1,'#08160e');}
   else{g.addColorStop(0,'#232c38');g.addColorStop(1,'#0d1319');}
   c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,7);c.fill();
-  c.strokeStyle=(color==='dim')?'#2a3a4a':'#1a232e';
-  c.lineWidth=1.5;c.stroke();
-  if(color!=='dim'){
-    c.strokeStyle=color==='red'?'#ff9090':(color==='yellow'?'#ffe28a':'#7bffb0');
-    c.lineWidth=1;c.stroke();
+  var ringCol='#2a3a4a';
+  if(color==='red')ringCol=blinkOn===false?'#4a1010':'#ff5b5b';
+  else if(color==='yellow')ringCol=blinkOn===false?'#4a3a10':'#ffc93c';
+  else if(color==='green')ringCol='#43c98a';
+  c.strokeStyle=ringCol;
+  c.lineWidth=color==='dim'?1.5:2;
+  if(color!=='dim'&&blinkOn===false)c.lineWidth=1;
+  c.beginPath();c.arc(x,y,r,0,7);c.stroke();
+  if(color!=='dim'&&blinkOn!==false){
+    c.strokeStyle=ringCol;c.lineWidth=1;c.globalAlpha=0.4;
+    c.beginPath();c.arc(x,y,r+2,0,7);c.stroke();
+    c.globalAlpha=1;
   }
-  c.fillStyle=color==='dim'?'#4a5c70':'#fff';
-  c.font='bold 11px Segoe UI, sans-serif';
-  c.textAlign='center';c.textBaseline='middle';
-  c.fillText(label,x,y+1);
 }
 
 function drawDash(){
   if(!gctx)return;
   updateTemp();
   var c=gctx,W=gcv.width,H=gcv.height;
+  var now=performance.now();
+  var blinkOn=Math.floor(now/350)%2===0;
   c.clearRect(0,0,W,H);
   var bg=c.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#0d1319');bg.addColorStop(1,'#0a0e13');
@@ -149,37 +249,57 @@ function drawDash(){
   c.fillStyle='#4f6277';
   c.font='bold 6px Segoe UI, sans-serif';
   c.fillText('ПЕРЕДАЧА',170,84);
-  c.fillStyle='#43c98a';
+  c.fillStyle=S.running?'#43c98a':'#3d4a58';
   c.font='bold 6px Segoe UI, sans-serif';
   c.fillText('СТАРТ',170,98);
-  c.fillStyle=S.running?'#43c98a':'#3d4a58';
   c.beginPath();c.arc(170,110,3.5,0,7);c.fill();
 
   var pumpColor='dim';
   if(S.ignitionState==='priming')pumpColor='red';
   else if(S.ignitionState==='ready'||S.ignitionState==='running')pumpColor='green';
+
   var oilColor=S.broken?'red':'dim';
   var engColor=S.broken?'yellow':'dim';
-  var tempColor=_temp>85?'red':(_temp>70?'yellow':'dim');
 
-  var iy=152;
-  drawIndicator(c,55,iy,oilColor,'🛢');
-  drawIndicator(c,132,iy,engColor,'⚙');
-  drawIndicator(c,208,iy,pumpColor,'⛽');
-  drawIndicator(c,285,iy,tempColor,'🌡');
+  var tempColor='dim';
+  var tempBlink=true;
+  if(_temp>105){tempColor='red';tempBlink=blinkOn;}
+  else if(_temp>95){tempColor='yellow';tempBlink=blinkOn;}
+  else if(_temp>75){tempColor='green';tempBlink=true;}
+
+  var iy=152,ir=12;
+  drawIndicatorRing(c,52,iy,ir,oilColor,true);
+  drawOilIcon(c,52,iy,oilColor);
+  drawIndicatorRing(c,130,iy,ir,engColor,true);
+  drawCheckIcon(c,130,iy,engColor);
+  drawIndicatorRing(c,208,iy,ir,pumpColor,true);
+  drawFuelIcon(c,208,iy,pumpColor);
+  drawIndicatorRing(c,286,iy,ir,tempColor,tempBlink);
+  drawTempIcon(c,286,iy,tempColor);
 
   c.fillStyle='#3d4a58';
   c.font='bold 6px Segoe UI, sans-serif';
   c.textAlign='center';c.textBaseline='top';
-  c.fillText('МАСЛО',55,iy+14);
-  c.fillText('CHECK',132,iy+14);
-  c.fillText('НАСОС',208,iy+14);
-  c.fillText('ТЕМП',285,iy+14);
+  c.fillText('МАСЛО',52,iy+16);
+  c.fillText('CHECK',130,iy+16);
+  c.fillText('НАСОС',208,iy+16);
+  c.fillText('ТЕМП',286,iy+16);
 
-  c.fillStyle='#3d4a58';
-  c.font='bold 6px Segoe UI, sans-serif';
+  var tempTxtColor='#3d4a58';
+  if(_temp>105)tempTxtColor=blinkOn?'#ff5b5b':'#4a1010';
+  else if(_temp>95)tempTxtColor=blinkOn?'#ffc93c':'#4a3a10';
+  else if(_temp>75)tempTxtColor='#43c98a';
+  c.fillStyle=tempTxtColor;
+  c.font='bold 7px Segoe UI, sans-serif';
   c.textAlign='center';c.textBaseline='top';
-  c.fillText('t°C ' + Math.round(_temp),170,H-10);
+  c.fillText('t° ' + Math.round(_temp) + '°C',170,H-12);
+
+  if(_temp>=105&&S.running&&!S.broken&&blinkOn){
+    c.fillStyle='#ff3030';
+    c.font='bold 9px Segoe UI, sans-serif';
+    c.textAlign='center';c.textBaseline='middle';
+    c.fillText('⚠ ПЕРЕГРЕВ — ОТПУСТИ ГАЗ!',170,130);
+  }
 }
 
 function paint(){
