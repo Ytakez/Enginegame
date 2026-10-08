@@ -120,8 +120,7 @@ S.physics=function(dt){
   var ratio;
   if (E.cvt){
     var vv = Math.abs(S.speed);
-    // от 10 на старте → ~5 на 60 км/ч
-    var r = 10 / (1 + vv * 0.05);
+    var r = 10 / (1 + vv * 0.06);
     if (S.gear === 0) ratio = 0;
     else if (S.gear === -1) ratio = -r;
     else ratio = r;
@@ -131,15 +130,15 @@ S.physics=function(dt){
     else ratio=gearRatios[S.gear]*finalDrive;
   }
 
-  /* ===== СЦЕПЛЕНИЕ ===== */
+  /* ===== СЦЕПЛЕНИЕ / CVT ===== */
   var eng;
   if (E.auto){
     if (S.gear === 0 || S.stalled || !S.running){
       eng = 0;
     } else if (E.cvt){
-      var engageRPM = E.idle + 200;
-      var fullRPM = E.idle + 1300;
-      eng = Math.max(0, Math.min(1, (S.rpm - engageRPM) / (fullRPM - engageRPM)));
+      // Плавное схватывание: 0 при idle, 1 при idle + 40% диапазона
+      var range = E.idle * 0.5;
+      eng = Math.max(0, Math.min(1, (S.rpm - E.idle * 1.05) / range));
     } else {
       eng = 1;
     }
@@ -162,7 +161,7 @@ S.physics=function(dt){
     if (thr < 0.05){
       var err = E.idle - S.rpm;
       if (err > 0) Te += err * 0.8;
-      else Te += err * 0.5;
+      else Te += err * 0.4;
       Te += friction;
     } else {
       if (S.rpm < E.idle * 0.7) Te += (E.idle * 0.7 - S.rpm) * 0.5;
@@ -173,11 +172,12 @@ S.physics=function(dt){
   var slip = omegaEngine - omegaDirect;
   var Tc;
   if (E.cvt){
-    /* Передаём момент двигателя напрямую + небольшое демпфирование */
+    // Момент передаётся пропорционально схватыванию, ограничен моментом двигателя
     var target = Te * eng;
-    var damp = slip * 3;
-    var maxT = Math.max(5, E.maxTorque * 1.1);
+    var damp = slip * 0.15;   // очень мягкое демпфирование
     Tc = target + damp;
+    // Ограничение: не больше момента двигателя + запас
+    var maxT = Math.max(3, Math.abs(Te) + 8);
     if (Tc >  maxT) Tc =  maxT;
     if (Tc < -maxT) Tc = -maxT;
     if (eng < 0.01) Tc = 0;
@@ -187,7 +187,7 @@ S.physics=function(dt){
     if (eng < 0.001) Tc = 0;
   }
 
-  var Iengine = E.cvt ? 0.25 : 0.55;
+  var Iengine = E.cvt ? 0.4 : 0.55;
   var dE=(Te-Tc)/Iengine;
 
   /* ===== СОПРОТИВЛЕНИЕ ===== */
