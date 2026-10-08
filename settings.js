@@ -14,8 +14,8 @@ var ENGINES_INFO=[
   {id:'bluebird',label:'🚗 2.0 CA20',sub:'4 цилиндра · бензин · Nissan Bluebird 1990'},
   {id:'galant6',label:'🚘 2.0 V6',sub:'6 цилиндров · V-образный · Galant 6'},
   {id:'r4',label:'🚗 R4 (рядная)',sub:'4 цилиндра · в ряд · механика'},
-  {id:'v8',label:'🏎️ V10',sub:'12 цилиндров · V-образный'},
-  {id:'v16',label:'🔥 V20',sub:'20 цилиндров · монстр'}
+  {id:'v12',label:'🏎️ V12',sub:'12 цилиндров · V-образный'},
+  {id:'v22',label:'🔥 V22',sub:'22 цилиндров · монстр'}
 ];
 var curLang='ru';try{curLang=localStorage.getItem(LANG_KEY)||'ru';}catch(e){}
 if(!LANGS[curLang])curLang='ru';
