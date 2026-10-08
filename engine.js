@@ -9,7 +9,6 @@ window.addEventListener('error',function(ev){
 });
 if(!S){showErr('physics.js не загрузился');return;}
 
-/* ПЕДАЛИ */
 var pedalEls={clutch:document.getElementById('pClutch'),brake:document.getElementById('pBrake'),gas:document.getElementById('pGas')};
 var activeTouches={};
 function pedalPress(n){ if(S.pressed[n])return; S.pressed[n]=true; if(pedalEls[n])pedalEls[n].classList.add('active'); }
@@ -44,9 +43,10 @@ Object.keys(pedalEls).forEach(function(n){
 window.addEventListener('blur',pedalReleaseAll);
 document.addEventListener('visibilitychange',function(){if(document.hidden)pedalReleaseAll();});
 
-/* ПЕРЕДАЧИ */
 var gearBtns=Array.prototype.slice.call(document.querySelectorAll('.gbtn'));
 S.setGear=function(g){
+  var E = S.engines[S.engineType];
+  if (E && E.auto) return;
   if(S.broken)return;
   if(g===S.gear)return;
   S.gear=g;
@@ -58,13 +58,17 @@ gearBtns.forEach(function(b){
   b.addEventListener('click',function(e){e.preventDefault();S.setGear(Number(b.dataset.g));});
 });
 
-/* ЗАЖИГАНИЕ */
 var ignBtn=document.getElementById('ignBtn');
 var ignLock=false;
 function toggleIgnition(){
   if(S.broken){ try{if(navigator.vibrate)navigator.vibrate([50,50,50]);}catch(e){} return; }
   if(S.running&&!S.stalled){ S.running=false; S.stalled=true; ignBtn.classList.remove('on'); }
-  else { S.stalled=false; S.running=true; S.rpm=900; ignBtn.classList.add('on'); }
+  else {
+    S.stalled=false; S.running=true;
+    var E = S.engines[S.engineType];
+    S.rpm = E.idle;
+    ignBtn.classList.add('on');
+  }
   try{if(navigator.vibrate)navigator.vibrate(12);}catch(e){}
 }
 if(ignBtn) ignBtn.addEventListener('click',function(e){
@@ -74,11 +78,45 @@ if(ignBtn) ignBtn.addEventListener('click',function(e){
   setTimeout(function(){ignLock=false;},350);
 });
 
-/* РЕМОНТ */
 var repairBtn=document.getElementById('repairBtn');
 if(repairBtn) repairBtn.addEventListener('click',function(e){e.preventDefault();S.repair();});
 
-/* ГЛАВНЫЙ ЦИКЛ */
+/* ===== УПРАВЛЕНИЕ ВИДИМОСТЬЮ ЭЛЕМЕНТОВ ПОД ТИП ДВИГАТЕЛЯ ===== */
+var lastEngine = null;
+function updateEngineUI(){
+  var E = S.engines[S.engineType];
+  if (!E) return;
+  if (lastEngine === S.engineType) return;
+  lastEngine = S.engineType;
+
+  var gears = document.querySelector('.gears');
+  var clutch = document.getElementById('pClutch');
+  var pedals = document.querySelector('.pedals');
+
+  if (E.auto){
+    document.body.classList.add('auto-mode');
+    if (gears) gears.style.display = 'none';
+    if (clutch) clutch.style.display = 'none';
+    if (pedals) pedals.style.gridTemplateColumns = '1fr 1fr';
+  } else {
+    document.body.classList.remove('auto-mode');
+    if (gears) gears.style.display = '';
+    if (clutch) clutch.style.display = '';
+    if (pedals) pedals.style.gridTemplateColumns = '';
+  }
+
+  // обновить бейдж
+  var badge = document.getElementById('engBadge');
+  if (badge && E.name) badge.textContent = E.name;
+
+  // обновить readouts "Передача"
+  var gv = document.getElementById('gearVal');
+  if (gv){
+    if (E.auto) gv.textContent = 'A';
+    else gv.textContent = (S.gear===0?'N':(S.gear===-1?'R':String(S.gear)));
+  }
+}
+
 var acc=0, last=performance.now(), FIXED=1/240;
 var tSm=0,bSm=0,cSm=0;
 var spdEl=document.getElementById('spdVal');
@@ -94,6 +132,8 @@ function loop(now){
   var frame=(now-last)/1000; last=now;
   if(frame>0.25)frame=0.25;
   if(frame<0)frame=0;
+
+  updateEngineUI();
 
   tSm=smoothStep(tSm,S.pressed.gas?1:0,4.5,7.0,frame);
   bSm=smoothStep(bSm,S.pressed.brake?1:0,5.0,7.0,frame);
@@ -117,6 +157,6 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 
-S.setGear(0);
+S.setGear(S.engines[S.engineType].auto ? 1 : 0);
 requestAnimationFrame(loop);
 })();
