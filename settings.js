@@ -39,6 +39,7 @@ var LANGS = {
 var ENGINES_INFO = [
   { id:'scooter', label:'🛵 Скутер (S1)',       sub:'1 цилиндр · 4-тактный · АКПП · 50 cc' },
   { id:'tdi',     label:'🚐 1.9 TDI',           sub:'4 цилиндра · турбодизель · Passat B5' },
+  { id:'mt82',    label:'🚜 МТЗ-82 (Д-240)',   sub:'4 цилиндра · тракторный дизель · 4,75 л' },
   { id:'r4',      label:'🚗 R4 (рядная)',       sub:'4 цилиндра · в ряд · механика' },
   { id:'v8',      label:'🏎️ V8',               sub:'8 цилиндров · V-образный' },
   { id:'v16',     label:'🔥 V16',              sub:'16 цилиндров · мощный' }
@@ -56,14 +57,12 @@ function t(key){
 function applyLang(){
   var header = document.querySelector('header');
   if (header) header.textContent = t('title');
-
   var map = { 'pClutch':'clutch', 'pBrake':'brake', 'pGas':'gas', 'ignBtn':'ignition' };
   for (var id in map){
     var el = document.getElementById(id);
     if (!el) continue;
-    if (el.tagName === 'BUTTON'){
-      el.textContent = t(map[id]);
-    } else {
+    if (el.tagName === 'BUTTON'){ el.textContent = t(map[id]); }
+    else {
       var spans = el.querySelectorAll('span');
       for (var i=0; i<spans.length; i++){
         if (spans[i].classList.contains('icon')) continue;
@@ -72,7 +71,6 @@ function applyLang(){
       }
     }
   }
-
   var roLabels = document.querySelectorAll('.ro .lbl');
   if (roLabels.length >= 2){
     roLabels[0].textContent = t('speed');
