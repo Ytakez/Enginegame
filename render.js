@@ -4,7 +4,7 @@ var S=window.S;var RB=window.RB;var RE=window.RE;
 if(!S||!RB||!RE)return;
 var ecv,ectx,gcv,gctx;
 var _temp=20,_lastT=0,_overheatTime=0;
-var MAXR=10000,MAXS=240;
+var MAXR=10500,MAXS=240;
 function init(){
   ecv=document.getElementById('engineCv');
   if(ecv)ectx=ecv.getContext('2d');
@@ -13,21 +13,29 @@ function init(){
 }
 function safe(n){return (typeof n==='number'&&isFinite(n))?n:0;}
 
-function drawEngine(){var c=ectx,W=ecv.width,H=ecv.height;c.clearRect(0,0,W,H);
-var bg=c.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0e151d');bg.addColorStop(1,'#070a0e');c.fillStyle=bg;c.fillRect(0,0,W,H);
-var t=S.engineType;var drawn=false;
-try{
-if(t==='scooter'&&typeof RE.drawScooter==='function'){RE.drawScooter(c,S);drawn=true;}
-else if(t==='tdi'&&typeof RE.drawTDI==='function'){RE.drawTDI(c,S);drawn=true;}
-else if(t==='mt82'&&typeof RE.drawMTZ==='function'){RE.drawMTZ(c,S);drawn=true;}
-else if(t==='passatb3'&&typeof RE.drawPassatB3==='function'){RE.drawPassatB3(c,S);drawn=true;}
-else if(t==='bluebird'&&typeof RE.drawBluebird==='function'){RE.drawBluebird(c,S);drawn=true;}
-else if(t==='galant6'&&typeof RE.drawGalant6==='function'){RE.drawGalant6(c,S);drawn=true;}
-else if(t==='v8'&&typeof RE.drawV==='function'){RE.drawV(c,S,10);drawn=true;}
-else if(t==='v16'&&typeof RE.drawV==='function'){RE.drawV(c,S,20);drawn=true;}
-}catch(err){console.log(err);}
-if(!drawn){if(typeof RE.drawR4==='function'){try{RE.drawR4(c,S);}catch(e){}}else{c.fillStyle='#5d7189';c.font='bold 14px Segoe UI';c.textAlign='center';c.fillText('Двигатель не загружен',W/2,H/2);}}
-if(S.broken){c.fillStyle='rgba(200,20,20,0.06)';c.fillRect(0,0,W,H);}}
+function drawEngine(){
+  var c=ectx,W=ecv.width,H=ecv.height;
+  c.clearRect(0,0,W,H);
+  var bg=c.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0e151d');bg.addColorStop(1,'#070a0e');
+  c.fillStyle=bg;c.fillRect(0,0,W,H);
+  var t=S.engineType;var drawn=false;
+  try{
+    if(t==='scooter'&&typeof RE.drawScooter==='function'){RE.drawScooter(c,S);drawn=true;}
+    else if(t==='tdi'&&typeof RE.drawTDI==='function'){RE.drawTDI(c,S);drawn=true;}
+    else if(t==='mt82'&&typeof RE.drawMTZ==='function'){RE.drawMTZ(c,S);drawn=true;}
+    else if(t==='passatb3'&&typeof RE.drawPassatB3==='function'){RE.drawPassatB3(c,S);drawn=true;}
+    else if(t==='bluebird'&&typeof RE.drawBluebird==='function'){RE.drawBluebird(c,S);drawn=true;}
+    else if(t==='galant6'&&typeof RE.drawGalant6==='function'){RE.drawGalant6(c,S);drawn=true;}
+    else if(t==='v8'&&typeof RE.drawV==='function'){RE.drawV(c,S,12);drawn=true;}
+    else if(t==='v16'&&typeof RE.drawV==='function'){RE.drawV(c,S,22);drawn=true;}
+  }catch(err){console.log('draw error:',err);}
+  if(!drawn){
+    if(typeof RE.drawR4==='function'){try{RE.drawR4(c,S);}catch(e){}}
+    else{c.fillStyle='#5d7189';c.font='bold 14px Segoe UI';c.textAlign='center';c.fillText('Двигатель не загружен',W/2,H/2);}
+  }
+  if(S.broken){c.fillStyle='rgba(200,20,20,0.06)';c.fillRect(0,0,W,H);}
+}
 
 function updateTemp(){
   var now=performance.now();
@@ -40,33 +48,17 @@ function updateTemp(){
   var thr=safe(S.throttle);
   if(S.broken){_overheatTime=0;return;}
   if(!run){_temp-=dt*10;}
-  else if(rpm>E.redline*0.9&&thr>0.7){
-    /* Только ПОЛНЫЙ ГАЗ в красной зоне греет по-настоящему */
-    _temp+=dt*2.0;
-  }
-  else if(rpm>E.idle*3&&thr>0.5){
-    _temp+=dt*0.35;
-  }
-  else if(rpm>E.idle*1.5){
-    _temp+=dt*0.05;
-  }
-  else if(thr<0.1){
-    _temp-=dt*2.5;
-  }
-  else{
-    _temp-=dt*0.3;
-  }
+  else if(rpm>E.redline*0.9&&thr>0.7){_temp+=dt*2.0;}
+  else if(rpm>E.idle*3&&thr>0.5){_temp+=dt*0.35;}
+  else if(rpm>E.idle*1.5){_temp+=dt*0.05;}
+  else if(thr<0.1){_temp-=dt*2.5;}
+  else{_temp-=dt*0.3;}
   if(_temp<20)_temp=20;
   if(_temp>115)_temp=115;
   if(_temp>=105){
     _overheatTime+=dt;
-    if(_overheatTime>8){
-      S.breakEngine('КЛИН МОТОРА — перегрев '+Math.round(_temp)+'°C');
-      _overheatTime=0;
-    }
-  }else if(_temp<98){
-    _overheatTime=Math.max(0,_overheatTime-dt*1.5);
-  }
+    if(_overheatTime>8){S.breakEngine('КЛИН МОТОРА — перегрев '+Math.round(_temp)+'°C');_overheatTime=0;}
+  }else if(_temp<98){_overheatTime=Math.max(0,_overheatTime-dt*1.5);}
 }
 
 function drawOilIcon(c,x,y,color){
@@ -76,15 +68,10 @@ function drawOilIcon(c,x,y,color){
   c.beginPath();
   c.moveTo(-7,-1);c.lineTo(-7,-7);c.lineTo(-3,-9);c.lineTo(-3,-10);
   c.lineTo(3,-10);c.lineTo(3,-7);c.lineTo(6,-7);c.lineTo(8,-4);
-  c.lineTo(8,6);c.lineTo(-7,6);c.closePath();
-  c.fill();
-  c.beginPath();
-  c.moveTo(3,-10);c.lineTo(7,-10);c.lineTo(7,-12);c.lineTo(3,-12);c.closePath();
-  c.fill();
+  c.lineTo(8,6);c.lineTo(-7,6);c.closePath();c.fill();
+  c.beginPath();c.moveTo(3,-10);c.lineTo(7,-10);c.lineTo(7,-12);c.lineTo(3,-12);c.closePath();c.fill();
   c.fillStyle=color==='dim'?'#2a3340':'#0a0e13';
-  c.beginPath();
-  c.moveTo(0,-2);c.quadraticCurveTo(-3,2,0,4);c.quadraticCurveTo(3,2,0,-2);
-  c.fill();
+  c.beginPath();c.moveTo(0,-2);c.quadraticCurveTo(-3,2,0,4);c.quadraticCurveTo(3,2,0,-2);c.fill();
   c.restore();
 }
 function drawCheckIcon(c,x,y,color){
@@ -93,41 +80,30 @@ function drawCheckIcon(c,x,y,color){
   c.fillStyle=fill;
   c.beginPath();
   c.moveTo(-9,-5);c.lineTo(-5,-5);c.lineTo(-3,-8);c.lineTo(3,-8);
-  c.lineTo(5,-5);c.lineTo(9,-5);c.lineTo(9,6);c.lineTo(-9,6);c.closePath();
-  c.fill();
+  c.lineTo(5,-5);c.lineTo(9,-5);c.lineTo(9,6);c.lineTo(-9,6);c.closePath();c.fill();
   c.fillStyle=color==='dim'?'#1a232e':'#0a0e13';
-  c.beginPath();
-  c.moveTo(0,-5);c.lineTo(-3,0);c.lineTo(0,0);c.lineTo(-1,5);c.lineTo(3,0);
-  c.lineTo(0,0);c.closePath();
-  c.fill();
+  c.beginPath();c.moveTo(0,-5);c.lineTo(-3,0);c.lineTo(0,0);c.lineTo(-1,5);c.lineTo(3,0);c.lineTo(0,0);c.closePath();c.fill();
   c.restore();
 }
 function drawFuelIcon(c,x,y,color){
   var fill=color==='red'?'#ff5b5b':(color==='green'?'#43c98a':(color==='yellow'?'#ffc93c':'#4a5c70'));
   c.save();c.translate(x,y);
   c.fillStyle=fill;
-  c.beginPath();
-  c.moveTo(-8,-10);c.lineTo(3,-10);c.lineTo(3,8);c.lineTo(-8,8);c.closePath();
-  c.fill();
+  c.beginPath();c.moveTo(-8,-10);c.lineTo(3,-10);c.lineTo(3,8);c.lineTo(-8,8);c.closePath();c.fill();
   c.fillStyle=color==='dim'?'#1a232e':'#0a0e13';
   c.beginPath();c.rect(-6,-7,6,4);c.fill();
   c.strokeStyle=fill;c.lineWidth=2;
-  c.beginPath();
-  c.moveTo(3,-6);c.quadraticCurveTo(9,-6,9,2);c.stroke();
+  c.beginPath();c.moveTo(3,-6);c.quadraticCurveTo(9,-6,9,2);c.stroke();
   c.fillStyle=fill;
-  c.beginPath();
-  c.moveTo(6,3);c.lineTo(10,3);c.lineTo(10,7);c.lineTo(6,7);c.closePath();
-  c.fill();
+  c.beginPath();c.moveTo(6,3);c.lineTo(10,3);c.lineTo(10,7);c.lineTo(6,7);c.closePath();c.fill();
   c.restore();
 }
 function drawTempIcon(c,x,y,color){
   var fill=color==='red'?'#ff5b5b':(color==='yellow'?'#ffc93c':(color==='green'?'#43c98a':'#4a5c70'));
   c.save();c.translate(x,y);
   c.fillStyle=fill;
-  c.beginPath();
-  c.arc(0,5,4.5,0,7);c.fill();
-  c.beginPath();
-  c.rect(-2,-10,4,14);c.fill();
+  c.beginPath();c.arc(0,5,4.5,0,7);c.fill();
+  c.beginPath();c.rect(-2,-10,4,14);c.fill();
   if(color!=='dim'){
     c.fillStyle='#0a0e13';
     c.beginPath();c.rect(-0.7,-8,3,1.2);c.fill();
@@ -260,7 +236,6 @@ function drawDash(){
 
   var oilColor=S.broken?'red':'dim';
   var engColor=S.broken?'yellow':'dim';
-
   var tempColor='dim';
   var tempBlink=true;
   if(_temp>105){tempColor='red';tempBlink=blinkOn;}
