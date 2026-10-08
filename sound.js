@@ -38,13 +38,7 @@ function init(){
   var clatter=ctx.createBufferSource();clatter.buffer=buf;clatter.loop=true;
   var cf=ctx.createBiquadFilter();cf.type='bandpass';cf.frequency.value=2400;cf.Q.value=2.5;
   var cG=ctx.createGain();cG.gain.value=0;clatter.connect(cf).connect(cG).connect(hc);clatter.start();
-  var pumpBuf=ctx.createBuffer(1,2*ctx.sampleRate,ctx.sampleRate);
-  var pd=pumpBuf.getChannelData(0);
-  for(var i3=0;i3<pd.length;i3++)pd[i3]=(Math.random()*2-1)*0.5;
-  var pumpNoise=ctx.createBufferSource();pumpNoise.buffer=pumpBuf;pumpNoise.loop=true;
-  var pnf=ctx.createBiquadFilter();pnf.type='lowpass';pnf.frequency.value=380;pnf.Q.value=2;
-  var pnG=ctx.createGain();pnG.gain.value=0;pumpNoise.connect(pnf).connect(pnG).connect(master);pumpNoise.start();
-  nodes={master:master,lp:lp,eg:eg,o1:o1,o1b:o1b,o2:o2,oS:oS,oS2:oS2,nG:nG,nG2:nG2,nf:nf,nf2:nf2,growl:growl,hs:hs,bp:bp,g1:g1,g1b:g1b,g2:g2,gS:gS,gS2:gS2,oTurbo:oTurbo,gTurbo:gTurbo,cG:cG,cf:cf,pnG:pnG,pnf:pnf};
+  nodes={master:master,lp:lp,eg:eg,o1:o1,o1b:o1b,o2:o2,oS:oS,oS2:oS2,nG:nG,nG2:nG2,nf:nf,nf2:nf2,growl:growl,hs:hs,bp:bp,g1:g1,g1b:g1b,g2:g2,gS:gS,gS2:gS2,oTurbo:oTurbo,gTurbo:gTurbo,cG:cG,cf:cf};
   return true;
 }
 function update(){
@@ -75,8 +69,7 @@ function update(){
     nodes.o2.frequency.setTargetAtTime(fireHz*2,t,sm);
     nodes.oS.frequency.setTargetAtTime(fireHz*0.5,t,sm);
     nodes.oS2.frequency.setTargetAtTime(fireHz*0.25,t,sm);
-    var bD=0.16+thr*0.22;
-    var lD=bD*(0.8+rpmF*0.5);
+    var bD=0.16+thr*0.22;var lD=bD*(0.8+rpmF*0.5);
     if(rpm>E.redline*0.9)lD*=1.05;
     if(rpm>E.redline)lD*=0.85;
     nodes.eg.gain.setTargetAtTime(lD,t,0.05);
@@ -92,8 +85,7 @@ function update(){
     nodes.oTurbo.frequency.setTargetAtTime(tF,t,0.15);
     var tOn=Math.max(0,rpmF-0.15);
     nodes.gTurbo.gain.setTargetAtTime(tOn*tOn*0.055*(0.4+thr*0.6),t,0.12);
-    var lpF=350+rpm*0.12+thr*400+rpmF2*500;
-    if(lpF>2800)lpF=2800;
+    var lpF=350+rpm*0.12+thr*400+rpmF2*500;if(lpF>2800)lpF=2800;
     nodes.lp.frequency.setTargetAtTime(lpF,t,0.05);
     nodes.lp.Q.setTargetAtTime(2.8+rpmF2*3,t,0.05);
     nodes.growl.frequency.setTargetAtTime(110+rpm*0.05,t,0.06);
@@ -112,8 +104,7 @@ function update(){
       nodes.cf.frequency.setTargetAtTime(1600+rpm*0.4+thr*500,t,0.04);
       nodes.gS.gain.setTargetAtTime(2.4,t,0.04);
       nodes.gS2.gain.setTargetAtTime(1.6,t,0.04);
-      var lpTr=280+rpm*0.08+thr*300;
-      if(lpTr>2000)lpTr=2000;
+      var lpTr=280+rpm*0.08+thr*300;if(lpTr>2000)lpTr=2000;
       nodes.lp.frequency.setTargetAtTime(lpTr,t,0.04);
       nodes.lp.Q.setTargetAtTime(3.5+rpmF*2.5,t,0.04);
       nodes.growl.frequency.setTargetAtTime(80+rpm*0.03,t,0.05);
@@ -128,8 +119,7 @@ function update(){
     nodes.o2.frequency.setTargetAtTime(fireHz*(isV6?3.5:3),t,sm);
     nodes.oS.frequency.setTargetAtTime(fireHz*0.5,t,sm);
     nodes.oS2.frequency.setTargetAtTime(fireHz*0.25,t,sm);
-    var bJ=0.09+thr*0.26;
-    var lJ=bJ*(0.5+rpmF*0.95);
+    var bJ=0.09+thr*0.26;var lJ=bJ*(0.5+rpmF*0.95);
     if(rpm>E.redline*0.9)lJ*=1.12;
     if(rpm>E.redline)lJ*=0.75;
     nodes.eg.gain.setTargetAtTime(lJ,t,0.04);
@@ -137,8 +127,7 @@ function update(){
     nodes.nf.frequency.setTargetAtTime(1400+rpm*1.2,t,0.05);
     nodes.nG2.gain.setTargetAtTime(Math.max(0,rpmF-0.6)*0.08,t,0.05);
     nodes.nf2.frequency.setTargetAtTime(3500+rpm*1.5,t,0.05);
-    var lpJ=(isV6?550:750)+rpm*0.18+thr*900;
-    if(lpJ>4500)lpJ=4500;
+    var lpJ=(isV6?550:750)+rpm*0.18+thr*900;if(lpJ>4500)lpJ=4500;
     nodes.lp.frequency.setTargetAtTime(lpJ,t,0.05);
     nodes.lp.Q.setTargetAtTime(1.2+rpmF2*2.5,t,0.05);
     nodes.growl.frequency.setTargetAtTime((isV6?120:150)+rpm*0.04,t,0.06);
@@ -188,7 +177,7 @@ function update(){
   nodes.gS.gain.setTargetAtTime(E.subGain,t,0.05);
   nodes.gS2.gain.setTargetAtTime(E.subGain*0.6,t,0.05);
 }
-function starter(){
+function playStarter(){
   if(!ctx||muted)return;
   var E=S.engines[S.engineType];
   var isScooter=S.engineType==='scooter';
@@ -207,7 +196,7 @@ function starter(){
   o.connect(f).connect(d).connect(g).connect(ctx.destination);
   o.start(t);o.stop(t+(isScooter?0.55:0.9));
 }
-function fuelPumpSound(){
+function playFuelPump(){
   if(!ctx||muted)return;
   var t=ctx.currentTime;
   var o=ctx.createOscillator();o.type='sine';
@@ -217,19 +206,24 @@ function fuelPumpSound(){
   o.frequency.linearRampToValueAtTime(75,t+1.45);
   var g=ctx.createGain();
   g.gain.setValueAtTime(0,t);
-  g.gain.linearRampToValueAtTime(0.09,t+0.1);
-  g.gain.setValueAtTime(0.09,t+1.3);
+  g.gain.linearRampToValueAtTime(0.10,t+0.1);
+  g.gain.setValueAtTime(0.10,t+1.3);
   g.gain.linearRampToValueAtTime(0,t+1.5);
   var f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=250;
   o.connect(f).connect(g).connect(ctx.destination);
   o.start(t);o.stop(t+1.55);
-  if(nodes&&nodes.pnG){
-    nodes.pnG.gain.cancelScheduledValues(t);
-    nodes.pnG.gain.setValueAtTime(0,t);
-    nodes.pnG.gain.linearRampToValueAtTime(0.05,t+0.1);
-    nodes.pnG.gain.setValueAtTime(0.05,t+1.3);
-    nodes.pnG.gain.linearRampToValueAtTime(0,t+1.5);
-  }
+  var nBuf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate);
+  var nd=nBuf.getChannelData(0);
+  for(var i=0;i<nd.length;i++)nd[i]=(Math.random()*2-1)*0.7;
+  var ns=ctx.createBufferSource();ns.buffer=nBuf;ns.loop=true;
+  var nf2=ctx.createBiquadFilter();nf2.type='bandpass';nf2.frequency.value=320;nf2.Q.value=1.5;
+  var ng=ctx.createGain();
+  ng.gain.setValueAtTime(0,t);
+  ng.gain.linearRampToValueAtTime(0.06,t+0.1);
+  ng.gain.setValueAtTime(0.06,t+1.3);
+  ng.gain.linearRampToValueAtTime(0,t+1.5);
+  ns.connect(nf2).connect(ng).connect(ctx.destination);
+  ns.start(t);ns.stop(t+1.55);
 }
 function resume(){
   if(!ctx){if(!init())return;}
@@ -238,14 +232,6 @@ function resume(){
 document.addEventListener('touchstart',resume,{passive:true});
 document.addEventListener('mousedown',resume);
 document.addEventListener('keydown',resume);
-var ignBtn=document.getElementById('ignBtn');
-if(ignBtn)ignBtn.addEventListener('click',function(){
-  resume();
-  setTimeout(function(){
-    if(S.running||S.stalled&&S.rpm>0)starter();
-    else if(!S.running&&!S.fuelPrimed&&S.ignitionOn)fuelPumpSound();
-  },50);
-});
 function setMuted(v){
   muted=!!v;
   if(muted&&nodes&&ctx){
@@ -255,13 +241,15 @@ function setMuted(v){
     nodes.nG2.gain.setTargetAtTime(0,t,0.05);
     nodes.cG.gain.setTargetAtTime(0,t,0.05);
     nodes.gTurbo.gain.setTargetAtTime(0,t,0.05);
-    if(nodes.pnG)nodes.pnG.gain.setTargetAtTime(0,t,0.05);
   }
   try{localStorage.setItem('dvs_muted',muted?'1':'0');}catch(e){}
 }
 function isMuted(){return muted;}
 function toggleMute(){setMuted(!muted);return muted;}
-window.DVS_SOUND={setMuted:setMuted,isMuted:isMuted,toggleMute:toggleMute,resume:resume};
+window.DVS_SOUND={
+  setMuted:setMuted,isMuted:isMuted,toggleMute:toggleMute,resume:resume,
+  starter:playStarter,fuelPump:playFuelPump
+};
 function loop(){update();requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
 })();
