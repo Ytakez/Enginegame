@@ -5,10 +5,8 @@ function initMenu(){
   var S = window.S;
   if (!S) { setTimeout(initMenu, 100); return; }
 
-  var btns = document.querySelectorAll('.engbtn');
-  if (!btns.length) return;
-
-  var list = Array.prototype.slice.call(btns);
+  var list = Array.prototype.slice.call(document.querySelectorAll('.engbtn'));
+  if (!list.length) return;
 
   function paint(type){
     list.forEach(function(b){
@@ -22,12 +20,18 @@ function initMenu(){
       var type = b.dataset.eng;
       if (!type) return;
       if (S.setEngine) S.setEngine(type);
-      S.engineType = type;
-      try{ localStorage.setItem('dvs_engine', type); }catch(err){}
       paint(type);
       try{ if(navigator.vibrate) navigator.vibrate(10); }catch(err){}
     });
   });
+
+  // очистить старое значение из localStorage (v6/v12) и записать текущее
+  try {
+    var old = localStorage.getItem('dvs_engine');
+    if (old && old !== 'r4' && old !== 'v8' && old !== 'v16'){
+      localStorage.removeItem('dvs_engine');
+    }
+  } catch(err){}
 
   paint(S.engineType || 'r4');
 }
