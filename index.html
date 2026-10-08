@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="launchericon-192x192.png">
 <link rel="shortcut icon" href="launchericon-96x96.png">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css?v=300000">
+<link rel="stylesheet" href="style.css?v=400000">
 <style>
 .gears-auto{display:none;gap:6px;background:#0d1319;border:1px solid #2a3a4c;border-radius:10px;padding:6px}
 body.auto-mode .gears-auto{display:grid;grid-template-columns:repeat(3,1fr)}
@@ -31,7 +31,7 @@ body.auto-mode #gearsManual{display:none}
 .gbtn[data-g="1"]{grid-area:g1}.gbtn[data-g="2"]{grid-area:g2}
 .gbtn[data-g="3"]{grid-area:g3}.gbtn[data-g="4"]{grid-area:g4}
 .gbtn[data-g="5"]{grid-area:g5}.gbtn[data-g="6"]{grid-area:g6}
-.ignbtn{width:100%;height:40px;border-radius:10px;border:1px solid #2c4a63;background:linear-gradient(180deg,#1d2f3f,#101a23);color:#8fd8ff;font:800 12px/1 inherit;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;touch-action:manipulation}
+.ignbtn{width:100%;height:40px;border-radius:10px;border:1px solid #2c4a63;background:linear-gradient(180deg,#1d2f3f,#101a23);color:#8fd8ff;font:800 12px/1 inherit;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 .ignbtn.on{background:linear-gradient(180deg,#2b7a56,#1c5a3d);border-color:#43c98a;color:#e6fff3}
 #ignBtn.start{background:linear-gradient(180deg,#c98a2b,#7a5a1a);border-color:#ffc93c;color:#fff;font-weight:900;letter-spacing:3px;box-shadow:0 0 20px rgba(255,201,60,.5)}
 #view3dBtn{position:absolute;top:8px;right:8px;z-index:20;padding:6px 12px;border-radius:20px;border:1px solid #2c4a63;background:rgba(20,28,38,.9);color:#8fd8ff;font:800 11px/1 inherit;letter-spacing:1px;cursor:pointer;touch-action:manipulation}
@@ -87,22 +87,22 @@ body.auto-mode #gearsManual{display:none}
 <div id="breakBanner"></div>
 <div id="err"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="physics.js?v=300000" defer></script>
-<script src="render-base.js?v=300000" defer></script>
-<script src="re-1.js?v=300000" defer></script>
-<script src="re-2.js?v=300000" defer></script>
-<script src="re-3.js?v=300000" defer></script>
-<script src="re-4.js?v=300000" defer></script>
-<script src="re-5.js?v=300000" defer></script>
-<script src="re-6.js?v=300000" defer></script>
-<script src="render.js?v=300000" defer></script>
-<script src="engine.js?v=300000" defer></script>
-<script src="sound.js?v=300000" defer></script>
-<script src="menu.js?v=300000" defer></script>
-<script src="settings.js?v=300000" defer></script>
-<script src="view3d.js?v=300000" defer></script>
-<script src="view3d-build.js?v=300000" defer></script>
-<script src="maint.js?v=300000" defer></script>
+<script src="physics.js?v=400000" defer></script>
+<script src="render-base.js?v=400000" defer></script>
+<script src="re-1.js?v=400000" defer></script>
+<script src="re-2.js?v=400000" defer></script>
+<script src="re-3.js?v=400000" defer></script>
+<script src="re-4.js?v=400000" defer></script>
+<script src="re-5.js?v=400000" defer></script>
+<script src="re-6.js?v=400000" defer></script>
+<script src="render.js?v=400000" defer></script>
+<script src="engine.js?v=400000" defer></script>
+<script src="sound.js?v=400000" defer></script>
+<script src="menu.js?v=400000" defer></script>
+<script src="settings.js?v=400000" defer></script>
+<script src="view3d.js?v=400000" defer></script>
+<script src="view3d-build.js?v=400000" defer></script>
+<script src="maint.js?v=400000" defer></script>
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(function(regs){
