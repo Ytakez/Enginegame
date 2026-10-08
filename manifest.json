@@ -13,21 +13,21 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "Icon.svg",
+      "src": "Icon.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "Icon.svg",
+      "src": "Icon.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "Icon.svg",
+      "src": "Icon.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
