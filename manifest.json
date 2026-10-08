@@ -1,7 +1,8 @@
 {
+  "id": "/Enginegame/",
   "name": "ДВС — Симулятор двигателя",
   "short_name": "ДВС Симулятор",
-  "description": "Интерактивный симулятор двигателя внутреннего сгорания: R4, V6, V10, V20, дизели, турбо, трактор МТЗ-82. Заводи, газуй, переключай передачи, ломай и ремонтируй.",
+  "description": "Интерактивный симулятор двигателя внутреннего сгорания: R4, V6, V10, V20, дизели, турбо, трактор МТЗ-82.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -12,21 +13,21 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "Icon.png",
+      "src": "Icon.svg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "Icon.png",
+      "src": "Icon.svg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "Icon.png",
+      "src": "Icon.svg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "maskable"
     }
   ],
