@@ -8,17 +8,17 @@ var ENGINES = {
     fireDiv:30, lpBase:700, lpRpm:0.15,
     subGain:0.9, sawGain:0.5, sqGain:0.15, noiseBase:0.015
   },
-  v6: {
-    name:'V6', cyls:6,
-    maxTorque:360, redline:7000, breakRpm:8600,
-    fireDiv:20, lpBase:480, lpRpm:0.12,
-    subGain:1.35, sawGain:0.55, sqGain:0.10, noiseBase:0.025
+  v8: {
+    name:'V8', cyls:8,
+    maxTorque:420, redline:7200, breakRpm:8700,
+    fireDiv:20, lpBase:450, lpRpm:0.12,
+    subGain:1.5, sawGain:0.6, sqGain:0.10, noiseBase:0.028
   },
-  v12: {
-    name:'V12', cyls:12,
-    maxTorque:520, redline:7500, breakRpm:9000,
-    fireDiv:10, lpBase:330, lpRpm:0.10,
-    subGain:1.9, sawGain:0.62, sqGain:0.05, noiseBase:0.04
+  v16: {
+    name:'V16', cyls:16,
+    maxTorque:680, redline:7800, breakRpm:9200,
+    fireDiv:10, lpBase:290, lpRpm:0.09,
+    subGain:2.2, sawGain:0.68, sqGain:0.05, noiseBase:0.05
   }
 };
 
