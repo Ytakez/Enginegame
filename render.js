@@ -3,7 +3,6 @@
 var S=window.S;var RB=window.RB;var RE=window.RE;
 if(!S||!RB||!RE)return;
 var ecv,ectx,gcv,gctx;
-var _temp=20,_lastT=0,_overheatTime=0;
 var MAXR=10500,MAXS=240;
 function init(){
   ecv=document.getElementById('engineCv');
@@ -17,7 +16,9 @@ function drawEngine(){
   var c=ectx,W=ecv.width,H=ecv.height;
   c.clearRect(0,0,W,H);
   var bg=c.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#0e151d');bg.addColorStop(1,'#070a0e');
+  if(S.weather==='winter'){bg.addColorStop(0,'#0a1520');bg.addColorStop(1,'#050810');}
+  else if(S.weather==='autumn'){bg.addColorStop(0,'#1a1210');bg.addColorStop(1,'#080404');}
+  else{bg.addColorStop(0,'#0e151d');bg.addColorStop(1,'#070a0e');}
   c.fillStyle=bg;c.fillRect(0,0,W,H);
   var t=S.engineType;var drawn=false;
   try{
@@ -35,30 +36,37 @@ function drawEngine(){
     else{c.fillStyle='#5d7189';c.font='bold 14px Segoe UI';c.textAlign='center';c.fillText('Двигатель не загружен',W/2,H/2);}
   }
   if(S.broken){c.fillStyle='rgba(200,20,20,0.06)';c.fillRect(0,0,W,H);}
-}
 
-function updateTemp(){
-  var now=performance.now();
-  if(!_lastT){_lastT=now;return;}
-  var dt=(now-_lastT)/1000;_lastT=now;
-  if(dt<=0||dt>1)dt=0.05;
-  var E=S.engines[S.engineType]||S.engines.r4;
-  var run=S.running&&!S.stalled&&!S.broken;
-  var rpm=safe(S.rpm);
-  var thr=safe(S.throttle);
-  if(S.broken){_overheatTime=0;return;}
-  if(!run){_temp-=dt*10;}
-  else if(rpm>E.redline*0.9&&thr>0.7){_temp+=dt*2.0;}
-  else if(rpm>E.idle*3&&thr>0.5){_temp+=dt*0.35;}
-  else if(rpm>E.idle*1.5){_temp+=dt*0.05;}
-  else if(thr<0.1){_temp-=dt*2.5;}
-  else{_temp-=dt*0.3;}
-  if(_temp<20)_temp=20;
-  if(_temp>115)_temp=115;
-  if(_temp>=105){
-    _overheatTime+=dt;
-    if(_overheatTime>8){S.breakEngine('КЛИН МОТОРА — перегрев '+Math.round(_temp)+'°C');_overheatTime=0;}
-  }else if(_temp<98){_overheatTime=Math.max(0,_overheatTime-dt*1.5);}
+  /* Значок погоды */
+  var wx=W-40,wy=H-30;
+  c.save();
+  if(S.weather==='winter'){
+    c.strokeStyle='#8fd8ff';c.lineWidth=2;
+    for(var i=0;i<3;i++){
+      var a=i*Math.PI/3;
+      c.beginPath();
+      c.moveTo(wx-Math.cos(a)*10,wy-Math.sin(a)*10);
+      c.lineTo(wx+Math.cos(a)*10,wy+Math.sin(a)*10);
+      c.stroke();
+    }
+  } else if(S.weather==='autumn'){
+    c.fillStyle='#ff8030';
+    c.beginPath();c.arc(wx,wy,10,0,7);c.fill();
+    c.fillStyle='#ffc93c';
+    c.beginPath();c.arc(wx,wy,6,0,7);c.fill();
+  } else {
+    c.fillStyle='#ffc93c';
+    c.beginPath();c.arc(wx,wy,8,0,7);c.fill();
+    c.strokeStyle='#ffc93c';c.lineWidth=2;
+    for(var j=0;j<8;j++){
+      var a2=j*Math.PI/4;
+      c.beginPath();
+      c.moveTo(wx+Math.cos(a2)*11,wy+Math.sin(a2)*11);
+      c.lineTo(wx+Math.cos(a2)*15,wy+Math.sin(a2)*15);
+      c.stroke();
+    }
+  }
+  c.restore();
 }
 
 function drawOilIcon(c,x,y,color){
@@ -118,8 +126,7 @@ function drawTempIcon(c,x,y,color){
 
 function drawGauge(c,cx,cy,R,value,maxV,redline,label,bigNum){
   var a0=Math.PI*0.75,a1=Math.PI*2.25;
-  c.lineCap='butt';
-  c.lineWidth=9;
+  c.lineCap='butt';c.lineWidth=9;
   c.strokeStyle='#151f2b';
   c.beginPath();c.arc(cx,cy,R,a0,a1);c.stroke();
   var rA=a0+(redline/maxV)*(a1-a0);
@@ -191,7 +198,6 @@ function drawIndicatorRing(c,x,y,r,color,blinkOn){
 
 function drawDash(){
   if(!gctx)return;
-  updateTemp();
   var c=gctx,W=gcv.width,H=gcv.height;
   var now=performance.now();
   var blinkOn=Math.floor(now/350)%2===0;
@@ -209,6 +215,14 @@ function drawDash(){
   c.font='bold 6px Segoe UI, sans-serif';
   c.textAlign='left';c.textBaseline='top';
   c.fillText('ДВС • ПРИБОРНАЯ ПАНЕЛЬ',6,6);
+
+  /* значок погоды сверху справа */
+  var wIcon=S.weather==='winter'?'❄':(S.weather==='autumn'?'🍂':'☀');
+  var wTxt=S.weather==='winter'?'ЗИМА':(S.weather==='autumn'?'ОСЕНЬ':'ЛЕТО');
+  c.fillStyle='#6d8299';
+  c.font='bold 7px Segoe UI, sans-serif';
+  c.textAlign='right';c.textBaseline='top';
+  c.fillText(wIcon+' '+wTxt,W-6,6);
 
   drawGauge(c,78,90,56,rpm,MAXR,E.redline,'об/мин ×1000',(rpm/1000).toFixed(1));
   drawGauge(c,262,90,56,spd,MAXS,220,'км/ч',String(Math.round(spd)));
@@ -236,11 +250,17 @@ function drawDash(){
 
   var oilColor=S.broken?'red':'dim';
   var engColor=S.broken?'yellow':'dim';
+
+  /* Температура двигателя из physics.js */
+  var engTemp=safe(S.engineTemp);
+  var ambTemp=safe(S.ambientTemp);
+
   var tempColor='dim';
   var tempBlink=true;
-  if(_temp>105){tempColor='red';tempBlink=blinkOn;}
-  else if(_temp>95){tempColor='yellow';tempBlink=blinkOn;}
-  else if(_temp>75){tempColor='green';tempBlink=true;}
+  if(engTemp>105){tempColor='red';tempBlink=blinkOn;}
+  else if(engTemp>95){tempColor='yellow';tempBlink=blinkOn;}
+  else if(engTemp>75){tempColor='green';tempBlink=true;}
+  else if(engTemp<ambTemp+5&&S.weather==='winter'){tempColor='yellow';tempBlink=blinkOn;}
 
   var iy=152,ir=12;
   drawIndicatorRing(c,52,iy,ir,oilColor,true);
@@ -260,20 +280,29 @@ function drawDash(){
   c.fillText('НАСОС',208,iy+16);
   c.fillText('ТЕМП',286,iy+16);
 
+  /* Температура цифрами внизу */
   var tempTxtColor='#3d4a58';
-  if(_temp>105)tempTxtColor=blinkOn?'#ff5b5b':'#4a1010';
-  else if(_temp>95)tempTxtColor=blinkOn?'#ffc93c':'#4a3a10';
-  else if(_temp>75)tempTxtColor='#43c98a';
-  c.fillStyle=tempTxtColor;
-  c.font='bold 7px Segoe UI, sans-serif';
-  c.textAlign='center';c.textBaseline='top';
-  c.fillText('t° ' + Math.round(_temp) + '°C',170,H-12);
+  if(engTemp>105)tempTxtColor=blinkOn?'#ff5b5b':'#4a1010';
+  else if(engTemp>95)tempTxtColor=blinkOn?'#ffc93c':'#4a3a10';
+  else if(engTemp>75)tempTxtColor='#43c98a';
+  else if(engTemp<ambTemp+5&&S.weather==='winter')tempTxtColor=blinkOn?'#8fd8ff':'#4a6a80';
 
-  if(_temp>=105&&S.running&&!S.broken&&blinkOn){
+  c.fillStyle=tempTxtColor;
+  c.font='bold 8px Segoe UI, sans-serif';
+  c.textAlign='center';c.textBaseline='top';
+  c.fillText('ДВИГ: '+Math.round(engTemp)+'°C   ВОЗДУХ: '+Math.round(ambTemp)+'°C',170,H-12);
+
+  /* Предупреждения */
+  if(S.weather==='winter'&&engTemp<5&&S.running&&blinkOn){
+    c.fillStyle='#8fd8ff';
+    c.font='bold 9px Segoe UI, sans-serif';
+    c.textAlign='center';c.textBaseline='middle';
+    c.fillText('❄ ДВИГАТЕЛЬ ХОЛОДНЫЙ — ГРЕЙ!',170,128);
+  } else if(engTemp>=105&&S.running&&!S.broken&&blinkOn){
     c.fillStyle='#ff3030';
     c.font='bold 9px Segoe UI, sans-serif';
     c.textAlign='center';c.textBaseline='middle';
-    c.fillText('⚠ ПЕРЕГРЕВ — ОТПУСТИ ГАЗ!',170,130);
+    c.fillText('⚠ ПЕРЕГРЕВ — ОТПУСТИ ГАЗ!',170,128);
   }
 }
 
