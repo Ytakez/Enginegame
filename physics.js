@@ -18,6 +18,13 @@ var ENGINES = {
     subGain:1.8, sawGain:0.35, sqGain:0.08, noiseBase:0.10,
     mass:1350, diesel:true
   },
+  mt82: {
+    name:'Д-240', cyls:4,
+    maxTorque:298, idle:600, redline:2200, breakRpm:2400, stallRpm:250,
+    fireDiv:30, lpBase:320, lpRpm:0.08,
+    subGain:2.2, sawGain:0.4, sqGain:0.06, noiseBase:0.12,
+    mass:3200, diesel:true, tractor:true
+  },
   r4: {
     name:'R4', cyls:4,
     maxTorque:250, idle:900, redline:6800, breakRpm:8000, stallRpm:350,
@@ -65,7 +72,6 @@ function torqueCurve(r, E){
   if (hi <= lo) hi = lo + 1;
   var x = Math.max(lo, Math.min(hi, r));
   if (E.diesel){
-    // Дизель: ровная полка момента с самого низа
     return 0.9 + 0.1 * Math.sin(Math.PI * (x - lo) / (hi - lo));
   }
   return 0.55 + 0.45 * Math.sin(Math.PI * (x - lo) / (hi - lo));
