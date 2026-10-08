@@ -40,22 +40,18 @@ function drawCylinder(c, cx, crankY, topY, botY, halfW, phase, CR, ROD, dir, isB
   var cpX = cx + CR * s;
   var cpY = crankY - CR * co;
 
-  /* ===== ПРОТИВОВЕС КОЛЕНВАЛА (крутится вместе с валом) ===== */
-  c.save();
-  c.translate(cx, crankY);
-  c.rotate(-phase);
-  c.fillStyle = isBroken ? '#3a2424' : '#2c3947';
-  c.beginPath();
-  c.arc(0, CR * 0.6, halfW * 1.0, Math.PI * 0.15, Math.PI * 0.85);
-  c.arc(0, 0, halfW * 1.05, Math.PI * 0.85, Math.PI * 0.15, true);
-  c.closePath(); c.fill();
+  /* ===== КОМПАКТНЫЙ ДИСК НА КОЛЕНВАЛЕ ===== */
+  var diskR = Math.min(halfW * 0.55, CR * 1.3);
+  if (diskR < 6) diskR = 6;
+  var cg = c.createRadialGradient(cx-diskR*0.3, crankY-diskR*0.3, 1, cx, crankY, diskR);
+  if (isBroken){
+    cg.addColorStop(0,'#8a6a6a'); cg.addColorStop(.7,'#5a4040'); cg.addColorStop(1,'#2a1a1a');
+  } else {
+    cg.addColorStop(0,'#8e9aa9'); cg.addColorStop(.6,'#5a6775'); cg.addColorStop(1,'#2c3947');
+  }
+  c.fillStyle = cg;
+  c.beginPath(); c.arc(cx, crankY, diskR, 0, 7); c.fill();
   c.strokeStyle = '#1a232e'; c.lineWidth = 1.5; c.stroke();
-  // металлический блик
-  c.fillStyle = 'rgba(150,170,190,0.12)';
-  c.beginPath();
-  c.arc(0, CR * 0.6, halfW * 0.75, Math.PI * 0.3, Math.PI * 0.7);
-  c.closePath(); c.fill();
-  c.restore();
 
   /* ===== ГИЛЬЗА ===== */
   var bg = c.createLinearGradient(cx-halfW, 0, cx+halfW, 0);
@@ -103,7 +99,7 @@ function drawCylinder(c, cx, crankY, topY, botY, halfW, phase, CR, ROD, dir, isB
   c.fillStyle='#2a3543';
   c.beginPath(); c.arc(cx, pinY, 3.5, 0, 7); c.fill();
 
-  /* ===== ШАТУННАЯ ШЕЙКА (на ней сидит шатун) ===== */
+  /* ===== ШАТУННАЯ ШЕЙКА ===== */
   var pg = c.createRadialGradient(cpX-2,cpY-2,1,cpX,cpY,7);
   if (isBroken){ pg.addColorStop(0,'#8a6a6a'); pg.addColorStop(1,'#2a1a1a'); }
   else { pg.addColorStop(0,'#d8e4f0'); pg.addColorStop(.5,'#96a4b4'); pg.addColorStop(1,'#4a5866'); }
@@ -111,7 +107,7 @@ function drawCylinder(c, cx, crankY, topY, botY, halfW, phase, CR, ROD, dir, isB
   c.beginPath(); c.arc(cpX, cpY, 7, 0, 7); c.fill();
   c.strokeStyle='#1a232e'; c.lineWidth = 1.2; c.stroke();
 
-  /* ===== ВСПЫШКА В КАМЕРЕ ===== */
+  /* ===== ВСПЫШКА ===== */
   if (firing){
     var d = cycPos - 2*Math.PI;
     var inten = Math.max(0, 1 - Math.abs(d)/1.25) * (0.35 + 0.65*throttle);
@@ -202,10 +198,8 @@ function drawR4(){
   c.fillStyle = bg; rr(c, 30, 60, 580, 330, 10); c.fill();
   c.strokeStyle = isBroken?'#6a3a3a':'#3a4a5c'; c.lineWidth = 2; c.stroke();
 
-  // основной вал (штанга)
   drawCrankShaft(c, 50, 590, crankY, isBroken);
 
-  // коренные шейки между цилиндрами
   var mains = [65, 180, 320, 460, 578];
   for (var mi=0; mi<mains.length; mi++){
     var mx = mains[mi];
@@ -219,7 +213,6 @@ function drawR4(){
     c.beginPath(); c.arc(mx, crankY, 3.5, 0, 7); c.fill();
   }
 
-  // цилиндры (теперь с противовесами)
   for (var i=0;i<4;i++){
     drawCylinder(c, xs[i], crankY, topY, botY, halfW,
       S.crankAngle + offs[i], CR, ROD, -1,
