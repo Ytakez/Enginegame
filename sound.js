@@ -153,47 +153,44 @@ function update(){
   var rpmF = Math.min(1, Math.max(0, (rpm - E.idle) / rpmRange));
   var rpmF2 = rpmF * rpmF;
 
-  /* Громкость для скутера выше и агрессивнее */
-  var base = isScooter ? (0.20 + thr * 0.45) : (0.10 + thr * 0.28);
+  /* Скутер теперь ТИШЕ — 0.45x от прежнего */
+  var base = isScooter ? (0.09 + thr * 0.20) : (0.10 + thr * 0.28);
   var lvl = base * (isScooter ? (0.85 + rpmF * 1.05) : (0.5 + rpmF * 0.9));
   if (rpm > E.redline * 0.9) lvl *= 1.15;
   if (rpm > E.redline) lvl *= 0.7;
-  /* Громче для скутера */
-  if (isScooter) lvl *= 1.8;
+  /* Раньше скутер умножался на 1.8 — теперь на 0.45 */
+  if (isScooter) lvl *= 0.45;
   nodes.engineGain.gain.setTargetAtTime(lvl, t, 0.04);
 
-  /* Больше шума для скутера = грубее */
-  var nLvl = (isScooter ? (0.10 + thr * 0.20) : (0.03 + thr * 0.07)) + rpmF * E.noiseBase * 1.8;
+  /* Шум тоже тише для скутера */
+  var nLvl = (isScooter ? (0.04 + thr * 0.07) : (0.03 + thr * 0.07)) + rpmF * E.noiseBase * 1.2;
   nodes.nGain.gain.setTargetAtTime(nLvl, t, 0.05);
   nodes.nf.frequency.setTargetAtTime(
-    (isScooter ? 2000 : 1200) + rpm * 1.2 + thr * (isScooter ? 2500 : 1500), t, 0.05);
+    (isScooter ? 1800 : 1200) + rpm * 1.0 + thr * (isScooter ? 1500 : 1500), t, 0.05);
 
-  var nLvl2 = Math.max(0, (rpmF - 0.5)) * (isScooter ? 0.35 : 0.15) + thr * rpmF2 * (isScooter ? 0.25 : 0.12);
+  var nLvl2 = Math.max(0, (rpmF - 0.5)) * (isScooter ? 0.12 : 0.15) + thr * rpmF2 * (isScooter ? 0.08 : 0.12);
   nodes.nGain2.gain.setTargetAtTime(nLvl2, t, 0.05);
   nodes.nf2.frequency.setTargetAtTime(3500 + rpm * 1.5, t, 0.05);
 
   var lpFreq;
   if (isScooter){
-    /* Для скутера фильтр ниже — звук грубее */
-    lpFreq = E.lpBase - rpm * 0.4 + thr * 900 + rpmF2 * 1200;
+    lpFreq = E.lpBase - rpm * 0.4 + thr * 700 + rpmF2 * 900;
     if (lpFreq < 400) lpFreq = 400;
-    if (lpFreq > 3500) lpFreq = 3500;
+    if (lpFreq > 3200) lpFreq = 3200;
   } else {
     lpFreq = E.lpBase + rpm * E.lpRpm + thr * 900 + rpmF2 * 1500;
     if (lpFreq > 4500) lpFreq = 4500;
   }
   nodes.lp.frequency.setTargetAtTime(lpFreq, t, 0.05);
-  nodes.lp.Q.setTargetAtTime((isScooter ? 2.5 : 1.2) + rpmF2 * 3.5, t, 0.05);
+  nodes.lp.Q.setTargetAtTime((isScooter ? 2.0 : 1.2) + rpmF2 * 2.5, t, 0.05);
 
-  /* growl для скутера — сильнее и шире */
   nodes.growl.frequency.setTargetAtTime(
     (isScooter ? 200 : 140) + rpm * (isScooter ? 0.15 : 0.03), t, 0.06);
-  nodes.growl.gain.setTargetAtTime((isScooter ? 20 : 10) + rpmF2 * 14, t, 0.06);
+  nodes.growl.gain.setTargetAtTime((isScooter ? 14 : 10) + rpmF2 * 10, t, 0.06);
 
   nodes.bp.frequency.setTargetAtTime(280 + rpm * 0.08 + thr * 300, t, 0.06);
   nodes.bp.Q.setTargetAtTime(0.6 + rpmF * 1.4, t, 0.06);
 
-  /* Громкость отдельных осцилляторов */
   nodes.g1.gain.setTargetAtTime(E.sawGain, t, 0.05);
   nodes.g1b.gain.setTargetAtTime(E.sawGain * 0.65, t, 0.05);
   nodes.g2.gain.setTargetAtTime(E.sqGain, t, 0.05);
@@ -203,7 +200,6 @@ function update(){
 
 function starter(){
   if (!ctx || muted) return;
-  var E = S.engines[S.engineType];
   var isScooter = S.engineType === 'scooter';
   var t = ctx.currentTime;
   var o = ctx.createOscillator(); o.type = 'sawtooth';
@@ -211,7 +207,7 @@ function starter(){
   o.frequency.linearRampToValueAtTime(isScooter ? 320 : 180, t + (isScooter ? 0.4 : 0.7));
   var g = ctx.createGain();
   g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(isScooter ? 0.22 : 0.18, t + 0.06);
+  g.gain.linearRampToValueAtTime(isScooter ? 0.10 : 0.18, t + 0.06);
   g.gain.linearRampToValueAtTime(0, t + (isScooter ? 0.5 : 0.85));
   var dist = ctx.createWaveShaper();
   dist.curve = makeHardClipCurve();
@@ -236,22 +232,47 @@ if (ignBtn) ignBtn.addEventListener('click', function(){
   if (!S.running) starter();
 });
 
-var muteBtn = document.createElement('button');
-muteBtn.type = 'button'; muteBtn.textContent = '🔊';
-muteBtn.setAttribute('style',
-  'position:fixed;top:8px;right:8px;z-index:1000;width:44px;height:44px;' +
-  'border-radius:50%;border:1px solid #263547;background:rgba(20,28,38,.85);' +
-  'color:#8fd8ff;font-size:18px;cursor:pointer;touch-action:manipulation');
-muteBtn.addEventListener('click', function(){
-  muted = !muted; muteBtn.textContent = muted ? '🔇' : '🔊';
-  if (muted && nodes){
+/* ===== ПУБЛИЧНОЕ API ДЛЯ НАСТРОЕК ===== */
+function setMuted(v){
+  muted = !!v;
+  if (muted && nodes && ctx){
     var t = ctx.currentTime;
     nodes.engineGain.gain.setTargetAtTime(0, t, 0.05);
     nodes.nGain.gain.setTargetAtTime(0, t, 0.05);
     nodes.nGain2.gain.setTargetAtTime(0, t, 0.05);
   }
+  try { localStorage.setItem('dvs_muted', muted ? '1' : '0'); } catch(e){}
+}
+function isMuted(){ return muted; }
+function toggleMute(){ setMuted(!muted); return muted; }
+
+window.DVS_SOUND = { setMuted: setMuted, isMuted: isMuted, toggleMute: toggleMute, resume: resume };
+
+/* Автозагрузка состояния */
+try { if (localStorage.getItem('dvs_muted') === '1') muted = true; } catch(e){}
+
+/* Кнопка динамика в правом верхнем углу */
+var muteBtn = document.createElement('button');
+muteBtn.type = 'button';
+muteBtn.id = 'muteBtn';
+muteBtn.textContent = muted ? '🔇' : '🔊';
+muteBtn.setAttribute('style',
+  'position:fixed;top:8px;right:8px;z-index:1000;width:44px;height:44px;' +
+  'border-radius:50%;border:1px solid #263547;background:rgba(20,28,38,.85);' +
+  'color:#8fd8ff;font-size:18px;cursor:pointer;touch-action:manipulation');
+muteBtn.addEventListener('click', function(){
+  toggleMute();
+  muteBtn.textContent = muted ? '🔇' : '🔊';
 });
 document.body.appendChild(muteBtn);
+
+/* Синхронизация иконки кнопки при изменении из настроек */
+setInterval(function(){
+  var b = document.getElementById('muteBtn');
+  if (b && b.textContent !== (muted ? '🔇' : '🔊')){
+    b.textContent = muted ? '🔇' : '🔊';
+  }
+}, 300);
 
 function loop(){ update(); requestAnimationFrame(loop); }
 requestAnimationFrame(loop);
