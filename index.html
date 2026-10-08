@@ -4,10 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>ДВС — интерактивный симулятор</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
+
 <header>Двигатель внутреннего сгорания</header>
+
+<button id="repairBtn" type="button" title="Ремонт">🔧</button>
+
 <main class="stage">
   <div class="panel" id="engineWrap">
     <canvas id="engineCv" width="640" height="430"></canvas>
@@ -29,6 +33,7 @@
     <button class="ignbtn on" id="ignBtn" type="button">Зажигание</button>
   </div>
 </main>
+
 <div class="pedals">
   <div class="pedal clutch" id="pClutch">
     <div class="bar"></div><span class="icon">🦶</span>
@@ -43,9 +48,12 @@
     <span>ГАЗ</span><span class="sub">держать</span>
   </div>
 </div>
+
 <div id="breakBanner"></div>
-<script src="engine.js?v=6" defer></script>
-<script src="render.js?v=6" defer></script>
-<script src="sound.js?v=2" defer></script>
+<div id="err"></div>
+
+<script src="engine.js?v=20" defer></script>
+<script src="render.js?v=20" defer></script>
+<script src="sound.js?v=20" defer></script>
 </body>
 </html>
