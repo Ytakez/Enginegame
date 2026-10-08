@@ -16,7 +16,8 @@ var savedEng='r4';try{savedEng=localStorage.getItem(STORAGE_KEY)||'r4';}catch(e)
 if(!ENGINES[savedEng])savedEng='r4';
 var S=window.S={rpm:0,speed:0,gear:0,crankAngle:0,running:false,stalled:false,broken:false,throttle:0,brakePedal:0,clutchPedal:0,pressed:{gas:false,brake:false,clutch:false},engines:ENGINES,engineType:savedEng};
 if(S.engines[savedEng].auto)S.gear=1;
-var gearRatios=[0,3.40,2.00,1.35,1.00,0.78];
+/* 6 передач: N + 1-2-3-4-5-6 */
+var gearRatios=[0,3.40,2.00,1.35,1.00,0.78,0.62];
 var reverseRatio=-3.17;var finalDrive=3.90,wheelRadius=0.31;var clutchK=40,clutchMax=350;
 function curE(){return ENGINES[S.engineType]||ENGINES.r4;}
 function torqueCurve(r,E){var lo=E.idle*0.8;var hi=E.redline-(E.redline-E.idle)*0.15;if(hi<=lo)hi=lo+1;var x=Math.max(lo,Math.min(hi,r));if(E.diesel)return 0.9+0.1*Math.sin(Math.PI*(x-lo)/(hi-lo));return 0.55+0.45*Math.sin(Math.PI*(x-lo)/(hi-lo));}
@@ -25,7 +26,7 @@ S.repair=function(){S.broken=false;S.stalled=false;S.running=false;S.rpm=0;S.spe
 S.setEngine=function(type){if(!ENGINES[type])return;S.engineType=type;try{localStorage.setItem(STORAGE_KEY,type);}catch(e){}S.broken=false;S.stalled=false;S.running=false;S.rpm=0;S.speed=0;S.crankAngle=0;S.ignitionState='off';S.gear=ENGINES[type].auto?1:0;document.body.classList.remove('broken');var gb=document.querySelectorAll('.gbtn');for(var i=0;i<gb.length;i++)gb[i].classList.toggle('on',Number(gb[i].dataset.g)===S.gear);var ab=document.querySelectorAll('.agbtn');for(var j=0;j<ab.length;j++)ab[j].classList.toggle('on',Number(ab[j].dataset.ag)===S.gear);var gv=document.getElementById('gearVal');if(gv)gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':(ENGINES[type].auto?'D':String(S.gear))));var ig=document.getElementById('ignBtn');if(ig){ig.textContent='ЗАЖИГАНИЕ';ig.className='ignbtn';}try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}};
 S.physics=function(dt){var E=curE();var mass=E.mass||1250;var Iwheel=mass*wheelRadius*wheelRadius;
 if(S.broken){S.rpm=0;S.speed*=Math.max(0,1-2.5*dt);if(Math.abs(S.speed)<0.1)S.speed=0;return;}
-var ratio;if(E.cvt){var vv=Math.abs(S.speed);var r=10/(1+vv*0.06);if(S.gear===0)ratio=0;else if(S.gear===-1)ratio=-r;else ratio=r;}else{if(S.gear===0)ratio=0;else if(S.gear===-1)ratio=reverseRatio*finalDrive;else ratio=gearRatios[S.gear]*finalDrive;}
+var ratio;if(E.cvt){var vv=Math.abs(S.speed);var r=10/(1+vv*0.06);if(S.gear===0)ratio=0;else if(S.gear===-1)ratio=-r;else ratio=r;}else{if(S.gear===0)ratio=0;else if(S.gear===-1)ratio=reverseRatio*finalDrive;else{var gi=S.gear;if(gi<0||gi>=gearRatios.length)gi=0;ratio=gearRatios[gi]*finalDrive;}}
 var eng;if(E.auto){if(S.gear===0||S.stalled||!S.running){eng=0;}else if(E.cvt){var range=E.idle*0.5;eng=Math.max(0,Math.min(1,(S.rpm-E.idle*1.05)/range));}else{eng=1;}}else{eng=(S.gear===0||S.stalled||!S.running)?0:(1-S.clutchPedal);}
 var omegaWheel=S.speed/3.6/wheelRadius;var omegaDirect=omegaWheel*ratio;var omegaEngine=S.rpm*Math.PI/30;
 var Te=0;if(S.running&&!S.stalled){var thr=S.throttle;if(S.rpm>E.redline)thr=0;Te=thr*E.maxTorque*torqueCurve(S.rpm,E);var friction=5+S.rpm*0.003;Te-=friction;if(thr<0.05){var err=E.idle-S.rpm;if(err>0)Te+=Math.min(err*0.8,40);else Te+=Math.max(err*0.05,-15);Te+=friction*0.3;}else{if(S.rpm<E.idle*0.7)Te+=(E.idle*0.7-S.rpm)*0.5;}}
