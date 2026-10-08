@@ -38,7 +38,13 @@ function init(){
   var clatter=ctx.createBufferSource();clatter.buffer=buf;clatter.loop=true;
   var cf=ctx.createBiquadFilter();cf.type='bandpass';cf.frequency.value=2400;cf.Q.value=2.5;
   var cG=ctx.createGain();cG.gain.value=0;clatter.connect(cf).connect(cG).connect(hc);clatter.start();
-  nodes={master:master,lp:lp,eg:eg,o1:o1,o1b:o1b,o2:o2,oS:oS,oS2:oS2,nG:nG,nG2:nG2,nf:nf,nf2:nf2,growl:growl,hs:hs,bp:bp,g1:g1,g1b:g1b,g2:g2,gS:gS,gS2:gS2,oTurbo:oTurbo,gTurbo:gTurbo,cG:cG,cf:cf};
+  var pumpBuf=ctx.createBuffer(1,2*ctx.sampleRate,ctx.sampleRate);
+  var pd=pumpBuf.getChannelData(0);
+  for(var i3=0;i3<pd.length;i3++)pd[i3]=(Math.random()*2-1)*0.5;
+  var pumpNoise=ctx.createBufferSource();pumpNoise.buffer=pumpBuf;pumpNoise.loop=true;
+  var pnf=ctx.createBiquadFilter();pnf.type='lowpass';pnf.frequency.value=380;pnf.Q.value=2;
+  var pnG=ctx.createGain();pnG.gain.value=0;pumpNoise.connect(pnf).connect(pnG).connect(master);pumpNoise.start();
+  nodes={master:master,lp:lp,eg:eg,o1:o1,o1b:o1b,o2:o2,oS:oS,oS2:oS2,nG:nG,nG2:nG2,nf:nf,nf2:nf2,growl:growl,hs:hs,bp:bp,g1:g1,g1b:g1b,g2:g2,gS:gS,gS2:gS2,oTurbo:oTurbo,gTurbo:gTurbo,cG:cG,cf:cf,pnG:pnG,pnf:pnf};
   return true;
 }
 function update(){
@@ -201,21 +207,29 @@ function starter(){
   o.connect(f).connect(d).connect(g).connect(ctx.destination);
   o.start(t);o.stop(t+(isScooter?0.55:0.9));
 }
-function fuelPump(){
+function fuelPumpSound(){
   if(!ctx||muted)return;
   var t=ctx.currentTime;
   var o=ctx.createOscillator();o.type='sine';
-  o.frequency.setValueAtTime(95,t);
-  o.frequency.linearRampToValueAtTime(140,t+0.4);
-  o.frequency.linearRampToValueAtTime(95,t+1.2);
+  o.frequency.setValueAtTime(75,t);
+  o.frequency.linearRampToValueAtTime(115,t+0.4);
+  o.frequency.setValueAtTime(115,t+1.1);
+  o.frequency.linearRampToValueAtTime(75,t+1.45);
   var g=ctx.createGain();
   g.gain.setValueAtTime(0,t);
-  g.gain.linearRampToValueAtTime(0.06,t+0.15);
-  g.gain.setValueAtTime(0.06,t+1.2);
+  g.gain.linearRampToValueAtTime(0.09,t+0.1);
+  g.gain.setValueAtTime(0.09,t+1.3);
   g.gain.linearRampToValueAtTime(0,t+1.5);
-  var f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=200;
+  var f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=250;
   o.connect(f).connect(g).connect(ctx.destination);
   o.start(t);o.stop(t+1.55);
+  if(nodes&&nodes.pnG){
+    nodes.pnG.gain.cancelScheduledValues(t);
+    nodes.pnG.gain.setValueAtTime(0,t);
+    nodes.pnG.gain.linearRampToValueAtTime(0.05,t+0.1);
+    nodes.pnG.gain.setValueAtTime(0.05,t+1.3);
+    nodes.pnG.gain.linearRampToValueAtTime(0,t+1.5);
+  }
 }
 function resume(){
   if(!ctx){if(!init())return;}
@@ -227,8 +241,10 @@ document.addEventListener('keydown',resume);
 var ignBtn=document.getElementById('ignBtn');
 if(ignBtn)ignBtn.addEventListener('click',function(){
   resume();
-  if(!S.running&&S.fuelPrimed)starter();
-  else if(!S.running&&!S.fuelPrimed&&S.ignitionOn)fuelPump();
+  setTimeout(function(){
+    if(S.running||S.stalled&&S.rpm>0)starter();
+    else if(!S.running&&!S.fuelPrimed&&S.ignitionOn)fuelPumpSound();
+  },50);
 });
 function setMuted(v){
   muted=!!v;
@@ -239,6 +255,7 @@ function setMuted(v){
     nodes.nG2.gain.setTargetAtTime(0,t,0.05);
     nodes.cG.gain.setTargetAtTime(0,t,0.05);
     nodes.gTurbo.gain.setTargetAtTime(0,t,0.05);
+    if(nodes.pnG)nodes.pnG.gain.setTargetAtTime(0,t,0.05);
   }
   try{localStorage.setItem('dvs_muted',muted?'1':'0');}catch(e){}
 }
