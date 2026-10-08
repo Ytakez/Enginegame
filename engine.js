@@ -1,8 +1,5 @@
 (function(){
 "use strict";
-var errBox = document.getElementById('err');
-function showErr(msg){ errBox.style.display='block'; errBox.textContent = 'Ошибка: ' + msg; }
-window.addEventListener('error', function(ev){ showErr(ev.message + ' | ' + (ev.filename||'') + ':' + (ev.lineno||0)); });
 
 var S = window.DVS = {
   rpm: 0, speed: 0, gear: 0, crankAngle: 0,
@@ -10,6 +7,18 @@ var S = window.DVS = {
   throttle: 0, brakePedal: 0, clutchPedal: 0,
   pressed: { gas:false, brake:false, clutch:false }
 };
+
+var errBox = document.getElementById('err');
+function showErr(msg){
+  if (!errBox) return;
+  errBox.style.display = 'block';
+  errBox.textContent = 'Ошибка: ' + msg;
+}
+window.addEventListener('error', function(ev){
+  showErr(ev.message + ' | ' + (ev.filename||'') + ':' + (ev.lineno||0));
+});
+
+var breakBanner = document.getElementById('breakBanner');
 
 var gearRatios=[0,3.40,2.00,1.35,1.00,0.78];
 var finalDrive=3.90, wheelRadius=0.31, mass=1250;
@@ -22,28 +31,6 @@ function torqueCurve(r){
   return 0.55+0.45*Math.sin(Math.PI*(x-800)/(6500-800));
 }
 
-/* ===== КНОПКА РЕМОНТА (маленькая, круглая, в углу) ===== */
-var repairBtn = document.createElement('button');
-repairBtn.type = 'button';
-repairBtn.textContent = '🔧';
-repairBtn.setAttribute('style',
-  'position:fixed;top:8px;left:8px;z-index:1000;width:38px;height:38px;' +
-  'border-radius:50%;border:1px solid #7a3030;background:rgba(40,10,10,.85);' +
-  'color:#ff9090;font-size:18px;cursor:pointer;touch-action:manipulation;' +
-  'display:none');
-repairBtn.addEventListener('click', function(e){ e.preventDefault(); repair(); });
-document.body.appendChild(repairBtn);
-
-/* ===== БАННЕР ПОЛОМКИ ===== */
-var banner = document.createElement('div');
-banner.setAttribute('style',
-  'position:fixed;top:0;left:0;right:0;z-index:999;' +
-  'background:linear-gradient(180deg,#c11,#8a0a0a);color:#fff;' +
-  'text-align:center;font-weight:700;padding:10px;' +
-  'font-size:13px;letter-spacing:1px;display:none;' +
-  'box-shadow:0 4px 20px rgba(200,0,0,.5)');
-document.body.appendChild(banner);
-
 function breakEngine(reason){
   if (S.broken) return;
   S.broken = true;
@@ -51,9 +38,7 @@ function breakEngine(reason){
   S.stalled = true;
   S.rpm = 0;
   document.body.classList.add('broken');
-  repairBtn.style.display = 'block';
-  banner.textContent = '⚠ ДВИГАТЕЛЬ СЛОМАН: ' + (reason||'поломка');
-  banner.style.display = 'block';
+  if (breakBanner) breakBanner.textContent = '⚠ ДВИГАТЕЛЬ СЛОМАН: ' + (reason||'поломка');
   var ignBtn = document.getElementById('ignBtn');
   if (ignBtn) ignBtn.classList.remove('on');
   try{ if(navigator.vibrate) navigator.vibrate([100,60,100,60,200]); }catch(e){}
@@ -67,8 +52,6 @@ function repair(){
   S.speed = 0;
   S.gear = 0;
   document.body.classList.remove('broken');
-  repairBtn.style.display = 'none';
-  banner.style.display = 'none';
   var gb = document.querySelectorAll('.gearbtn');
   for (var i=0;i<gb.length;i++) gb[i].classList.toggle('on', Number(gb[i].dataset.g) === 0);
   var gv = document.getElementById('gearVal');
@@ -178,7 +161,6 @@ function setGear(g){
   if (S.broken) return;
   if (g === S.gear) return;
 
-  // Разрешаем переключение, если палец УЖЕ на сцеплении
   var clutchOK = S.pressed.clutch || S.clutchPedal > 0.4;
   var isMoving = Math.abs(S.speed) > 5;
   var isRunning = S.running && !S.stalled;
@@ -208,6 +190,9 @@ function toggleIgnition(){
   try{if(navigator.vibrate)navigator.vibrate(12);}catch(e){}
 }
 ignBtn.addEventListener('click',function(ev){ev.preventDefault();toggleIgnition();});
+
+var repairBtn = document.getElementById('repairBtn');
+if (repairBtn) repairBtn.addEventListener('click', function(ev){ ev.preventDefault(); repair(); });
 
 window.DVS.physics=physics;
 window.DVS.setGear=setGear;
