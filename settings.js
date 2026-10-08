@@ -11,6 +11,8 @@ var LANGS = {
     ignition: 'Зажигание', speed: 'Скорость', gear: 'Передача',
     settingsTitle: 'Настройки', language: 'Языки', languageSelect: 'Выбрать язык',
     engine: 'Двигатель', engineSelect: 'Выбрать двигатель',
+    sound: 'Звук', soundOn: 'Включён', soundOff: 'Выключен',
+    toggleOn: 'ВКЛ', toggleOff: 'ВЫКЛ',
     back: 'Назад', close: 'Закрыть'
   },
   uk: {
@@ -20,6 +22,8 @@ var LANGS = {
     ignition: 'Запалювання', speed: 'Швидкість', gear: 'Передача',
     settingsTitle: 'Налаштування', language: 'Мови', languageSelect: 'Вибрати мову',
     engine: 'Двигун', engineSelect: 'Вибрати двигун',
+    sound: 'Звук', soundOn: 'Увімкнено', soundOff: 'Вимкнено',
+    toggleOn: 'УВІМК', toggleOff: 'ВИКЛ',
     back: 'Назад', close: 'Закрити'
   },
   en: {
@@ -29,6 +33,8 @@ var LANGS = {
     ignition: 'Ignition', speed: 'Speed', gear: 'Gear',
     settingsTitle: 'Settings', language: 'Languages', languageSelect: 'Choose language',
     engine: 'Engine', engineSelect: 'Choose engine',
+    sound: 'Sound', soundOn: 'On', soundOff: 'Off',
+    toggleOn: 'ON', toggleOff: 'OFF',
     back: 'Back', close: 'Close'
   }
 };
@@ -113,6 +119,13 @@ function injectStyles(){
       'background:linear-gradient(180deg,#1c3d2e,#0e231a)}' +
     '.settings-item.on .check{opacity:1}' +
     '.settings-item.on .sub{color:#7bc9a3}' +
+    '.sound-toggle{flex:0 0 auto;width:64px;height:32px;border-radius:16px;' +
+      'position:relative;border:1px solid #2c3e52;background:#0e161e;' +
+      'transition:background .15s,border-color .15s;cursor:pointer}' +
+    '.sound-toggle.on{border-color:#43c98a;background:#1c3d2e}' +
+    '.sound-toggle .knob{position:absolute;top:2px;left:2px;width:24px;height:24px;' +
+      'border-radius:50%;background:#5d7189;transition:left .15s,background .15s}' +
+    '.sound-toggle.on .knob{left:34px;background:#43c98a}' +
     '.settings-close{width:100%;height:46px;border-radius:10px;' +
       'border:1px solid #2c3e52;background:linear-gradient(180deg,#1a2430,#0e161e);' +
       'color:#8ea4bd;font:800 12px/1 inherit;letter-spacing:1.5px;cursor:pointer;' +
@@ -167,6 +180,31 @@ function openMain(){
     '</span><span class="sub">' + langName + '</span></div><span class="arrow">›</span>';
   langBtn.addEventListener('click', function(){ closeSettings(); openLangPicker(); });
   m.appendChild(langBtn);
+
+  // Звук — переключатель
+  var soundOn = false;
+  if (window.DVS_SOUND && window.DVS_SOUND.isMuted){
+    soundOn = !window.DVS_SOUND.isMuted();
+  }
+  var soundBtn = document.createElement('button');
+  soundBtn.type = 'button';
+  soundBtn.className = 'settings-item';
+  soundBtn.innerHTML =
+    '<div class="txt"><span class="lbl">' + t('sound') +
+    '</span><span class="sub" id="soundSub">' + (soundOn ? t('soundOn') : t('soundOff')) +
+    '</span></div><div class="sound-toggle' + (soundOn ? ' on' : '') +
+    '" id="soundToggle"><div class="knob"></div></div>';
+  soundBtn.addEventListener('click', function(){
+    if (!window.DVS_SOUND) return;
+    var now = window.DVS_SOUND.toggleMute();
+    var on = !now;
+    var tg = document.getElementById('soundToggle');
+    var sub = document.getElementById('soundSub');
+    if (tg) tg.classList.toggle('on', on);
+    if (sub) sub.textContent = on ? t('soundOn') : t('soundOff');
+    try{ if(navigator.vibrate) navigator.vibrate(8); }catch(e){}
+  });
+  m.appendChild(soundBtn);
 
   // Закрыть
   var closeBtn = document.createElement('button');
@@ -255,7 +293,6 @@ function openLangPicker(){
       var all = m.querySelectorAll('.settings-item');
       for (var i=0; i<all.length; i++) all[i].classList.remove('on');
       b.classList.add('on');
-      // обновить заголовки вкладки
       h.textContent = '🌐 ' + t('language');
       back.textContent = '‹ ' + t('back');
       try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){}
