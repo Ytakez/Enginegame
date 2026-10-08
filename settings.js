@@ -9,27 +9,27 @@ var LANGS = {
     title: 'Двигатель внутреннего сгорания',
     clutch: 'СЦЕПЛЕНИЕ', brake: 'ТОРМОЗ', gas: 'ГАЗ', hold: 'держать',
     ignition: 'Зажигание', speed: 'Скорость', gear: 'Передача',
-    settingsTitle: 'Настройки', language: 'Язык',
+    settingsTitle: 'Настройки', language: 'Языки', languageSelect: 'Выбрать язык',
     engine: 'Двигатель', engineSelect: 'Выбрать двигатель',
-    sound: 'Звук', close: 'Закрыть'
+    back: 'Назад', close: 'Закрыть'
   },
   uk: {
     label: '🇺🇦 Українська',
     title: 'Двигун внутрішнього згоряння',
     clutch: 'ЗЧЕПЛЕННЯ', brake: 'ГАЛЬМО', gas: 'ГАЗ', hold: 'тримати',
     ignition: 'Запалювання', speed: 'Швидкість', gear: 'Передача',
-    settingsTitle: 'Налаштування', language: 'Мова',
+    settingsTitle: 'Налаштування', language: 'Мови', languageSelect: 'Вибрати мову',
     engine: 'Двигун', engineSelect: 'Вибрати двигун',
-    sound: 'Звук', close: 'Закрити'
+    back: 'Назад', close: 'Закрити'
   },
   en: {
     label: '🇬🇧 English',
     title: 'Internal Combustion Engine',
     clutch: 'CLUTCH', brake: 'BRAKE', gas: 'THROTTLE', hold: 'hold',
     ignition: 'Ignition', speed: 'Speed', gear: 'Gear',
-    settingsTitle: 'Settings', language: 'Language',
+    settingsTitle: 'Settings', language: 'Languages', languageSelect: 'Choose language',
     engine: 'Engine', engineSelect: 'Choose engine',
-    sound: 'Sound', close: 'Close'
+    back: 'Back', close: 'Close'
   }
 };
 
@@ -52,12 +52,14 @@ function t(key){
 function applyLang(){
   var header = document.querySelector('header');
   if (header) header.textContent = t('title');
+
   var map = { 'pClutch':'clutch', 'pBrake':'brake', 'pGas':'gas', 'ignBtn':'ignition' };
   for (var id in map){
     var el = document.getElementById(id);
     if (!el) continue;
-    if (el.tagName === 'BUTTON'){ el.textContent = t(map[id]); }
-    else {
+    if (el.tagName === 'BUTTON'){
+      el.textContent = t(map[id]);
+    } else {
       var spans = el.querySelectorAll('span');
       for (var i=0; i<spans.length; i++){
         if (spans[i].classList.contains('icon')) continue;
@@ -66,6 +68,7 @@ function applyLang(){
       }
     }
   }
+
   var roLabels = document.querySelectorAll('.ro .lbl');
   if (roLabels.length >= 2){
     roLabels[0].textContent = t('speed');
@@ -95,18 +98,16 @@ function injectStyles(){
       'border-radius:16px;padding:18px;color:#dbe4ee;box-shadow:0 20px 60px rgba(0,0,0,.7)}' +
     '.settings-modal h2{font-size:14px;letter-spacing:3px;color:#8fd8ff;' +
       'text-transform:uppercase;margin:0 0 16px;font-weight:800;text-align:center}' +
-    '.settings-section{margin-bottom:16px}' +
-    '.settings-section h3{font-size:10px;letter-spacing:2px;color:#5d7189;' +
-      'text-transform:uppercase;margin:0 0 8px;font-weight:700}' +
-    '.settings-item{width:100%;min-height:54px;margin-bottom:6px;border-radius:10px;' +
+    '.settings-item{width:100%;min-height:54px;margin-bottom:8px;border-radius:10px;' +
       'border:1px solid #2c3e52;background:linear-gradient(180deg,#1a2430,#0e161e);' +
-      'color:#8ea4bd;font:700 13px/1.3 inherit;cursor:pointer;padding:8px 14px;' +
+      'color:#8ea4bd;font:700 13px/1.3 inherit;cursor:pointer;padding:10px 14px;' +
       'text-align:left;touch-action:manipulation;display:flex;align-items:center;' +
       'justify-content:space-between;gap:10px}' +
     '.settings-item .txt{flex:1 1 auto;min-width:0}' +
-    '.settings-item .lbl{display:block;font-size:13px;color:inherit}' +
+    '.settings-item .lbl{display:block;font-size:14px;color:inherit;font-weight:700}' +
     '.settings-item .sub{display:block;font-size:10px;color:#5d7189;' +
-      'font-weight:600;margin-top:2px;letter-spacing:.5px}' +
+      'font-weight:600;margin-top:3px;letter-spacing:.5px}' +
+    '.settings-item .arrow{color:#8ea4bd;font-size:18px;flex:0 0 auto}' +
     '.settings-item .check{color:#43c98a;font-size:18px;opacity:0;flex:0 0 auto}' +
     '.settings-item.on{border-color:#43c98a;color:#e6fff3;' +
       'background:linear-gradient(180deg,#1c3d2e,#0e231a)}' +
@@ -115,11 +116,11 @@ function injectStyles(){
     '.settings-close{width:100%;height:46px;border-radius:10px;' +
       'border:1px solid #2c3e52;background:linear-gradient(180deg,#1a2430,#0e161e);' +
       'color:#8ea4bd;font:800 12px/1 inherit;letter-spacing:1.5px;cursor:pointer;' +
-      'text-transform:uppercase;touch-action:manipulation;margin-top:8px}' +
+      'text-transform:uppercase;touch-action:manipulation;margin-top:12px}' +
     '.settings-back{width:100%;height:42px;border-radius:10px;' +
       'border:1px solid #2c3e52;background:rgba(15,22,30,.8);' +
-      'color:#8ea4bd;font:700 11px/1 inherit;letter-spacing:1.5px;cursor:pointer;' +
-      'text-transform:uppercase;touch-action:manipulation;margin-bottom:12px}';
+      'color:#8ea4bd;font:700 12px/1 inherit;letter-spacing:1.5px;cursor:pointer;' +
+      'text-transform:uppercase;touch-action:manipulation;margin-bottom:14px}';
   document.head.appendChild(st);
 }
 
@@ -135,7 +136,9 @@ function addSettingsButton(){
   document.body.appendChild(btn);
 }
 
+/* ===== ГЛАВНОЕ МЕНЮ ===== */
 function openMain(){
+  closeSettings();
   var ov = makeOverlay();
   var m = makeModal();
   ov.appendChild(m);
@@ -144,48 +147,28 @@ function openMain(){
   h.textContent = '⚙ ' + t('settingsTitle');
   m.appendChild(h);
 
-  var sec1 = document.createElement('div');
-  sec1.className = 'settings-section';
-  var h1 = document.createElement('h3');
-  h1.textContent = t('engine');
-  sec1.appendChild(h1);
+  // Двигатель
+  var S = window.S;
+  var curName = S ? (S.engines[S.engineType] || {}).name || 'R4' : 'R4';
   var engBtn = document.createElement('button');
   engBtn.type = 'button';
   engBtn.className = 'settings-item';
-  var S = window.S;
-  var curName = S ? (S.engines[S.engineType] || {}).name || 'R4' : 'R4';
   engBtn.innerHTML = '<div class="txt"><span class="lbl">' + t('engineSelect') +
-    '</span><span class="sub">' + curName + '</span></div><span class="check" style="opacity:1">›</span>';
+    '</span><span class="sub">' + curName + '</span></div><span class="arrow">›</span>';
   engBtn.addEventListener('click', function(){ closeSettings(); openEnginePicker(); });
-  sec1.appendChild(engBtn);
-  m.appendChild(sec1);
+  m.appendChild(engBtn);
 
-  var sec2 = document.createElement('div');
-  sec2.className = 'settings-section';
-  var h2 = document.createElement('h3');
-  h2.textContent = t('language');
-  sec2.appendChild(h2);
-  Object.keys(LANGS).forEach(function(code){
-    var b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'settings-item' + (code === curLang ? ' on' : '');
-    b.innerHTML = '<div class="txt"><span class="lbl">' + LANGS[code].label +
-      '</span></div><span class="check">✓</span>';
-    b.addEventListener('click', function(){
-      setLang(code);
-      var all = sec2.querySelectorAll('.settings-item');
-      for (var i=0; i<all.length; i++) all[i].classList.remove('on');
-      b.classList.add('on');
-      h.textContent = '⚙ ' + t('settingsTitle');
-      h1.textContent = t('engine');
-      h2.textContent = t('language');
-      engBtn.querySelector('.lbl').textContent = t('engineSelect');
-      applyLang();
-    });
-    sec2.appendChild(b);
-  });
-  m.appendChild(sec2);
+  // Язык
+  var langName = (LANGS[curLang] || LANGS.ru).label;
+  var langBtn = document.createElement('button');
+  langBtn.type = 'button';
+  langBtn.className = 'settings-item';
+  langBtn.innerHTML = '<div class="txt"><span class="lbl">' + t('languageSelect') +
+    '</span><span class="sub">' + langName + '</span></div><span class="arrow">›</span>';
+  langBtn.addEventListener('click', function(){ closeSettings(); openLangPicker(); });
+  m.appendChild(langBtn);
 
+  // Закрыть
   var closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'settings-close';
@@ -196,7 +179,9 @@ function openMain(){
   document.body.appendChild(ov);
 }
 
+/* ===== ВЫБОР ДВИГАТЕЛЯ ===== */
 function openEnginePicker(){
+  closeSettings();
   var ov = makeOverlay();
   var m = makeModal();
   ov.appendChild(m);
@@ -208,7 +193,7 @@ function openEnginePicker(){
   var back = document.createElement('button');
   back.type = 'button';
   back.className = 'settings-back';
-  back.textContent = '‹ ' + t('settingsTitle');
+  back.textContent = '‹ ' + t('back');
   back.addEventListener('click', function(){ closeSettings(); openMain(); });
   m.appendChild(back);
 
@@ -227,6 +212,53 @@ function openEnginePicker(){
       for (var i=0; i<all.length; i++) all[i].classList.remove('on');
       b.classList.add('on');
       try{ if(navigator.vibrate) navigator.vibrate(15); }catch(e){}
+    });
+    m.appendChild(b);
+  });
+
+  var closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.className = 'settings-close';
+  closeBtn.textContent = t('close');
+  closeBtn.addEventListener('click', closeSettings);
+  m.appendChild(closeBtn);
+
+  document.body.appendChild(ov);
+}
+
+/* ===== ВЫБОР ЯЗЫКА ===== */
+function openLangPicker(){
+  closeSettings();
+  var ov = makeOverlay();
+  var m = makeModal();
+  ov.appendChild(m);
+
+  var h = document.createElement('h2');
+  h.textContent = '🌐 ' + t('language');
+  m.appendChild(h);
+
+  var back = document.createElement('button');
+  back.type = 'button';
+  back.className = 'settings-back';
+  back.textContent = '‹ ' + t('back');
+  back.addEventListener('click', function(){ closeSettings(); openMain(); });
+  m.appendChild(back);
+
+  Object.keys(LANGS).forEach(function(code){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'settings-item' + (code === curLang ? ' on' : '');
+    b.innerHTML = '<div class="txt"><span class="lbl">' + LANGS[code].label +
+      '</span></div><span class="check">✓</span>';
+    b.addEventListener('click', function(){
+      setLang(code);
+      var all = m.querySelectorAll('.settings-item');
+      for (var i=0; i<all.length; i++) all[i].classList.remove('on');
+      b.classList.add('on');
+      // обновить заголовки вкладки
+      h.textContent = '🌐 ' + t('language');
+      back.textContent = '‹ ' + t('back');
+      try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){}
     });
     m.appendChild(b);
   });
@@ -261,7 +293,6 @@ function setLang(code){
   if (!LANGS[code]) return;
   curLang = code;
   try { localStorage.setItem(LANG_KEY, code); } catch(e){}
-  try { if (navigator.vibrate) navigator.vibrate(10); } catch(e){}
   applyLang();
   var sb = document.getElementById('settingsBtn');
   if (sb) sb.title = t('settingsTitle');
