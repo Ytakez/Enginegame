@@ -15,7 +15,9 @@ function showErr(msg){
   errBox.textContent = 'Ошибка: ' + msg;
 }
 window.addEventListener('error', function(ev){
-  showErr(ev.message + ' | ' + (ev.filename||'') + ':' + (ev.lineno||0));
+  // игнорируем кросс-доменные ошибки расширений
+  if (!ev.filename || ev.filename.indexOf('ytakez.github.io') === -1) return;
+  showErr(ev.message + ' | ' + ev.filename + ':' + ev.lineno);
 });
 
 var breakBanner = document.getElementById('breakBanner');
@@ -58,6 +60,10 @@ function repair(){
   if (gv) gv.textContent = 'N';
   var ignBtn = document.getElementById('ignBtn');
   if (ignBtn) ignBtn.classList.remove('on');
+  // сбросить все педали
+  S.pressed.gas = false;
+  S.pressed.brake = false;
+  S.pressed.clutch = false;
   try{ if(navigator.vibrate) navigator.vibrate(15); }catch(e){}
 }
 
@@ -117,46 +123,104 @@ function physics(dt){
   S.crankAngle=((S.crankAngle%TAU)+TAU)%TAU;
 }
 
+/* ============================================
+   УПРАВЛЕНИЕ ПЕДАЛЯМИ (анти-залипание)
+   ============================================ */
 var pedalEls={
   clutch:document.getElementById('pClutch'),
   brake:document.getElementById('pBrake'),
   gas:document.getElementById('pGas')
 };
-var pedalPointers=new Map();
-var pedalCount={gas:0,brake:0,clutch:0};
+var pointerPedal = new Map(); // pointerId -> name
+var pedalTouchId = new Map(); // touchId -> name
 
 function pedalActivate(name){
-  pedalCount[name]++;
-  S.pressed[name]=true;
-  pedalEls[name].classList.add('active');
-  try{if(navigator.vibrate)navigator.vibrate(8);}catch(e){}
+  if (S.pressed[name]) return;
+  S.pressed[name] = true;
+  if (pedalEls[name]) pedalEls[name].classList.add('active');
+  try{ if(navigator.vibrate) navigator.vibrate(8); }catch(e){}
 }
 function pedalDeactivate(name){
-  pedalCount[name]=Math.max(0,pedalCount[name]-1);
-  if(pedalCount[name]===0){
-    S.pressed[name]=false;
-    pedalEls[name].classList.remove('active');
-  }
+  if (!S.pressed[name]) return;
+  S.pressed[name] = false;
+  if (pedalEls[name]) pedalEls[name].classList.remove('active');
 }
+function pedalDeactivateAll(){
+  pedalDeactivate('gas');
+  pedalDeactivate('brake');
+  pedalDeactivate('clutch');
+  pointerPedal.clear();
+  pedalTouchId.clear();
+}
+
 Object.keys(pedalEls).forEach(function(name){
-  var el=pedalEls[name];
-  el.addEventListener('pointerdown',function(e){
+  var el = pedalEls[name];
+  if (!el) return;
+
+  // --- Pointer Events (основной путь) ---
+  el.addEventListener('pointerdown', function(e){
     e.preventDefault();
-    try{el.setPointerCapture(e.pointerId);}catch(err){}
-    pedalPointers.set(e.pointerId,name);
+    try{ el.setPointerCapture(e.pointerId); }catch(err){}
+    pointerPedal.set(e.pointerId, name);
     pedalActivate(name);
   });
-  el.addEventListener('contextmenu',function(e){e.preventDefault();});
-  el.addEventListener('dragstart',function(e){e.preventDefault();});
-});
-function releasePointer(e){
-  var name=pedalPointers.get(e.pointerId);
-  if(name){pedalPointers.delete(e.pointerId);pedalDeactivate(name);}
-}
-window.addEventListener('pointerup',releasePointer);
-window.addEventListener('pointercancel',releasePointer);
 
-var gearBtns=Array.prototype.slice.call(document.querySelectorAll('.gearbtn'));
+  // --- Touch Events (fallback для старых браузеров) ---
+  el.addEventListener('touchstart', function(e){
+    if (window.PointerEvent) return;
+    e.preventDefault();
+    for (var i=0;i<e.changedTouches.length;i++){
+      var t = e.changedTouches[i];
+      pedalTouchId.set(t.identifier, name);
+      pedalActivate(name);
+    }
+  }, {passive:false});
+
+  el.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+  el.addEventListener('dragstart', function(e){ e.preventDefault(); });
+});
+
+// ГЛОБАЛЬНЫЕ обработчики — срабатывают где угодно
+function globalPointerUp(e){
+  var name = pointerPedal.get(e.pointerId);
+  if (name){
+    pointerPedal.delete(e.pointerId);
+    // не сбрасываем если палец всё ещё на той же педали через другой id
+    var stillPressed = false;
+    pointerPedal.forEach(function(v){ if (v === name) stillPressed = true; });
+    if (!stillPressed) pedalDeactivate(name);
+  }
+}
+window.addEventListener('pointerup', globalPointerUp);
+window.addEventListener('pointercancel', globalPointerUp);
+
+function globalTouchEnd(e){
+  if (window.PointerEvent) return;
+  for (var i=0;i<e.changedTouches.length;i++){
+    var t = e.changedTouches[i];
+    var name = pedalTouchId.get(t.identifier);
+    if (name){
+      pedalTouchId.delete(t.identifier);
+      var stillPressed = false;
+      pedalTouchId.forEach(function(v){ if (v === name) stillPressed = true; });
+      if (!stillPressed) pedalDeactivate(name);
+    }
+  }
+}
+window.addEventListener('touchend', globalTouchEnd, {passive:true});
+window.addEventListener('touchcancel', globalTouchEnd, {passive:true});
+
+// сброс при потере фокуса / сворачивании
+window.addEventListener('blur', pedalDeactivateAll);
+document.addEventListener('visibilitychange', function(){
+  if (document.hidden) pedalDeactivateAll();
+});
+
+/* ============================================
+   ПЕРЕДАЧИ — pointerdown вместо click
+   ============================================ */
+var gearBtns = Array.prototype.slice.call(document.querySelectorAll('.gearbtn'));
+
 function setGear(g){
   if (S.broken) return;
   if (g === S.gear) return;
@@ -170,33 +234,77 @@ function setGear(g){
     return;
   }
 
-  S.gear=g;
-  gearBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.g)===g);});
-  document.getElementById('gearVal').textContent=(g===0?'N':String(g));
-  try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}
+  S.gear = g;
+  gearBtns.forEach(function(b){ b.classList.toggle('on', Number(b.dataset.g) === g); });
+  var gv = document.getElementById('gearVal');
+  if (gv) gv.textContent = (g === 0 ? 'N' : String(g));
+  try{ if(navigator.vibrate) navigator.vibrate(6); }catch(e){}
 }
+
 gearBtns.forEach(function(b){
-  b.addEventListener('click',function(ev){ev.preventDefault();setGear(Number(b.dataset.g));});
+  var pressed = false;
+  b.addEventListener('pointerdown', function(ev){
+    ev.preventDefault();
+    pressed = true;
+    setGear(Number(b.dataset.g));
+  });
+  b.addEventListener('pointerup', function(){ pressed = false; });
+  b.addEventListener('pointercancel', function(){ pressed = false; });
+  b.addEventListener('pointerleave', function(){ pressed = false; });
+  // fallback на click для старых браузеров
+  b.addEventListener('click', function(ev){
+    ev.preventDefault();
+    if (!window.PointerEvent) setGear(Number(b.dataset.g));
+  });
 });
 
-var ignBtn=document.getElementById('ignBtn');
+/* ============================================
+   ЗАЖИГАНИЕ
+   ============================================ */
+var ignBtn = document.getElementById('ignBtn');
+var ignLock = false;
 function toggleIgnition(){
   if (S.broken){
     try{ if(navigator.vibrate) navigator.vibrate([50,50,50]); }catch(e){}
     return;
   }
-  if(S.running&&!S.stalled){S.running=false;S.stalled=true;ignBtn.classList.remove('on');}
-  else{S.stalled=false;S.running=true;S.rpm=idleRpm;ignBtn.classList.add('on');}
-  try{if(navigator.vibrate)navigator.vibrate(12);}catch(e){}
+  if(S.running && !S.stalled){
+    S.running = false; S.stalled = true;
+    ignBtn.classList.remove('on');
+  } else {
+    S.stalled = false; S.running = true; S.rpm = idleRpm;
+    ignBtn.classList.add('on');
+  }
+  try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){}
 }
-ignBtn.addEventListener('click',function(ev){ev.preventDefault();toggleIgnition();});
+if (ignBtn){
+  ignBtn.addEventListener('pointerdown', function(ev){
+    ev.preventDefault();
+    if (ignLock) return;
+    ignLock = true;
+    toggleIgnition();
+    setTimeout(function(){ ignLock = false; }, 350);
+  });
+  ignBtn.addEventListener('click', function(ev){
+    ev.preventDefault();
+    if (!window.PointerEvent) toggleIgnition();
+  });
+}
 
+/* ============================================
+   РЕМОНТ
+   ============================================ */
 var repairBtn = document.getElementById('repairBtn');
-if (repairBtn) repairBtn.addEventListener('click', function(ev){ ev.preventDefault(); repair(); });
+if (repairBtn){
+  repairBtn.addEventListener('pointerdown', function(ev){
+    ev.preventDefault();
+    repair();
+  });
+}
 
-window.DVS.physics=physics;
-window.DVS.setGear=setGear;
-window.DVS.repair=repair;
-window.DVS.breakEngine=breakEngine;
+window.DVS.physics = physics;
+window.DVS.setGear = setGear;
+window.DVS.repair = repair;
+window.DVS.breakEngine = breakEngine;
 
 })();
