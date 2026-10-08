@@ -6,8 +6,8 @@ var STORAGE_KEY = 'dvs_engine_v3';
 var ENGINES = {
   scooter: {
     name:'S1', cyls:1,
-    maxTorque:18, idle:200, redline:1750, breakRpm:2100, stallRpm:120,
-    fireDiv:15, lpBase:1400, lpRpm:0.35,
+    maxTorque:80, idle:700, redline:3000, breakRpm:3600, stallRpm:250,
+    fireDiv:30, lpBase:1400, lpRpm:0.35,
     subGain:0.5, sawGain:0.9, sqGain:0.4, noiseBase:0.08,
     cvt:true, auto:true
   },
@@ -43,6 +43,7 @@ var S = window.S = {
   engines: ENGINES,
   engineType: savedEng
 };
+if (S.engines[savedEng].auto) S.gear = 1;
 
 var gearRatios=[0,3.40,2.00,1.35,1.00,0.78];
 var reverseRatio=-3.17;
@@ -55,6 +56,7 @@ function curE(){ return ENGINES[S.engineType] || ENGINES.r4; }
 function torqueCurve(r, E){
   var lo = E.idle * 0.8;
   var hi = E.redline - (E.redline - E.idle) * 0.15;
+  if (hi <= lo) hi = lo + 1;
   var x = Math.max(lo, Math.min(hi, r));
   return 0.55 + 0.45 * Math.sin(Math.PI * (x - lo) / (hi - lo));
 }
@@ -76,8 +78,10 @@ S.repair=function(){
   document.body.classList.remove('broken');
   var gb=document.querySelectorAll('.gbtn');
   for(var i=0;i<gb.length;i++)gb[i].classList.toggle('on',Number(gb[i].dataset.g)===S.gear);
+  var ab=document.querySelectorAll('.agbtn');
+  for(var j=0;j<ab.length;j++)ab[j].classList.toggle('on',Number(ab[j].dataset.ag)===S.gear);
   var gv=document.getElementById('gearVal');
-  if(gv)gv.textContent=S.gear===0?'N':(S.gear===-1?'R':(S.gear===1&&curE().auto?'A':String(S.gear)));
+  if(gv)gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':(curE().auto?'D':String(S.gear))));
   var ig=document.getElementById('ignBtn');
   if(ig)ig.classList.remove('on');
   S.pressed.gas=false;S.pressed.brake=false;S.pressed.clutch=false;
@@ -93,8 +97,10 @@ S.setEngine=function(type){
   document.body.classList.remove('broken');
   var gb=document.querySelectorAll('.gbtn');
   for(var i=0;i<gb.length;i++)gb[i].classList.toggle('on',Number(gb[i].dataset.g)===S.gear);
+  var ab=document.querySelectorAll('.agbtn');
+  for(var j=0;j<ab.length;j++)ab[j].classList.toggle('on',Number(ab[j].dataset.ag)===S.gear);
   var gv=document.getElementById('gearVal');
-  if(gv)gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':(ENGINES[type].auto?'A':String(S.gear))));
+  if(gv)gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':(ENGINES[type].auto?'D':String(S.gear))));
   var ig=document.getElementById('ignBtn');
   if(ig)ig.classList.remove('on');
   try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
@@ -108,21 +114,34 @@ S.physics=function(dt){
     return;
   }
 
-  /* ===== ВАРИАТОР ДЛЯ СКУТЕРА ===== */
+  /* ===== ПЕРЕДАТОЧНОЕ ЧИСЛО ===== */
   var ratio;
   if (E.cvt){
     var vv = Math.abs(S.speed);
-    ratio = 3.5 / (1 + vv * 0.12);
+    var r = 3.5 / (1 + vv * 0.12);
+    if (S.gear === 0) ratio = 0;
+    else if (S.gear === -1) ratio = -r;
+    else ratio = r;
   } else {
     if(S.gear===0)ratio=0;
     else if(S.gear===-1)ratio=reverseRatio*finalDrive;
     else ratio=gearRatios[S.gear]*finalDrive;
   }
 
-  /* ===== СЦЕПЛЕНИЕ ===== */
+  /* ===== СЦЕПЛЕНИЕ / ВАРИАТОР ===== */
   var eng;
   if (E.auto){
-    eng = (S.stalled || !S.running) ? 0 : 1;
+    if (S.gear === 0){
+      eng = 0;
+    } else if (E.cvt){
+      var rpmF2 = Math.max(0, Math.min(1, (S.rpm - E.idle) / 500));
+      var vv2 = Math.abs(S.speed);
+      var engage = rpmF2 * 0.9 + vv2 * 0.25;
+      if (engage > 1) engage = 1;
+      eng = (S.stalled || !S.running) ? 0 : engage;
+    } else {
+      eng = (S.stalled || !S.running) ? 0 : 1;
+    }
   } else {
     eng = (S.gear===0||S.stalled||!S.running)?0:(1-S.clutchPedal);
   }
@@ -130,14 +149,26 @@ S.physics=function(dt){
   var omegaWheel=S.speed/3.6/wheelRadius;
   var omegaDirect=omegaWheel*ratio;
   var omegaEngine=S.rpm*Math.PI/30;
+
+  /* ===== КРУТЯЩИЙ МОМЕНТ ДВИГАТЕЛЯ ===== */
   var Te=0;
   if(S.running&&!S.stalled){
     var thr=S.throttle;
     if(S.rpm>E.redline)thr=0;
     Te=thr*E.maxTorque*torqueCurve(S.rpm, E);
-    Te-=6+S.rpm*0.004;
-    if(S.rpm<E.idle)Te+=(E.idle-S.rpm)*0.4;
+    var friction = 6 + S.rpm * 0.004;
+    Te -= friction;
+    if (thr < 0.05){
+      // Регулятор холостого хода
+      var err = E.idle - S.rpm;
+      if (err > 0) Te += err * 0.8;
+      else Te += err * 0.5;
+      Te += friction;  // компенсация трения
+    } else {
+      if (S.rpm < E.idle * 0.7) Te += (E.idle * 0.7 - S.rpm) * 0.5;
+    }
   }
+
   var slip=omegaEngine-omegaDirect;
   var Tc=eng*clutchK*slip;
   Tc=Math.max(-clutchMax,Math.min(clutchMax,Tc));
