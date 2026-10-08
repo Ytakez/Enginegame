@@ -21,10 +21,12 @@ body.auto-mode #gearsManual{display:none}
 .fuel-pump.off{background:#2a2a2a;border-color:#1a1a1a}
 .fuel-pump.priming{background:#ff3030;border-color:#ff8080;animation:pulsePump .5s infinite alternate;box-shadow:0 0 14px rgba(255,60,60,.9),inset 0 0 6px rgba(255,255,255,.4)}
 .fuel-pump.ready{background:#43c98a;border-color:#7bffb0;box-shadow:0 0 14px rgba(67,201,138,.9),inset 0 0 6px rgba(255,255,255,.4)}
+.fuel-pump.run{background:#43c98a;border-color:#7bffb0;box-shadow:0 0 20px rgba(67,201,138,1),inset 0 0 6px rgba(255,255,255,.6)}
 .fuel-pump.shake{animation:shakePump .3s}
 .fuel-pump-label{font-size:9px;color:#5d7189;letter-spacing:1px;font-weight:700;text-align:center;margin-top:2px}
 @keyframes pulsePump{from{opacity:.55}to{opacity:1}}
 @keyframes shakePump{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+#ignBtn.start{background:linear-gradient(180deg,#c98a2b,#7a5a1a);border-color:#ffc93c;color:#fff;font-weight:900;letter-spacing:3px;box-shadow:0 0 20px rgba(255,201,60,.5)}
 </style>
 </head>
 <body>
@@ -55,7 +57,7 @@ body.auto-mode #gearsManual{display:none}
 </div>
 <div class="ign-row">
 <div class="fuel-pump off" id="fuelLight"></div>
-<button class="ignbtn on" id="ignBtn" type="button">Зажигание</button>
+<button class="ignbtn" id="ignBtn" type="button">ЗАЖИГАНИЕ</button>
 </div>
 <div class="fuel-pump-label">БЕНЗОНАСОС: <span id="fuelText">ВЫКЛ</span></div>
 </div>
