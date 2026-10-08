@@ -1,3 +1,4 @@
+
 (function(){
 "use strict";
 var S=window.S;var RB=window.RB;var RE=window.RE;
@@ -14,8 +15,8 @@ else if(t==='mt82'&&typeof RE.drawMTZ==='function'){RE.drawMTZ(c,S);drawn=true;}
 else if(t==='passatb3'&&typeof RE.drawPassatB3==='function'){RE.drawPassatB3(c,S);drawn=true;}
 else if(t==='bluebird'&&typeof RE.drawBluebird==='function'){RE.drawBluebird(c,S);drawn=true;}
 else if(t==='galant6'&&typeof RE.drawGalant6==='function'){RE.drawGalant6(c,S);drawn=true;}
-else if(t==='v8'&&typeof RE.drawV==='function'){RE.drawV(c,S,8);drawn=true;}
-else if(t==='v16'&&typeof RE.drawV==='function'){RE.drawV(c,S,16);drawn=true;}
+else if(t==='v8'&&typeof RE.drawV==='function'){RE.drawV(c,S,10);drawn=true;}
+else if(t==='v16'&&typeof RE.drawV==='function'){RE.drawV(c,S,20);drawn=true;}
 }catch(err){console.log('draw error:',err);}
 if(!drawn){if(typeof RE.drawR4==='function'){try{RE.drawR4(c,S);}catch(e){}}else{c.fillStyle='#5d7189';c.font='bold 14px Segoe UI';c.textAlign='center';c.fillText('Двигатель не загружен',W/2,H/2);}}
 if(S.broken){c.fillStyle='rgba(200,20,20,0.06)';c.fillRect(0,0,W,H);}}
