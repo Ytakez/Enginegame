@@ -13,27 +13,76 @@ main.stage{flex:1 1 0;min-height:0;display:flex;gap:8px;padding:6px 8px}
 #engineWrap{flex:1 1 0;min-width:0;min-height:0;display:flex;
   align-items:center;justify-content:center;overflow:hidden;padding:4px}
 #engineCv{display:block;max-width:100%;max-height:100%;width:auto;height:auto}
-#dash{flex:0 0 auto;width:min(38%,340px);display:flex;flex-direction:column;gap:6px;min-height:0}
+#dash{flex:0 0 auto;width:min(42%,360px);display:flex;flex-direction:column;gap:6px;min-height:0}
 #gaugeCv{display:block;width:100%;height:auto}
 .readouts{display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%}
 .ro{background:#0b1119;border:1px solid #1d2836;border-radius:8px;padding:4px 6px;text-align:center}
 .ro .lbl{font-size:8px;letter-spacing:1.4px;color:#5d7189;text-transform:uppercase}
 .ro .val{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;color:#9fe8c0;line-height:1.1}
 .ro .val.amber{color:#ffc93c}
-.gears{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;width:100%}
-.gearbtn{height:44px;border-radius:9px;border:1px solid #263547;
-  background:linear-gradient(180deg,#1a2430,#111922);color:#8ea4bd;
+
+/* ======== КОРОБКА ПЕРЕДАЧ — H-СХЕМА ======== */
+.gear-box{
+  background:radial-gradient(ellipse at 50% 50%,#1a2430 0%,#0d1319 100%);
+  border:1px solid #2a3a4c;border-radius:12px;padding:6px;
+}
+.gear-scheme{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,1fr);
+  gap:6px;
+}
+.gearbtn{
+  height:38px;border-radius:8px;border:1px solid #2c3e52;
+  background:linear-gradient(180deg,#1a2430,#0e161e);color:#8ea4bd;
   font:700 15px/1 inherit;cursor:pointer;touch-action:manipulation;
-  transition:background .1s,border-color .1s,box-shadow .1s}
-.gearbtn.on{background:linear-gradient(180deg,#2b7a56,#1c5a3d);border-color:#43c98a;
-  color:#e6fff3;box-shadow:0 0 12px rgba(67,201,138,.45)}
-.gearbtn.neu.on{background:linear-gradient(180deg,#5a5f2b,#3d421c);border-color:#c9c943;
-  color:#fbffe6;box-shadow:0 0 12px rgba(201,201,67,.4)}
+  transition:background .08s,border-color .08s,box-shadow .08s,color .08s;
+}
+.gearbtn.on{
+  background:linear-gradient(180deg,#2b7a56,#1c5a3d);
+  border-color:#43c98a;color:#e6fff3;
+  box-shadow:0 0 14px rgba(67,201,138,.5);
+}
+.gearbtn.neu.on{
+  background:linear-gradient(180deg,#5a5f2b,#3d421c);
+  border-color:#c9c943;color:#fbffe6;
+  box-shadow:0 0 14px rgba(201,201,67,.4);
+}
+.gearbtn.rev.on{
+  background:linear-gradient(180deg,#7a2b2b,#4a1a1a);
+  border-color:#ff5b5b;color:#ffe6e6;
+  box-shadow:0 0 14px rgba(255,91,91,.4);
+}
+/* расположение как у настоящей H-схемы */
+.gear-scheme .gearbtn[data-g="1"]{grid-column:1;grid-row:1}
+.gear-scheme .gearbtn[data-g="3"]{grid-column:2;grid-row:1}
+.gear-scheme .gearbtn[data-g="5"]{grid-column:3;grid-row:1}
+.gear-scheme .gearbtn[data-g="0"]{grid-column:2;grid-row:2}
+.gear-scheme .gearbtn[data-g="2"]{grid-column:1;grid-row:3}
+.gear-scheme .gearbtn[data-g="4"]{grid-column:2;grid-row:3}
+.gear-scheme .gearbtn[data-g="-1"]{grid-column:3;grid-row:3}
+/* линии H между рядами */
+.gear-scheme::before{
+  content:"";position:absolute;
+  grid-column:1 / -1;grid-row:1 / -1;
+  pointer-events:none;
+}
+.gear-box{position:relative}
+.gear-scheme{position:relative}
+.gear-scheme::before{
+  background:
+    linear-gradient(#2a3a4c,#2a3a4c) center top / 2px 100% no-repeat;
+  opacity:.35;
+}
+
+/* ======== ЗАЖИГАНИЕ ======== */
 .ignbtn{width:100%;height:44px;border-radius:10px;border:1px solid #2c4a63;
   background:linear-gradient(180deg,#1d2f3f,#101a23);color:#8fd8ff;
   font:800 12px/1 inherit;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;
-  touch-action:manipulation;transition:background .1s,border-color .1s}
+  touch-action:manipulation;transition:background .08s,border-color .08s}
 .ignbtn.on{background:linear-gradient(180deg,#2b7a56,#1c5a3d);border-color:#43c98a;color:#e6fff3}
+
+/* ======== ПЕДАЛИ ======== */
 .pedals{flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px;
   padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
   padding-left:calc(8px + env(safe-area-inset-left,0px));
@@ -42,8 +91,7 @@ main.stage{flex:1 1 0;min-height:0;display:flex;gap:8px;padding:6px 8px}
   background:linear-gradient(180deg,#1a2430,#0f161e);color:#a9bdd4;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
   font:800 12px/1 inherit;letter-spacing:1.2px;cursor:pointer;overflow:hidden;
-  touch-action:none;-webkit-user-select:none;user-select:none;
-  transition:transform .08s,box-shadow .12s,border-color .12s,color .12s}
+  touch-action:none;-webkit-user-select:none;user-select:none}
 .pedal .bar{position:absolute;left:0;bottom:0;height:100%;width:0%;
   background:linear-gradient(90deg,rgba(67,201,138,.4),rgba(67,201,138,.06));
   pointer-events:none;transition:width .04s linear}
@@ -51,23 +99,27 @@ main.stage{flex:1 1 0;min-height:0;display:flex;gap:8px;padding:6px 8px}
 .pedal.clutch .bar{background:linear-gradient(90deg,rgba(255,200,60,.38),rgba(255,200,60,.05))}
 .pedal .icon{font-size:26px;line-height:1}
 .pedal .sub{font-size:9px;color:#5d7189;letter-spacing:1px;font-weight:600}
-.pedal.active{transform:scale(.97);border-color:#43c98a;color:#eafff5;
+.pedal.active{border-color:#43c98a;color:#eafff5;
   box-shadow:0 0 22px rgba(67,201,138,.4)}
 .pedal.brake.active{border-color:#ff5b5b;box-shadow:0 0 22px rgba(255,91,91,.4);color:#ffecec}
 .pedal.clutch.active{border-color:#ffc93c;box-shadow:0 0 22px rgba(255,201,60,.4);color:#fff8e0}
+
 @media (orientation:portrait) and (max-width:820px){
   main.stage{flex-direction:column;gap:6px}
-  #engineWrap{flex:0 0 auto;height:36vh;min-height:180px}
+  #engineWrap{flex:0 0 auto;height:34vh;min-height:170px}
   #dash{flex:0 0 auto;width:auto;flex-direction:row;flex-wrap:wrap;align-items:center;
     justify-content:center;gap:6px}
-  #gaugeCv{flex:0 0 auto;width:min(45%,170px)}
+  #gaugeCv{flex:0 0 auto;width:min(40%,150px)}
   .readouts{flex:1 1 130px;min-width:120px}
-  .gears{flex:1 1 100%}.ignbtn{flex:1 1 100%}
+  .gear-box{flex:1 1 100%;width:100%}
+  .ignbtn{flex:1 1 100%}
   .pedal{height:95px}.pedal .icon{font-size:22px}
 }
 @media (max-height:520px){
-  #engineWrap{height:34vh}.pedal{height:78px}.pedal .icon{font-size:20px}
+  #engineWrap{height:32vh}.pedal{height:78px}.pedal .icon{font-size:20px}
+  .gearbtn{height:32px;font-size:13px}
 }
+
 #err{position:fixed;left:0;right:0;bottom:0;background:#a00;color:#fff;
   font:12px/1.4 monospace;padding:8px;z-index:9999;display:none;
   white-space:pre-wrap;max-height:40vh;overflow:auto}
@@ -78,8 +130,7 @@ body.broken .panel{filter:grayscale(.3) brightness(.85)}
   border:2px solid #ff5b5b;
   background:linear-gradient(180deg,#8a0a0a,#5a0505);
   color:#fff;font-size:20px;cursor:pointer;
-  touch-action:manipulation;
-  display:none;
+  touch-action:manipulation;display:none;
   align-items:center;justify-content:center;
   box-shadow:0 0 20px rgba(255,60,60,.6);
 }
@@ -88,7 +139,6 @@ body.broken #repairBtn{display:flex}
   position:fixed;top:0;left:0;right:0;z-index:999;
   background:linear-gradient(180deg,#c11,#8a0a0a);
   color:#fff;text-align:center;font-weight:700;
-  padding:10px;font-size:13px;letter-spacing:1px;
-  display:none;
+  padding:10px;font-size:13px;letter-spacing:1px;display:none;
 }
 body.broken #breakBanner{display:block}
