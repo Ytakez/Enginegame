@@ -16,6 +16,18 @@ body.auto-mode #gearsManual{display:none}
 .agbtn.on{background:linear-gradient(180deg,#2b7a56,#1c5a3d);border-color:#43c98a;color:#e6fff3}
 .agbtn.neu.on{background:linear-gradient(180deg,#5a5f2b,#3d421c);border-color:#c9c943;color:#fbffe6}
 .agbtn.rev.on{background:linear-gradient(180deg,#7a2b2b,#4a1a1a);border-color:#ff5b5b;color:#ffe6e6}
+.ign-row{display:flex;align-items:center;gap:10px;width:100%}
+.fuel-pump{width:18px;height:18px;border-radius:50%;background:#2a2a2a;border:2px solid #1a1a1a;flex:0 0 auto;box-shadow:inset 0 0 6px rgba(0,0,0,.8);transition:background .15s,box-shadow .15s}
+.fuel-pump.off{background:#2a2a2a;border-color:#1a1a1a}
+.fuel-pump.priming{background:#ff3030;border-color:#ff8080;animation:pulsePump .5s infinite alternate;box-shadow:0 0 14px rgba(255,60,60,.9),inset 0 0 6px rgba(255,255,255,.4)}
+.fuel-pump.ready{background:#43c98a;border-color:#7bffb0;box-shadow:0 0 14px rgba(67,201,138,.9),inset 0 0 6px rgba(255,255,255,.4)}
+.fuel-pump.shake{animation:shakePump .3s}
+.fuel-pump-label{font-size:9px;color:#5d7189;letter-spacing:1px;font-weight:700;text-align:center;margin-top:2px}
+@keyframes pulsePump{from{opacity:.55}to{opacity:1}}
+@keyframes shakePump{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+#hornBtn{width:100%;height:46px;border-radius:10px;border:1px solid #4a3a2c;background:linear-gradient(180deg,#3a2a1a,#1a100a);color:#ffc93c;font:800 13px/1 inherit;letter-spacing:2px;cursor:pointer;touch-action:none;text-transform:uppercase;transition:background .08s,border-color .08s,box-shadow .1s}
+#hornBtn:hover{border-color:#8a6a2c}
+#hornBtn.active{background:linear-gradient(180deg,#c98a2b,#7a5a1a);border-color:#ffc93c;color:#fff;box-shadow:0 0 24px rgba(255,201,60,.7)}
 </style>
 </head>
 <body>
@@ -44,7 +56,12 @@ body.auto-mode #gearsManual{display:none}
 <button class="agbtn neu" data-ag="0" type="button">N</button>
 <button class="agbtn on" data-ag="1" type="button">D</button>
 </div>
+<div class="ign-row">
+<div class="fuel-pump off" id="fuelLight"></div>
 <button class="ignbtn on" id="ignBtn" type="button">Зажигание</button>
+</div>
+<div class="fuel-pump-label">БЕНЗОНАСОС: <span id="fuelText">ВЫКЛ</span></div>
+<button id="hornBtn" type="button">🔔 ГУДОК</button>
 </div>
 </main>
 <div class="pedals">
@@ -64,6 +81,7 @@ body.auto-mode #gearsManual{display:none}
 <script src="render.js?v=9999" defer></script>
 <script src="engine.js?v=9999" defer></script>
 <script src="sound.js?v=9999" defer></script>
+<script src="horn.js?v=1" defer></script>
 <script src="menu.js?v=9999" defer></script>
 <script src="settings.js?v=9999" defer></script>
 </body>
