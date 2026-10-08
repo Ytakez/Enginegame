@@ -23,15 +23,27 @@ main.stage{flex:1 1 0;min-height:0;display:flex;gap:8px;padding:6px 8px}
 
 /* ======== КОРОБКА ПЕРЕДАЧ — H-СХЕМА ======== */
 .gear-box{
+  position:relative;
   background:radial-gradient(ellipse at 50% 50%,#1a2430 0%,#0d1319 100%);
-  border:1px solid #2a3a4c;border-radius:12px;padding:6px;
+  border:1px solid #2a3a4c;border-radius:12px;padding:8px;
 }
 .gear-scheme{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
-  grid-template-rows:repeat(3,1fr);
+  grid-template-columns:1fr 1fr 1fr;
+  grid-template-rows:auto auto auto;
+  grid-template-areas:
+    "g1 g3 g5"
+    "gN gN gN"
+    "g2 g4 gR";
   gap:6px;
 }
+.gear-scheme .gearbtn[data-g="1"]{grid-area:g1}
+.gear-scheme .gearbtn[data-g="3"]{grid-area:g3}
+.gear-scheme .gearbtn[data-g="5"]{grid-area:g5}
+.gear-scheme .gearbtn[data-g="2"]{grid-area:g2}
+.gear-scheme .gearbtn[data-g="4"]{grid-area:g4}
+.gear-scheme .gearbtn[data-g="0"]{grid-area:gN}
+.gear-scheme .gearbtn[data-g="-1"]{grid-area:gR}
 .gearbtn{
   height:38px;border-radius:8px;border:1px solid #2c3e52;
   background:linear-gradient(180deg,#1a2430,#0e161e);color:#8ea4bd;
@@ -42,39 +54,6 @@ main.stage{flex:1 1 0;min-height:0;display:flex;gap:8px;padding:6px 8px}
   background:linear-gradient(180deg,#2b7a56,#1c5a3d);
   border-color:#43c98a;color:#e6fff3;
   box-shadow:0 0 14px rgba(67,201,138,.5);
-}
-.gearbtn.neu.on{
-  background:linear-gradient(180deg,#5a5f2b,#3d421c);
-  border-color:#c9c943;color:#fbffe6;
-  box-shadow:0 0 14px rgba(201,201,67,.4);
-}
-.gearbtn.rev.on{
-  background:linear-gradient(180deg,#7a2b2b,#4a1a1a);
-  border-color:#ff5b5b;color:#ffe6e6;
-  box-shadow:0 0 14px rgba(255,91,91,.4);
-}
-/* расположение как у настоящей H-схемы */
-.gear-scheme .gearbtn[data-g="1"]{grid-column:1;grid-row:1}
-.gear-scheme .gearbtn[data-g="3"]{grid-column:2;grid-row:1}
-.gear-scheme .gearbtn[data-g="5"]{grid-column:3;grid-row:1}
-.gear-scheme .gearbtn[data-g="0"]{grid-column:2;grid-row:2}
-.gear-scheme .gearbtn[data-g="2"]{grid-column:1;grid-row:3}
-.gear-scheme .gearbtn[data-g="4"]{grid-column:2;grid-row:3}
-.gear-scheme .gearbtn[data-g="-1"]{grid-column:3;grid-row:3}
-/* линии H между рядами */
-.gear-scheme::before{
-  content:"";position:absolute;
-  grid-column:1 / -1;grid-row:1 / -1;
-  pointer-events:none;
-}
-.gear-box{position:relative}
-.gear-scheme{position:relative}
-.gear-scheme::before{
-  background:
-    linear-gradient(#2a3a4c,#2a3a4c) center top / 2px 100% no-repeat;
-  opacity:.35;
-}
-
 /* ======== ЗАЖИГАНИЕ ======== */
 .ignbtn{width:100%;height:44px;border-radius:10px;border:1px solid #2c4a63;
   background:linear-gradient(180deg,#1d2f3f,#101a23);color:#8fd8ff;
