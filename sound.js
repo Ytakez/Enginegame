@@ -5,27 +5,24 @@ if (!S) return;
 
 var ctx = null, nodes = null, muted = false;
 
-function makeDistortionCurve(amount){
-  var n = 4096;
-  var curve = new Float32Array(n);
-  for (var i=0;i<n;i++){
-    var x = (i*2/n) - 1;
-    // мягкое насыщение для баса + жёсткое для верха
-    curve[i] = Math.tanh(x * amount);
-  }
-  return curve;
-}
-
 function makeHardClipCurve(){
   var n = 4096;
   var curve = new Float32Array(n);
   for (var i=0;i<n;i++){
     var x = (i*2/n) - 1;
-    // жёсткое обрезание — звучит зло
     var v = x * 3;
     if (v > 1) v = 1;
     if (v < -1) v = -1;
     curve[i] = v;
+  }
+  return curve;
+}
+function makeSoftCurve(k){
+  var n = 4096;
+  var curve = new Float32Array(n);
+  for (var i=0;i<n;i++){
+    var x = (i*2/n) - 1;
+    curve[i] = Math.tanh(x * k);
   }
   return curve;
 }
@@ -39,43 +36,35 @@ function init(){
   var master = ctx.createGain(); master.gain.value = 0.7;
   master.connect(ctx.destination);
 
-  /* ===== ЦЕПОЧКА ГРУБОСТИ ===== */
-  // 1) жёсткий клиппер
   var hardClip = ctx.createWaveShaper();
   hardClip.curve = makeHardClipCurve();
   hardClip.oversample = '4x';
 
-  // 2) мягкое насыщение
   var softSat = ctx.createWaveShaper();
-  softSat.curve = makeDistortionCurve(3.5);
+  softSat.curve = makeSoftCurve(3.5);
   softSat.oversample = '2x';
 
-  // 3) режекторный фильтр с резонансом (создаёт "рык")
   var growl = ctx.createBiquadFilter();
   growl.type = 'peaking';
   growl.frequency.value = 180;
   growl.Q.value = 2.5;
   growl.gain.value = 12;
 
-  // 4) фазовый фильтр высоких
   var highShelf = ctx.createBiquadFilter();
   highShelf.type = 'highshelf';
   highShelf.frequency.value = 2500;
   highShelf.gain.value = 6;
 
-  // 5) низкий проход (срезает визг на высоких)
   var lp = ctx.createBiquadFilter();
   lp.type = 'lowpass';
   lp.frequency.value = 900;
   lp.Q.value = 1.2;
 
-  // 6) полосовой фильтр (собирает "комбаст" частоты)
   var bp = ctx.createBiquadFilter();
   bp.type = 'bandpass';
   bp.frequency.value = 320;
   bp.Q.value = 0.7;
 
-  // основная цепь: oscillators → lp → hardClip → softSat → growl → highShelf → bp → engineGain → master
   lp.connect(hardClip);
   hardClip.connect(softSat);
   softSat.connect(growl);
@@ -85,14 +74,12 @@ function init(){
   var engineGain = ctx.createGain(); engineGain.gain.value = 0;
   bp.connect(engineGain).connect(master);
 
-  /* ===== ОСЦИЛЛЯТОРЫ ===== */
-  // 3 пилообразных с расстройкой — для "толщины" и "дрожания"
   var o1 = ctx.createOscillator(); o1.type = 'sawtooth';
   var g1 = ctx.createGain(); g1.gain.value = 0.55;
   o1.connect(g1).connect(lp); o1.start();
 
   var o1b = ctx.createOscillator(); o1b.type = 'sawtooth';
-  o1b.detune.value = 18; // расстройка +18 центов
+  o1b.detune.value = 18;
   var g1b = ctx.createGain(); g1b.gain.value = 0.35;
   o1b.connect(g1b).connect(lp); o1b.start();
 
@@ -100,17 +87,14 @@ function init(){
   var g2 = ctx.createGain(); g2.gain.value = 0.18;
   o2.connect(g2).connect(lp); o2.start();
 
-  // суб для баса — для "злого" рокота
   var oSub = ctx.createOscillator(); oSub.type = 'sine';
   var gSub = ctx.createGain(); gSub.gain.value = 1.2;
   oSub.connect(gSub).connect(lp); oSub.start();
 
-  // второй суб-осциллятор — октавой ниже, для большой V16
   var oSub2 = ctx.createOscillator(); oSub2.type = 'triangle';
   var gSub2 = ctx.createGain(); gSub2.gain.value = 0.7;
   oSub2.connect(gSub2).connect(lp); oSub2.start();
 
-  /* ===== ШУМ ВЫХЛОПА ===== */
   var bufSize = 2 * ctx.sampleRate;
   var buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
   var data = buf.getChannelData(0);
@@ -120,10 +104,9 @@ function init(){
   var nf = ctx.createBiquadFilter();
   nf.type = 'bandpass'; nf.frequency.value = 1800; nf.Q.value = 0.8;
   var nGain = ctx.createGain(); nGain.gain.value = 0;
-  noise.connect(nf).connect(nGain).connect(hardClip); // шум идёт в клиппер — будет рычать
+  noise.connect(nf).connect(nGain).connect(hardClip);
   noise.start();
 
-  /* ===== ВТОРОЙ ШУМ — "стрельба" на высоких ===== */
   var nf2 = ctx.createBiquadFilter();
   nf2.type = 'highpass'; nf2.frequency.value = 3000;
   var nGain2 = ctx.createGain(); nGain2.gain.value = 0;
@@ -135,7 +118,8 @@ function init(){
     master: master, lp: lp, engineGain: engineGain,
     o1: o1, o1b: o1b, o2: o2, oSub: oSub, oSub2: oSub2,
     nGain: nGain, nGain2: nGain2, nf: nf, nf2: nf2,
-    growl: growl, highShelf: highShelf, bp: bp
+    growl: growl, highShelf: highShelf, bp: bp,
+    g1: g1, g1b: g1b, g2: g2, gSub: gSub, gSub2: gSub2
   };
   return true;
 }
@@ -148,75 +132,93 @@ function update(){
   var t = ctx.currentTime;
   var sm = 0.02;
 
-  if (!run || rpm < 40){
+  var isScooter = S.engineType === 'scooter';
+
+  if (!run || rpm < 20){
     nodes.engineGain.gain.setTargetAtTime(0, t, 0.1);
     nodes.nGain.gain.setTargetAtTime(0, t, 0.1);
     nodes.nGain2.gain.setTargetAtTime(0, t, 0.1);
     return;
   }
 
-  // Частота вспышек (зависит от количества цилиндров и RPM)
   var fireHz = rpm / E.fireDiv;
 
-  // Основные частоты — базовая частота × кратные, чтобы звучало "много цилиндров"
   nodes.o1.frequency.setTargetAtTime(fireHz * 2, t, sm);
-  nodes.o1b.frequency.setTargetAtTime(fireHz * 2 * 1.005, t, sm);   // чуть расстроена
+  nodes.o1b.frequency.setTargetAtTime(fireHz * 2 * 1.005, t, sm);
   nodes.o2.frequency.setTargetAtTime(fireHz * 3, t, sm);
   nodes.oSub.frequency.setTargetAtTime(fireHz * 0.5, t, sm);
   nodes.oSub2.frequency.setTargetAtTime(fireHz * 0.25, t, sm);
 
-  // Динамика: с ростом RPM звук становится громче и злее
-  var rpmF = Math.min(1, rpm / 6000);
-  var rpmF2 = rpmF * rpmF; // квадратичный рост для агрессии
+  var rpmRange = Math.max(1, E.redline - E.idle);
+  var rpmF = Math.min(1, Math.max(0, (rpm - E.idle) / rpmRange));
+  var rpmF2 = rpmF * rpmF;
 
-  // Основная громкость
-  var base = 0.10 + thr * 0.28;
-  var lvl = base * (0.5 + rpmF * 0.9);
-  // На отсечке добавляем "крика"
+  /* Громкость для скутера выше и агрессивнее */
+  var base = isScooter ? (0.20 + thr * 0.45) : (0.10 + thr * 0.28);
+  var lvl = base * (isScooter ? (0.85 + rpmF * 1.05) : (0.5 + rpmF * 0.9));
   if (rpm > E.redline * 0.9) lvl *= 1.15;
   if (rpm > E.redline) lvl *= 0.7;
+  /* Громче для скутера */
+  if (isScooter) lvl *= 1.8;
   nodes.engineGain.gain.setTargetAtTime(lvl, t, 0.04);
 
-  // Шум выхлопа — с ростом RPM становится громче
-  var nLvl = (0.03 + thr * 0.07) + rpmF * E.noiseBase * 1.8;
+  /* Больше шума для скутера = грубее */
+  var nLvl = (isScooter ? (0.10 + thr * 0.20) : (0.03 + thr * 0.07)) + rpmF * E.noiseBase * 1.8;
   nodes.nGain.gain.setTargetAtTime(nLvl, t, 0.05);
-  nodes.nf.frequency.setTargetAtTime(1200 + rpm * 0.6 + thr * 1500, t, 0.05);
+  nodes.nf.frequency.setTargetAtTime(
+    (isScooter ? 2000 : 1200) + rpm * 1.2 + thr * (isScooter ? 2500 : 1500), t, 0.05);
 
-  // Шум "стрельбы" только на высоких оборотах — стреляет
-  var nLvl2 = Math.max(0, (rpmF - 0.55)) * 0.15 + thr * rpmF2 * 0.12;
+  var nLvl2 = Math.max(0, (rpmF - 0.5)) * (isScooter ? 0.35 : 0.15) + thr * rpmF2 * (isScooter ? 0.25 : 0.12);
   nodes.nGain2.gain.setTargetAtTime(nLvl2, t, 0.05);
-  nodes.nf2.frequency.setTargetAtTime(3500 + rpm * 0.8, t, 0.05);
+  nodes.nf2.frequency.setTargetAtTime(3500 + rpm * 1.5, t, 0.05);
 
-  // Динамический фильтр — на высоких RPM звук ярче и агрессивнее
-  var lpFreq = E.lpBase + rpm * E.lpRpm + thr * 900 + rpmF2 * 1500;
-  if (lpFreq > 4500) lpFreq = 4500;
+  var lpFreq;
+  if (isScooter){
+    /* Для скутера фильтр ниже — звук грубее */
+    lpFreq = E.lpBase - rpm * 0.4 + thr * 900 + rpmF2 * 1200;
+    if (lpFreq < 400) lpFreq = 400;
+    if (lpFreq > 3500) lpFreq = 3500;
+  } else {
+    lpFreq = E.lpBase + rpm * E.lpRpm + thr * 900 + rpmF2 * 1500;
+    if (lpFreq > 4500) lpFreq = 4500;
+  }
   nodes.lp.frequency.setTargetAtTime(lpFreq, t, 0.05);
-  nodes.lp.Q.setTargetAtTime(1.2 + rpmF2 * 2.5, t, 0.05);
+  nodes.lp.Q.setTargetAtTime((isScooter ? 2.5 : 1.2) + rpmF2 * 3.5, t, 0.05);
 
-  // Резонанс "рыка" смещается с RPM — низкий рёв на холостых, злой на высоких
-  nodes.growl.frequency.setTargetAtTime(140 + rpm * 0.03, t, 0.06);
-  nodes.growl.gain.setTargetAtTime(10 + rpmF2 * 10, t, 0.06);
+  /* growl для скутера — сильнее и шире */
+  nodes.growl.frequency.setTargetAtTime(
+    (isScooter ? 200 : 140) + rpm * (isScooter ? 0.15 : 0.03), t, 0.06);
+  nodes.growl.gain.setTargetAtTime((isScooter ? 20 : 10) + rpmF2 * 14, t, 0.06);
 
-  // Полосовой фильтр — на высоких RPM центр смещается вверх для "крика"
-  nodes.bp.frequency.setTargetAtTime(280 + rpm * 0.05 + thr * 200, t, 0.06);
-  nodes.bp.Q.setTargetAtTime(0.6 + rpmF * 1.2, t, 0.06);
+  nodes.bp.frequency.setTargetAtTime(280 + rpm * 0.08 + thr * 300, t, 0.06);
+  nodes.bp.Q.setTargetAtTime(0.6 + rpmF * 1.4, t, 0.06);
+
+  /* Громкость отдельных осцилляторов */
+  nodes.g1.gain.setTargetAtTime(E.sawGain, t, 0.05);
+  nodes.g1b.gain.setTargetAtTime(E.sawGain * 0.65, t, 0.05);
+  nodes.g2.gain.setTargetAtTime(E.sqGain, t, 0.05);
+  nodes.gSub.gain.setTargetAtTime(E.subGain, t, 0.05);
+  nodes.gSub2.gain.setTargetAtTime(E.subGain * 0.6, t, 0.05);
 }
 
 function starter(){
   if (!ctx || muted) return;
+  var E = S.engines[S.engineType];
+  var isScooter = S.engineType === 'scooter';
   var t = ctx.currentTime;
   var o = ctx.createOscillator(); o.type = 'sawtooth';
-  o.frequency.setValueAtTime(55, t);
-  o.frequency.linearRampToValueAtTime(180, t + 0.7);
+  o.frequency.setValueAtTime(isScooter ? 120 : 55, t);
+  o.frequency.linearRampToValueAtTime(isScooter ? 320 : 180, t + (isScooter ? 0.4 : 0.7));
   var g = ctx.createGain();
   g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(0.18, t + 0.06);
-  g.gain.linearRampToValueAtTime(0, t + 0.85);
+  g.gain.linearRampToValueAtTime(isScooter ? 0.22 : 0.18, t + 0.06);
+  g.gain.linearRampToValueAtTime(0, t + (isScooter ? 0.5 : 0.85));
   var dist = ctx.createWaveShaper();
   dist.curve = makeHardClipCurve();
-  var f = ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=500;
+  var f = ctx.createBiquadFilter(); f.type='lowpass';
+  f.frequency.value = isScooter ? 900 : 500;
   o.connect(f).connect(dist).connect(g).connect(ctx.destination);
-  o.start(t); o.stop(t + 0.9);
+  o.start(t); o.stop(t + (isScooter ? 0.55 : 0.9));
 }
 
 function resume(){
