@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>ДВС — интерактивный симулятор</title>
-<link rel="stylesheet" href="style.css?v=20">
+<link rel="stylesheet" href="style.css?v=30">
 </head>
 <body>
 
@@ -22,28 +22,31 @@
       <div class="ro"><div class="lbl">Скорость</div><div class="val" id="spdVal">0</div></div>
       <div class="ro"><div class="lbl">Передача</div><div class="val amber" id="gearVal">N</div></div>
     </div>
-    <div class="gears" id="gears">
-      <button class="gearbtn neu on" data-g="0" type="button">N</button>
-      <button class="gearbtn" data-g="1" type="button">1</button>
-      <button class="gearbtn" data-g="2" type="button">2</button>
-      <button class="gearbtn" data-g="3" type="button">3</button>
-      <button class="gearbtn" data-g="4" type="button">4</button>
-      <button class="gearbtn" data-g="5" type="button">5</button>
+    <div class="gear-box">
+      <div class="gear-scheme">
+        <button class="gearbtn" data-g="1" type="button">1</button>
+        <button class="gearbtn" data-g="3" type="button">3</button>
+        <button class="gearbtn" data-g="5" type="button">5</button>
+        <button class="gearbtn" data-g="2" type="button">2</button>
+        <button class="gearbtn neu on" data-g="0" type="button">N</button>
+        <button class="gearbtn" data-g="4" type="button">4</button>
+        <button class="gearbtn rev" data-g="-1" type="button">R</button>
+      </div>
     </div>
     <button class="ignbtn on" id="ignBtn" type="button">Зажигание</button>
   </div>
 </main>
 
 <div class="pedals">
-  <div class="pedal clutch" id="pClutch">
+  <div class="pedal clutch" id="pClutch" data-pedal="clutch">
     <div class="bar"></div><span class="icon">🦶</span>
     <span>СЦЕПЛЕНИЕ</span><span class="sub">держать</span>
   </div>
-  <div class="pedal brake" id="pBrake">
+  <div class="pedal brake" id="pBrake" data-pedal="brake">
     <div class="bar"></div><span class="icon">🛑</span>
     <span>ТОРМОЗ</span><span class="sub">держать</span>
   </div>
-  <div class="pedal" id="pGas">
+  <div class="pedal" id="pGas" data-pedal="gas">
     <div class="bar"></div><span class="icon">⛽</span>
     <span>ГАЗ</span><span class="sub">держать</span>
   </div>
@@ -52,8 +55,8 @@
 <div id="breakBanner"></div>
 <div id="err"></div>
 
-<script src="engine.js?v=20" defer></script>
-<script src="render.js?v=20" defer></script>
-<script src="sound.js?v=20" defer></script>
+<script src="engine.js?v=30" defer></script>
+<script src="render.js?v=30" defer></script>
+<script src="sound.js?v=30" defer></script>
 </body>
 </html>
