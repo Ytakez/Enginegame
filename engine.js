@@ -9,8 +9,7 @@ window.addEventListener('error',function(ev){
 });
 if(!S){showErr('physics.js не загрузился');return;}
 
-if(S.ignitionOn===undefined)S.ignitionOn=false;
-if(S.fuelPrimed===undefined)S.fuelPrimed=false;
+if(S.ignitionState===undefined)S.ignitionState='off';
 if(S.primingStart===undefined)S.primingStart=0;
 if(S.primingDuration===undefined)S.primingDuration=1500;
 
@@ -74,38 +73,58 @@ var fuelLight=document.getElementById('fuelLight');
 var fuelText=document.getElementById('fuelText');
 var ignLock=false;
 
-function stopEngine(){
+function setIgnBtn(text,cls,active){
+  if(!ignBtn)return;
+  ignBtn.textContent=text;
+  ignBtn.className='ignbtn'+(cls?' '+cls:'')+(active?' on':'');
+}
+
+function resetToOff(){
+  S.ignitionState='off';
   S.running=false;S.stalled=true;S.rpm=0;
-  S.ignitionOn=false;S.fuelPrimed=false;
-  if(ignBtn)ignBtn.classList.remove('on');
-  try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
+  setIgnBtn('ЗАЖИГАНИЕ','',false);
 }
 function keyOn(){
-  S.ignitionOn=true;S.fuelPrimed=false;S.primingStart=Date.now();
-  if(ignBtn)ignBtn.classList.add('on');
+  S.ignitionState='priming';
+  S.primingStart=Date.now();
+  S.running=false;S.stalled=true;S.rpm=0;
+  setIgnBtn('КАЧАЕТ...','',true);
   try{if(navigator.vibrate)navigator.vibrate(20);}catch(e){}
+  if(window.DVS_SOUND&&window.DVS_SOUND.fuelPump)window.DVS_SOUND.fuelPump();
+}
+function readyToStart(){
+  S.ignitionState='ready';
+  setIgnBtn('▶ ПУСК','start',false);
+  try{if(navigator.vibrate)navigator.vibrate([30,30]);}catch(e){}
 }
 function startEngine(){
+  S.ignitionState='running';
   S.stalled=false;S.running=true;
   S.rpm=S.engines[S.engineType].idle;
+  setIgnBtn('СТОП','',true);
   try{if(navigator.vibrate)navigator.vibrate([30,40,30]);}catch(e){}
+  if(window.DVS_SOUND&&window.DVS_SOUND.starter)window.DVS_SOUND.starter();
 }
+function stopEngine(){
+  S.running=false;S.stalled=true;S.rpm=0;
+  S.ignitionState='off';
+  setIgnBtn('ЗАЖИГАНИЕ','',false);
+  try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
+}
+
 function toggleIgnition(){
   if(S.broken){try{if(navigator.vibrate)navigator.vibrate([50,50,50]);}catch(e){}return;}
-  if(S.running&&!S.stalled){stopEngine();return;}
-  if(!S.ignitionOn){keyOn();return;}
-  if(!S.fuelPrimed){
-    try{if(navigator.vibrate)navigator.vibrate([20,20]);}catch(e){}
-    if(fuelLight){fuelLight.classList.add('shake');setTimeout(function(){fuelLight.classList.remove('shake');},300);}
-    return;
-  }
-  startEngine();
+  var st=S.ignitionState;
+  if(st==='running'){stopEngine();return;}
+  if(st==='off'){keyOn();return;}
+  if(st==='priming'){return;}
+  if(st==='ready'){startEngine();return;}
 }
 if(ignBtn)ignBtn.addEventListener('click',function(e){
   e.preventDefault();
   if(ignLock)return;
   ignLock=true;toggleIgnition();
-  setTimeout(function(){ignLock=false;},350);
+  setTimeout(function(){ignLock=false;},400);
 });
 
 var repairBtn=document.getElementById('repairBtn');
@@ -148,21 +167,12 @@ function updateEngineUI(){
 
 function updateFuelLight(){
   if(!fuelLight)return;
-  if(S.broken){
-    fuelLight.className='fuel-pump off';
-    if(fuelText)fuelText.textContent='ВЫКЛ';
-    return;
-  }
-  if(!S.ignitionOn){
-    fuelLight.className='fuel-pump off';
-    if(fuelText)fuelText.textContent='ВЫКЛ';
-  }else if(!S.fuelPrimed){
-    fuelLight.className='fuel-pump priming';
-    if(fuelText)fuelText.textContent='КАЧАЕТ...';
-  }else{
-    fuelLight.className='fuel-pump ready';
-    if(fuelText)fuelText.textContent='ГОТОВ';
-  }
+  var st=S.ignitionState;
+  if(S.broken){fuelLight.className='fuel-pump off';if(fuelText)fuelText.textContent='ВЫКЛ';return;}
+  if(st==='off'){fuelLight.className='fuel-pump off';if(fuelText)fuelText.textContent='ВЫКЛ';}
+  else if(st==='priming'){fuelLight.className='fuel-pump priming';if(fuelText)fuelText.textContent='КАЧАЕТ...';}
+  else if(st==='ready'){fuelLight.className='fuel-pump ready';if(fuelText)fuelText.textContent='ГОТОВ';}
+  else if(st==='running'){fuelLight.className='fuel-pump run';if(fuelText)fuelText.textContent='РАБОТА';}
 }
 
 function loop(now){
@@ -172,13 +182,8 @@ function loop(now){
 
   updateEngineUI();
 
-  if(!S.running&&!S.stalled&&S.ignitionOn){
-    S.ignitionOn=false;S.fuelPrimed=false;
-    if(ignBtn)ignBtn.classList.remove('on');
-  }
-
-  if(S.ignitionOn&&!S.fuelPrimed){
-    if(Date.now()-S.primingStart>=S.primingDuration)S.fuelPrimed=true;
+  if(S.ignitionState==='priming'&&Date.now()-S.primingStart>=S.primingDuration){
+    readyToStart();
   }
   updateFuelLight();
 
