@@ -6,7 +6,7 @@ window.addEventListener('error', function(ev){ showErr(ev.message + ' | ' + (ev.
 
 var S = window.DVS = {
   rpm: 0, speed: 0, gear: 0, crankAngle: 0,
-  running: false, stalled: false,
+  running: false, stalled: false, broken: false,
   throttle: 0, brakePedal: 0, clutchPedal: 0,
   pressed: { gas:false, brake:false, clutch:false }
 };
@@ -15,17 +15,64 @@ var gearRatios=[0,3.40,2.00,1.35,1.00,0.78];
 var finalDrive=3.90, wheelRadius=0.31, mass=1250;
 var Iwheel=mass*wheelRadius*wheelRadius;
 var Iengine=0.55, maxTorque=250, clutchK=40, clutchMax=350;
-var idleRpm=900, stallRpm=350, redlineRpm=6800;
+var idleRpm=900, stallRpm=350, redlineRpm=6800, breakRpm=7800;
 
 function torqueCurve(r){
   var x=Math.max(800,Math.min(6500,r));
   return 0.55+0.45*Math.sin(Math.PI*(x-800)/(6500-800));
 }
 
+function breakEngine(reason){
+  if (S.broken) return;
+  S.broken = true;
+  S.running = false;
+  S.stalled = true;
+  S.rpm = 0;
+  document.body.classList.add('broken');
+  var rb = document.getElementById('repairBtn');
+  if (rb) rb.style.display = 'block';
+  var banner = document.getElementById('breakBanner');
+  if (banner){
+    banner.textContent = '⚠ ДВИГАТЕЛЬ СЛОМАН: ' + (reason||'поломка');
+    banner.style.display = 'block';
+  }
+  var ignBtn = document.getElementById('ignBtn');
+  if (ignBtn) ignBtn.classList.remove('on');
+  try{ if(navigator.vibrate) navigator.vibrate([100,60,100,60,200]); }catch(e){}
+}
+
+function repair(){
+  S.broken = false;
+  S.stalled = false;
+  S.running = false;
+  S.rpm = 0;
+  S.speed = 0;
+  S.gear = 0;
+  document.body.classList.remove('broken');
+  var rb = document.getElementById('repairBtn');
+  if (rb) rb.style.display = 'none';
+  var banner = document.getElementById('breakBanner');
+  if (banner) banner.style.display = 'none';
+  var gearBtns = document.querySelectorAll('.gearbtn');
+  gearBtns.forEach(function(b){ b.classList.toggle('on', Number(b.dataset.g) === 0); });
+  document.getElementById('gearVal').textContent = 'N';
+  var ignBtn = document.getElementById('ignBtn');
+  if (ignBtn) ignBtn.classList.remove('on');
+  try{ if(navigator.vibrate) navigator.vibrate(15); }catch(e){}
+}
+
 function physics(dt){
   var rpm=S.rpm, speed=S.speed, gear=S.gear;
   var throttle=S.throttle, brakePedal=S.brakePedal, clutchPedal=S.clutchPedal;
   var running=S.running, stalled=S.stalled;
+
+  if (S.broken){
+    S.rpm = 0;
+    S.speed *= Math.max(0, 1 - 2.5*dt);
+    if (Math.abs(S.speed) < 0.1) S.speed = 0;
+    return;
+  }
+
   var ratio=gearRatios[gear]*finalDrive;
   var eng=(gear===0||stalled||!running)?0:(1-clutchPedal);
   var omegaWheel=speed/3.6/wheelRadius;
@@ -54,6 +101,13 @@ function physics(dt){
   if(nE<0)nE=0; if(nW<0)nW=0;
   S.rpm=nE*30/Math.PI;
   S.speed=nW*wheelRadius*3.6;
+
+  // ПЕРЕКРУТ
+  if (S.rpm > breakRpm){
+    breakEngine('перекрут ' + Math.round(S.rpm) + ' об/мин');
+    return;
+  }
+
   if(S.speed<0.12&&(brakePedal>0.05||gear===0)){ if(nW<0.6)S.speed=0; }
   if(!stalled&&running&&S.rpm<stallRpm&&(eng>0.25||S.rpm<120)){
     S.stalled=true;S.running=false;S.rpm=0;
@@ -105,6 +159,19 @@ window.addEventListener('pointercancel',releasePointer);
 
 var gearBtns=Array.prototype.slice.call(document.querySelectorAll('.gearbtn'));
 function setGear(g){
+  if (S.broken) return;
+  if (g === S.gear) return;
+
+  var clutchPressed = S.clutchPedal > 0.7;
+  var isMoving = Math.abs(S.speed) > 3;
+  var isRunning = S.running && !S.stalled;
+
+  // ПРОВЕРКА СЦЕПЛЕНИЯ
+  if (!clutchPressed && (isMoving || isRunning)){
+    breakEngine('переключение без сцепления');
+    return;
+  }
+
   S.gear=g;
   gearBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.g)===g);});
   document.getElementById('gearVal').textContent=(g===0?'N':String(g));
@@ -116,13 +183,22 @@ gearBtns.forEach(function(b){
 
 var ignBtn=document.getElementById('ignBtn');
 function toggleIgnition(){
+  if (S.broken){
+    try{ if(navigator.vibrate) navigator.vibrate([50,50,50]); }catch(e){}
+    return;
+  }
   if(S.running&&!S.stalled){S.running=false;S.stalled=true;ignBtn.classList.remove('on');}
   else{S.stalled=false;S.running=true;S.rpm=idleRpm;ignBtn.classList.add('on');}
   try{if(navigator.vibrate)navigator.vibrate(12);}catch(e){}
 }
 ignBtn.addEventListener('click',function(ev){ev.preventDefault();toggleIgnition();});
 
+var repairBtn = document.getElementById('repairBtn');
+if (repairBtn) repairBtn.addEventListener('click', function(ev){ ev.preventDefault(); repair(); });
+
 window.DVS.physics=physics;
 window.DVS.setGear=setGear;
+window.DVS.repair=repair;
+window.DVS.breakEngine=breakEngine;
 
 })();
