@@ -136,7 +136,6 @@ S.physics=function(dt){
     if (S.gear === 0 || S.stalled || !S.running){
       eng = 0;
     } else if (E.cvt){
-      // Плавное схватывание: 0 при idle, 1 при idle + 40% диапазона
       var range = E.idle * 0.5;
       eng = Math.max(0, Math.min(1, (S.rpm - E.idle * 1.05) / range));
     } else {
@@ -150,7 +149,7 @@ S.physics=function(dt){
   var omegaDirect=omegaWheel*ratio;
   var omegaEngine=S.rpm*Math.PI/30;
 
-  /* ===== МОМЕНТ ДВИГАТЕЛЯ ===== */
+  /* ===== МОМЕНТ ДВИГАТЕЛЯ (с ОГРАНИЧЕННЫМ регулятором) ===== */
   var Te=0;
   if(S.running&&!S.stalled){
     var thr=S.throttle;
@@ -160,9 +159,14 @@ S.physics=function(dt){
     Te -= friction;
     if (thr < 0.05){
       var err = E.idle - S.rpm;
-      if (err > 0) Te += err * 0.8;
-      else Te += err * 0.4;
-      Te += friction;
+      if (err > 0){
+        // Регулятор холостого хода: максимум +40 Н·м
+        Te += Math.min(err * 0.8, 40);
+      } else {
+        // Торможение при сбросе газа: максимум −15 Н·м (плавно)
+        Te += Math.max(err * 0.05, -15);
+      }
+      Te += friction * 0.3;  // вернуть часть трения для стабильности
     } else {
       if (S.rpm < E.idle * 0.7) Te += (E.idle * 0.7 - S.rpm) * 0.5;
     }
@@ -172,11 +176,9 @@ S.physics=function(dt){
   var slip = omegaEngine - omegaDirect;
   var Tc;
   if (E.cvt){
-    // Момент передаётся пропорционально схватыванию, ограничен моментом двигателя
     var target = Te * eng;
-    var damp = slip * 0.15;   // очень мягкое демпфирование
+    var damp = slip * 0.15;
     Tc = target + damp;
-    // Ограничение: не больше момента двигателя + запас
     var maxT = Math.max(3, Math.abs(Te) + 8);
     if (Tc >  maxT) Tc =  maxT;
     if (Tc < -maxT) Tc = -maxT;
@@ -187,7 +189,8 @@ S.physics=function(dt){
     if (eng < 0.001) Tc = 0;
   }
 
-  var Iengine = E.cvt ? 0.4 : 0.55;
+  /* Увеличенная инерция для CVT = плавные обороты */
+  var Iengine = E.cvt ? 1.4 : 0.55;
   var dE=(Te-Tc)/Iengine;
 
   /* ===== СОПРОТИВЛЕНИЕ ===== */
