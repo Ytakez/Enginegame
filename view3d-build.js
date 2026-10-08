@@ -1,0 +1,221 @@
+(function(){
+var S=window.S;if(!S)return;
+function waitRef(){
+  if(!window.DVS_3D_REF){setTimeout(waitRef,200);return;}
+  var R=window.DVS_3D_REF;
+  var m=R.getAsm;
+  var mk=function(o){return window.DVS_3D_BUILD.makeCylAss(o);};
+  var cy=window.DVS_3D_BUILD.cy;
+  var bx=window.DVS_3D_BUILD.bx;
+  var bl=window.DVS_3D_BUILD.bl;
+
+  window.DVS_3D_REBUILD=function(){
+    var scene=R.getScene();
+    if(!scene)return;
+    var cfg=R.getCfg(S.engineType);
+    var isV=cfg.v;
+    var totalN=cfg.n;
+    var perRow=isV?Math.floor(totalN/2):totalN;
+    if(perRow<1)perRow=1;
+
+    var old=R.getRoot();
+    if(old)scene.remove(old);
+    var root=new THREE.Group();
+    scene.add(root);
+    R.setRoot(root);
+    R.clearAll();
+
+    var spacing=2.2;
+    var totalWidth=Math.max(perRow*spacing,2);
+    var blockLen=totalWidth+1.5;
+
+    /* поддон */
+    var pod=bx(blockLen,1.2,isV?7.5:5,0x2a3340,0.7,0.5);
+    pod.position.y=-0.6;root.add(pod);
+
+    /* коленвал */
+    var cg=new THREE.Group();cg.position.y=0.6;
+    var ax=cy(0.4,blockLen+1,20,0xa8b4c0,0.95,0.2);ax.rotation.z=Math.PI/2;cg.add(ax);
+    var nMain=perRow+1;
+    for(var mi=0;mi<nMain;mi++){
+      var mx=-blockLen/2+0.5+mi*(blockLen-1)/(nMain-1);
+      var mn=cy(0.55,0.4,16,0xb8c6d4,0.95,0.2);
+      mn.rotation.z=Math.PI/2;mn.position.x=mx;cg.add(mn);
+    }
+    for(var ci=0;ci<perRow;ci++){
+      var cxx=-totalWidth/2+spacing/2+ci*spacing;
+      var o1=ci*Math.PI*2/perRow;
+      var p1=new THREE.Group();
+      var pin1=cy(0.3,0.5,12,0xd8e4f0,0.95,0.2);pin1.rotation.z=Math.PI/2;p1.add(pin1);
+      p1.position.set(cxx,Math.sin(o1)*0.55,0);cg.add(p1);
+      if(isV){
+        var o2=o1+Math.PI;
+        var p2=new THREE.Group();
+        var pin2=cy(0.3,0.5,12,0xd8e4f0,0.95,0.2);pin2.rotation.z=Math.PI/2;p2.add(pin2);
+        p2.position.set(cxx,Math.sin(o2)*0.55,0);cg.add(p2);
+      }
+    }
+    root.add(cg);R.setCrank(cg);
+
+    /* маховик */
+    var fw=new THREE.Group();
+    var fwR=isV?2.4:2.2;
+    var fwD=cy(fwR,0.4,32,0x8a95a3,0.9,0.3);fwD.rotation.z=Math.PI/2;fw.add(fwD);
+    for(var ft=0;ft<30;ft++){
+      var th=bx(0.4,0.3,0.14,0x6a7685,0.9,0.3);
+      var a=(ft/30)*Math.PI*2;
+      th.position.set(0,Math.cos(a)*(fwR+0.1),Math.sin(a)*(fwR+0.1));
+      th.rotation.x=-a;fw.add(th);
+    }
+    fw.position.set(blockLen/2+0.7,0.6,0);
+    root.add(fw);R.setFly(fw);
+
+    /* шестерни ГРМ */
+    var bt=new THREE.Group();
+    var gt=cy(0.9,0.4,20,0x8a95a3,0.9,0.3);gt.rotation.z=Math.PI/2;bt.add(gt);
+    for(var gtt=0;gtt<16;gtt++){
+      var tg=bx(0.24,0.2,0.14,0x6a7685,0.9,0.3);
+      var a2=(gtt/16)*Math.PI*2;
+      tg.position.set(0,Math.cos(a2)*0.95,Math.sin(a2)*0.95);
+      tg.rotation.x=-a2;bt.add(tg);
+    }
+    bt.position.set(-blockLen/2-0.7,6.2,0);
+    root.add(bt);R.setBeltT(bt);
+
+    var bb=new THREE.Group();
+    var gb=cy(1.3,0.4,20,0x8a95a3,0.9,0.3);gb.rotation.z=Math.PI/2;bb.add(gb);
+    for(var gbt=0;gbt<22;gbt++){
+      var tg2=bx(0.24,0.2,0.14,0x6a7685,0.9,0.3);
+      var a3=(gbt/22)*Math.PI*2;
+      tg2.position.set(0,Math.cos(a3)*1.35,Math.sin(a3)*1.35);
+      tg2.rotation.x=-a3;bb.add(tg2);
+    }
+    bb.position.set(-blockLen/2-0.7,0.6,0);
+    root.add(bb);R.setBeltB(bb);
+
+    /* ремень */
+    var beltMat=new THREE.MeshStandardMaterial({color:0x1a1a1a,metalness:0.2,roughness:0.9});
+    var b1=new THREE.Mesh(new THREE.BoxGeometry(0.15,5.6,0.7),beltMat);
+    b1.position.set(-blockLen/2-1.5,3.4,0);root.add(b1);
+    var b2=new THREE.Mesh(new THREE.BoxGeometry(0.15,5.6,1.0),beltMat);
+    b2.position.set(-blockLen/2+0.1,3.4,0);root.add(b2);
+
+    /* распредвал */
+    var cs=new THREE.Group();
+    var ca=cy(0.25,blockLen+1,16,0xa8b4c0,0.95,0.2);ca.rotation.z=Math.PI/2;cs.add(ca);
+    var camArr=[];
+    for(var cc=0;cc<perRow*2;cc++){
+      var cg2=new THREE.Group();
+      var cd=cy(0.32,0.3,16,0x8a95a3,0.9,0.3);cd.rotation.z=Math.PI/2;cg2.add(cd);
+      var nb=cy(0.13,0.3,10,0x6a7685,0.9,0.3);nb.rotation.z=Math.PI/2;nb.position.y=0.32;cg2.add(nb);
+      var cx2=-totalWidth/2+0.5+cc*(totalWidth-1)/(perRow*2-1);
+      cg2.position.set(cx2,0,0);cs.add(cg2);
+      camArr.push({grp:cg2,off:cc*Math.PI*1.5/Math.max(1,perRow*2)});
+    }
+    cs.position.y=6.4;root.add(cs);R.setCam(cs);R.setCams(camArr);
+
+    /* блоки и головки */
+    if(isV){
+      var angV=Math.PI/6;
+      for(var side=0;side<2;side++){
+        var sign=side===0?-1:1;
+        var bk=bx(blockLen,5,2.6,0x4a5566,0.85,0.4);
+        bk.position.set(0,3.4,sign*1.6);bk.rotation.x=sign*angV;
+        root.add(bk);R.pushBlock(bk);
+        for(var rr=0;rr<7;rr++){
+          var rb=bx(blockLen+0.05,0.06,2.65,0x2a3340,0.6,0.6);
+          rb.position.set(0,1.2+rr*0.55,sign*1.6);rb.rotation.x=sign*angV;
+          root.add(rb);R.pushRib(rb);
+        }
+        var hd=bx(blockLen+0.2,1.4,2.8,0x3a4756,0.85,0.35);
+        hd.position.set(0,6.4,sign*2.6);hd.rotation.x=sign*angV;
+        root.add(hd);R.pushHead(hd);
+        var cv=bx(blockLen,0.8,2.5,0x2a3340,0.75,0.4);
+        cv.position.set(0,7.5,sign*3.1);cv.rotation.x=sign*angV;
+        root.add(cv);R.pushCover(cv);
+      }
+    } else {
+      var bk2=bx(blockLen,5,5,0x4a5566,0.85,0.4);
+      bk2.position.y=3.4;root.add(bk2);R.pushBlock(bk2);
+      for(var rr2=0;rr2<9;rr2++){
+        var rb2=bx(blockLen+0.05,0.06,5.05,0x2a3340,0.6,0.6);
+        rb2.position.y=1.2+rr2*0.55;root.add(rb2);R.pushRib(rb2);
+      }
+      var hd2=bx(blockLen+0.2,1.4,5.3,0x3a4756,0.85,0.35);
+      hd2.position.y=6.4;root.add(hd2);R.pushHead(hd2);
+      var cv2=bx(blockLen,0.8,5,0x2a3340,0.75,0.4);
+      cv2.position.y=7.5;root.add(cv2);R.pushCover(cv2);
+    }
+
+    /* болты */
+    for(var b=0;b<perRow+1;b++){
+      var bxx=-totalWidth/2+b*(totalWidth/perRow);
+      if(!isV){
+        for(var sg=-1;sg<=1;sg+=2){
+          var bo=bl(0.16);bo.position.set(bxx,7.95,sg*2.4);root.add(bo);
+        }
+      } else {
+        for(var sd=0;sd<2;sd++){
+          var sg2=sd===0?-1:1;
+          var bo2=bl(0.16);bo2.position.set(bxx,7.9,sg2*3.3);root.add(bo2);
+        }
+      }
+    }
+
+    /* цилиндры и поршни */
+    var arr=[];
+    if(!isV){
+      for(var i=0;i<perRow;i++){
+        var xx=-totalWidth/2+spacing/2+i*spacing;
+        var a=mk({x:xx,y:1.1,z:0,r:1.15,h:4.6,diesel:cfg.diesel,off:i*Math.PI});
+        root.add(a.g);arr.push(a);
+      }
+    } else {
+      var angV2=Math.PI/6;
+      for(var s2=0;s2<2;s2++){
+        var sg3=s2===0?-1:1;
+        for(var j=0;j<perRow;j++){
+          var xx2=-totalWidth/2+spacing/2+j*spacing;
+          var off2=(s2===0?j*Math.PI*2/perRow:(j*Math.PI*2/perRow)+Math.PI);
+          var a2=mk({x:xx2,y:1.1,z:sg3*2.1,r:1.15,h:4.6,diesel:cfg.diesel,off:off2});
+          a2.g.rotation.x=sg3*angV2;
+          root.add(a2.g);arr.push(a2);
+        }
+      }
+    }
+    R.setAsm(arr);
+
+    /* выпускной коллектор */
+    var col=cfg.tractor?0x3a2a1a:0x4a3a2a;
+    for(var e=0;e<perRow;e++){
+      var ex=-totalWidth/2+spacing/2+e*spacing;
+      var pp=cy(0.24,1.4,10,col,0.8,0.5);
+      pp.position.set(ex,8.2,isV?-3.5:-2.6);root.add(pp);
+    }
+    var mp=cy(0.34,blockLen,16,col,0.8,0.5);
+    mp.rotation.z=Math.PI/2;mp.position.set(0,8.9,isV?-3.5:-2.6);root.add(mp);
+
+    /* дизельная обвязка */
+    if(cfg.diesel){
+      var pump=bx(1.8,1.4,1.6,0x3a4654,0.85,0.4);
+      pump.position.set(-blockLen/2-0.4,8.5,isV?2.8:1.8);root.add(pump);
+      var pg=cy(0.6,0.3,16,0x8a95a3,0.9,0.3);
+      pg.rotation.z=Math.PI/2;pg.position.set(-blockLen/2-0.4,8.5,isV?3.9:2.9);root.add(pg);
+      if(cfg.turbo){
+        var tg3=new THREE.Group();
+        var tb=cy(0.9,0.7,20,0x4a5566,0.85,0.4);tb.rotation.z=Math.PI/2;tg3.add(tb);
+        var sp=new THREE.Mesh(new THREE.TorusGeometry(0.7,0.15,8,20),window.DVS_3D_BUILD.m(0x6a7685,0.9,0.3));
+        sp.rotation.y=Math.PI/2;tg3.add(sp);
+        tg3.position.set(blockLen/2-0.8,8.2,isV?3.5:2.6);root.add(tg3);
+      }
+      if(cfg.tractor){
+        var st=cy(0.35,3.2,12,0x2a2a2a,0.5,0.7);
+        st.position.set(blockLen/2-0.8,10.5,isV?3:2.6);root.add(st);
+        var cp=cy(0.45,0.3,12,0x1a1a1a,0.5,0.7);
+        cp.position.set(blockLen/2-0.8,12.2,isV?3:2.6);root.add(cp);
+      }
+    }
+  };
+}
+waitRef();
+})();
