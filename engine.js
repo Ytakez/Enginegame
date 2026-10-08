@@ -9,6 +9,7 @@ window.addEventListener('error',function(ev){
 });
 if(!S){showErr('physics.js не загрузился');return;}
 
+/* ===== ПЕДАЛИ ===== */
 var pedalEls={clutch:document.getElementById('pClutch'),brake:document.getElementById('pBrake'),gas:document.getElementById('pGas')};
 var activeTouches={};
 function pedalPress(n){ if(S.pressed[n])return; S.pressed[n]=true; if(pedalEls[n])pedalEls[n].classList.add('active'); }
@@ -43,6 +44,7 @@ Object.keys(pedalEls).forEach(function(n){
 window.addEventListener('blur',pedalReleaseAll);
 document.addEventListener('visibilitychange',function(){if(document.hidden)pedalReleaseAll();});
 
+/* ===== ПЕРЕДАЧИ (механика) ===== */
 var gearBtns=Array.prototype.slice.call(document.querySelectorAll('.gbtn'));
 S.setGear=function(g){
   var E = S.engines[S.engineType];
@@ -53,11 +55,30 @@ S.setGear=function(g){
   gearBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.g)===g);});
   var gv=document.getElementById('gearVal');
   if(gv)gv.textContent=(g===0?'N':(g===-1?'R':String(g)));
+  try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}
 };
 gearBtns.forEach(function(b){
   b.addEventListener('click',function(e){e.preventDefault();S.setGear(Number(b.dataset.g));});
 });
 
+/* ===== ПЕРЕДАЧИ (автомат R N D) ===== */
+var autoBtns=Array.prototype.slice.call(document.querySelectorAll('.agbtn'));
+S.setAutoGear=function(g){
+  var E = S.engines[S.engineType];
+  if (!E || !E.auto) return;
+  if (S.broken) return;
+  if (g === S.gear) return;
+  S.gear = g;
+  autoBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.ag)===g);});
+  var gv=document.getElementById('gearVal');
+  if(gv)gv.textContent=(g===0?'N':(g===-1?'R':'D'));
+  try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}
+};
+autoBtns.forEach(function(b){
+  b.addEventListener('click',function(e){e.preventDefault();S.setAutoGear(Number(b.dataset.ag));});
+});
+
+/* ===== ЗАЖИГАНИЕ ===== */
 var ignBtn=document.getElementById('ignBtn');
 var ignLock=false;
 function toggleIgnition(){
@@ -81,38 +102,42 @@ if(ignBtn) ignBtn.addEventListener('click',function(e){
 var repairBtn=document.getElementById('repairBtn');
 if(repairBtn) repairBtn.addEventListener('click',function(e){e.preventDefault();S.repair();});
 
-/* ===== УПРАВЛЕНИЕ ВИДИМОСТЬЮ ЭЛЕМЕНТОВ ПОД ТИП ДВИГАТЕЛЯ ===== */
+/* ===== ПЕРЕКЛЮЧЕНИЕ UI ПОД ДВИГАТЕЛЬ ===== */
 var lastEngine = null;
 function updateEngineUI(){
   var E = S.engines[S.engineType];
   if (!E) return;
+  var badge = document.getElementById('engBadge');
+  if (badge && E.name && badge.textContent !== E.name) badge.textContent = E.name;
+
   if (lastEngine === S.engineType) return;
   lastEngine = S.engineType;
 
-  var gears = document.querySelector('.gears');
   var clutch = document.getElementById('pClutch');
   var pedals = document.querySelector('.pedals');
+  var ignText = document.getElementById('ignBtn');
 
   if (E.auto){
     document.body.classList.add('auto-mode');
-    if (gears) gears.style.display = 'none';
     if (clutch) clutch.style.display = 'none';
     if (pedals) pedals.style.gridTemplateColumns = '1fr 1fr';
   } else {
     document.body.classList.remove('auto-mode');
-    if (gears) gears.style.display = '';
     if (clutch) clutch.style.display = '';
     if (pedals) pedals.style.gridTemplateColumns = '';
   }
 
-  // обновить бейдж
-  var badge = document.getElementById('engBadge');
-  if (badge && E.name) badge.textContent = E.name;
+  // Обновить состояние кнопок передач
+  if (E.auto){
+    autoBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.ag)===S.gear);});
+  } else {
+    gearBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.g)===S.gear);});
+  }
 
-  // обновить readouts "Передача"
+  // Обновить значение "Передача"
   var gv = document.getElementById('gearVal');
   if (gv){
-    if (E.auto) gv.textContent = 'A';
+    if (E.auto) gv.textContent = (S.gear===0?'N':(S.gear===-1?'R':'D'));
     else gv.textContent = (S.gear===0?'N':(S.gear===-1?'R':String(S.gear)));
   }
 }
@@ -157,6 +182,6 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 
-S.setGear(S.engines[S.engineType].auto ? 1 : 0);
+if (S.engines[S.engineType].auto) S.gear = 1;
 requestAnimationFrame(loop);
 })();
