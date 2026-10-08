@@ -4,7 +4,6 @@ var RB = window.RB;
 if (!RB) return;
 var RE = window.RE = {};
 
-/* ===== ОДИН ЦИЛИНДР ===== */
 RE.drawCyl = function(c,S,cx,crankY,topY,botY,halfW,phase,CR,ROD,dir,br,firing,thr,num,camY){
   var cycPos=((phase%(Math.PI*4))+Math.PI*4)%(Math.PI*4);
   var stroke=Math.floor(cycPos/Math.PI);
@@ -116,7 +115,6 @@ RE.drawCyl = function(c,S,cx,crankY,topY,botY,halfW,phase,CR,ROD,dir,br,firing,t
   }
 };
 
-/* ===== R4 ===== */
 RE.drawR4 = function(c,S){
   var W=c.canvas.width;
   var br=S.broken;
@@ -179,7 +177,6 @@ RE.drawR4 = function(c,S){
   c.fillText('R4  •  4 цилиндра в ряд  •  ГРМ + распредвал',45,20);
 };
 
-/* ===== V8 / V16 ===== */
 RE.drawV = function(c,S,n){
   var W=c.canvas.width;
   var br=S.broken;
@@ -221,7 +218,6 @@ RE.drawV = function(c,S,n){
   c.fillText(n===8?'V8  •  8 цилиндров  •  V-образный':'V16  •  16 цилиндров  •  V-образный',W/2,12);
 };
 
-/* ===== СКУТЕР ===== */
 RE.drawScooter = function(c,S){
   var W=c.canvas.width;
   var br=S.broken;
@@ -256,7 +252,6 @@ RE.drawScooter = function(c,S){
   c.fillText('СКУТЕР 50cc',W-105,72);
 };
 
-/* ===== 1.9 TDI (Passat B5) ===== */
 RE.drawTDI = function(c,S){
   var W=c.canvas.width;
   var br=S.broken;
@@ -265,7 +260,6 @@ RE.drawTDI = function(c,S){
   var halfW=42,topY=150,botY=295,camY=95;
   var offs=[2*Math.PI,3*Math.PI,Math.PI,0];
 
-  /* ==== Поддон ==== */
   var pg=c.createLinearGradient(0,360,0,420);
   if(br){pg.addColorStop(0,'#2a1a1a');pg.addColorStop(1,'#1a0a0a');}
   else{pg.addColorStop(0,'#2a3340');pg.addColorStop(1,'#131b24');}
@@ -275,57 +269,42 @@ RE.drawTDI = function(c,S){
   c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=2;c.stroke();
   RB.bolt(c,320,412,5,br);
 
-  /* ==== Блок цилиндров (дизельный, крепче выглядит) ==== */
   c.fillStyle=RB.metalGrad(c,30,135,225,br);
   RB.rr(c,30,135,580,225,6);c.fill();
   c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=2;c.stroke();
-  // Рёбра
   c.strokeStyle=br?'rgba(90,40,40,0.5)':'rgba(30,40,52,0.6)';c.lineWidth=1.5;
   for(var rb=0;rb<14;rb++){var ry=150+rb*16;
     c.beginPath();c.moveTo(35,ry);c.lineTo(605,ry);c.stroke();}
 
-  /* ==== Головка блока (дизельная, с форсунками) ==== */
   c.fillStyle=RB.metalGrad(c,30,55,90,br);
   RB.rr(c,30,55,580,90,6);c.fill();
   c.strokeStyle=br?'#6a3a3a':'#4a5a6c';c.lineWidth=2;c.stroke();
-  // Крышка распредвала
   c.fillStyle=br?'#3a2424':'#1d2530';
   RB.rr(c,45,38,550,20,4);c.fill();
   c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=1.5;c.stroke();
   for(var bi=0;bi<6;bi++)RB.bolt(c,70+bi*105,48,2.5,br);
 
-  /* ==== РАСПРЕДВАЛ ==== */
   c.fillStyle='#1a232e';c.fillRect(60,camY,520,5);
   c.strokeStyle='#3a4654';c.lineWidth=1;c.strokeRect(60,camY,520,5);
 
-  /* ==== КОЛЕНВАЛ ==== */
   RB.drawCrank(c,60,580,crankY,br);
   var mains=[70,185,320,455,570];
   for(var mi=0;mi<mains.length;mi++)RB.drawMainBearing(c,mains[mi],crankY,11,br);
-
-  /* ==== МАХОВИК (двухмассовый — шире) ==== */
   RB.drawFlywheel(c,608,crankY,34,S.crankAngle,br);
-
-  /* ==== РЕМЕНЬ ГРМ ==== */
   RB.drawBelt(c,25,camY+3,crankY,br);
 
-  /* ==== ЦИЛИНДРЫ ==== */
   for(var i=0;i<4;i++){
     RE.drawCyl(c,S,xs[i],crankY,topY,botY,halfW,S.crankAngle+offs[i],CR,ROD,-1,
       br,S.running&&!S.stalled&&!br,S.throttle,i+1,camY+3);
   }
 
-  /* ==== ФОРСУНКИ (дизельные, с трубами высокого давления) ==== */
   for(var fi=0;fi<4;fi++){
     var fx=xs[fi];
-    // Корпус форсунки над головкой
     c.fillStyle=br?'#3a2424':'#2a333f';
     RB.rr(c,fx-8,72,16,32,3);c.fill();
     c.strokeStyle=br?'#5a3030':'#1a232e';c.lineWidth=1.5;c.stroke();
-    // Штуцер
     c.fillStyle=br?'#5a4040':'#8a95a3';
     c.fillRect(fx-3,62,6,10);
-    // Трубка высокого давления (изогнутая)
     c.strokeStyle=br?'#5a3030':'#4a5566';c.lineWidth=2.5;
     c.beginPath();
     c.moveTo(fx,62);
@@ -333,19 +312,15 @@ RE.drawTDI = function(c,S){
     c.stroke();
   }
 
-  /* ==== ТНВД (топливный насос высокого давления) — слева ==== */
   c.fillStyle=br?'#4a2a2a':'#3a4654';
   RB.rr(c,45,25,80,35,4);c.fill();
   c.strokeStyle=br?'#6a3a3a':'#1a232e';c.lineWidth=2;c.stroke();
-  // Шестерня ТНВД
   RB.drawGear(c,85,42,12,br);
-  // Надпись
   c.fillStyle=br?'#a05050':'#6d8299';
   c.font='bold 8px Segoe UI, sans-serif';
   c.textAlign='center';c.textBaseline='middle';
   c.fillText('ТНВД',85,68);
 
-  /* ==== ВЫПУСКНОЙ КОЛЛЕКТОР ==== */
   var eg=c.createLinearGradient(0,125,0,145);
   if(br){eg.addColorStop(0,'#3a2424');eg.addColorStop(1,'#2a1a1a');}
   else{eg.addColorStop(0,'#2a1a0a');eg.addColorStop(1,'#1a0a00');}
@@ -356,22 +331,14 @@ RE.drawTDI = function(c,S){
   }
   c.beginPath();c.moveTo(95,182);c.lineTo(500,182);c.stroke();
 
-  /* ==== ТУРБИНА (справа, улитка) ==== */
-  // Основной корпус улитки
   c.fillStyle=br?'#5a3a3a':'#4a5566';
   c.beginPath();c.arc(555,200,26,0,7);c.fill();
   c.strokeStyle=br?'#7a4a4a':'#1a232e';c.lineWidth=2;c.stroke();
-  // Спираль улитки
   c.strokeStyle=br?'#7a5a5a':'#6a7685';c.lineWidth=3;
-  c.beginPath();
-  c.arc(555,200,20,0,Math.PI*1.4);c.stroke();
-  c.beginPath();
-  c.arc(555,200,15,Math.PI,Math.PI*2.2);c.stroke();
-  // Центр турбины
+  c.beginPath();c.arc(555,200,20,0,Math.PI*1.4);c.stroke();
+  c.beginPath();c.arc(555,200,15,Math.PI,Math.PI*2.2);c.stroke();
   c.fillStyle=br?'#3a2020':'#1a232e';
   c.beginPath();c.arc(555,200,8,0,7);c.fill();
-  c.strokeStyle=br?'#5a3030':'#3a4654';c.lineWidth=1.5;c.stroke();
-  // Лопатки
   c.strokeStyle=br?'#8a5a5a':'#8a95a3';c.lineWidth=1.5;
   for(var ti=0;ti<6;ti++){
     var ta=(ti/6)*Math.PI*2+S.crankAngle*0.3;
@@ -380,12 +347,10 @@ RE.drawTDI = function(c,S){
     c.lineTo(555+Math.cos(ta)*7,200+Math.sin(ta)*7);
     c.stroke();
   }
-  // Подпись
   c.fillStyle=br?'#a05050':'#6d8299';
   c.font='bold 8px Segoe UI, sans-serif';
   c.fillText('TURBO',555,235);
 
-  /* ==== ИНТЕРКУЛЕР ТРУБА (от турбины наверх) ==== */
   c.strokeStyle=br?'#5a3030':'#3a4654';c.lineWidth=8;c.lineCap='round';
   c.beginPath();
   c.moveTo(555,175);
@@ -397,7 +362,6 @@ RE.drawTDI = function(c,S){
   c.quadraticCurveTo(520,120,470,110);
   c.stroke();
 
-  /* ==== EGR КЛАПАН ==== */
   c.fillStyle=br?'#4a2a2a':'#3a4654';
   RB.rr(c,430,145,30,20,3);c.fill();
   c.strokeStyle=br?'#6a3a3a':'#1a232e';c.lineWidth=1.5;c.stroke();
@@ -405,7 +369,6 @@ RE.drawTDI = function(c,S){
   c.font='bold 7px Segoe UI, sans-serif';
   c.fillText('EGR',445,178);
 
-  /* ==== ПОДПИСЬ ==== */
   c.fillStyle=br?'#8a5a5a':'#8fb5d8';
   c.font='bold 12px Segoe UI, sans-serif';
   c.textAlign='left';c.textBaseline='top';
@@ -413,6 +376,103 @@ RE.drawTDI = function(c,S){
   c.fillStyle=br?'#6a4a4a':'#5d7189';
   c.font='bold 9px Segoe UI, sans-serif';
   c.fillText('Рядная 4-ка  •  Турбодизель  •  110 л.с.',45,27);
+};
+
+RE.drawMTZ = function(c,S){
+  var W=c.canvas.width;
+  var br=S.broken;
+  var crankY=320,CR=32,ROD=92;
+  var xs=[125,255,385,515];
+  var halfW=42,topY=155,botY=305,camY=95;
+  var offs=[2*Math.PI,3*Math.PI,Math.PI,0];
+
+  var pg=c.createLinearGradient(0,375,0,430);
+  if(br){pg.addColorStop(0,'#2a1a1a');pg.addColorStop(1,'#1a0a0a');}
+  else{pg.addColorStop(0,'#2a3340');pg.addColorStop(1,'#131b24');}
+  c.fillStyle=pg;
+  c.beginPath();c.moveTo(40,375);c.lineTo(600,375);c.lineTo(580,430);c.lineTo(60,430);
+  c.closePath();c.fill();
+  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=2;c.stroke();
+  RB.bolt(c,320,425,5,br);
+
+  c.fillStyle=RB.metalGrad(c,30,140,240,br);
+  RB.rr(c,30,140,580,240,6);c.fill();
+  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=2;c.stroke();
+  c.strokeStyle=br?'rgba(90,40,40,0.5)':'rgba(30,40,52,0.6)';c.lineWidth=1.5;
+  for(var rb=0;rb<15;rb++){var ry=155+rb*16;
+    c.beginPath();c.moveTo(35,ry);c.lineTo(605,ry);c.stroke();}
+
+  c.fillStyle=RB.metalGrad(c,30,55,90,br);
+  RB.rr(c,30,55,580,90,6);c.fill();
+  c.strokeStyle=br?'#6a3a3a':'#4a5a6c';c.lineWidth=2;c.stroke();
+  c.fillStyle=br?'#3a2424':'#1d2530';
+  RB.rr(c,45,38,550,20,4);c.fill();
+  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=1.5;c.stroke();
+
+  c.fillStyle='#1a232e';c.fillRect(60,camY,520,5);
+
+  RB.drawCrank(c,60,580,crankY,br);
+  var mains=[70,185,320,455,570];
+  for(var mi=0;mi<mains.length;mi++)RB.drawMainBearing(c,mains[mi],crankY,11,br);
+
+  RB.drawFlywheel(c,608,crankY,36,S.crankAngle,br);
+
+  for(var i=0;i<4;i++){
+    RE.drawCyl(c,S,xs[i],crankY,topY,botY,halfW,S.crankAngle+offs[i],CR,ROD,-1,
+      br,S.running&&!S.stalled&&!br,S.throttle,i+1,camY+3);
+  }
+
+  c.fillStyle=br?'#4a2a2a':'#3a4654';
+  RB.rr(c,560,25,55,40,4);c.fill();
+  c.strokeStyle=br?'#6a3a3a':'#1a232e';c.lineWidth=2;c.stroke();
+  RB.drawGear(c,588,45,10,br);
+  c.fillStyle=br?'#a05050':'#6d8299';
+  c.font='bold 8px Segoe UI, sans-serif';
+  c.textAlign='center';c.textBaseline='middle';
+  c.fillText('ТНВД',588,72);
+
+  for(var fi=0;fi<4;fi++){
+    var fx=xs[fi];
+    c.fillStyle=br?'#3a2424':'#2a333f';
+    RB.rr(c,fx-7,72,14,28,3);c.fill();
+    c.strokeStyle=br?'#5a3030':'#1a232e';c.lineWidth=1.5;c.stroke();
+    c.strokeStyle=br?'#5a3030':'#4a5566';c.lineWidth=2.5;
+    c.beginPath();
+    c.moveTo(fx,72);
+    c.quadraticCurveTo(fx+30,50,560,50);
+    c.stroke();
+  }
+
+  var eg=c.createLinearGradient(0,130,0,150);
+  if(br){eg.addColorStop(0,'#3a2424');eg.addColorStop(1,'#2a1a1a');}
+  else{eg.addColorStop(0,'#2a1a0a');eg.addColorStop(1,'#1a0a00');}
+  c.strokeStyle=eg;c.lineWidth=12;c.lineCap='round';
+  for(var pi=0;pi<4;pi++){
+    var px=115+pi*125;
+    c.beginPath();c.moveTo(px,152);c.lineTo(px,180);c.stroke();
+  }
+  c.beginPath();c.moveTo(90,188);c.lineTo(510,188);c.stroke();
+
+  c.strokeStyle=br?'#4a2a2a':'#2a2a2a';c.lineWidth=14;
+  c.beginPath();
+  c.moveTo(510,188);
+  c.lineTo(580,150);
+  c.lineTo(600,40);
+  c.stroke();
+  c.strokeStyle=br?'#6a3a3a':'#4a4a4a';c.lineWidth=4;
+  c.beginPath();
+  c.moveTo(510,188);
+  c.lineTo(580,150);
+  c.lineTo(600,40);
+  c.stroke();
+
+  c.fillStyle=br?'#8a5a5a':'#8fb5d8';
+  c.font='bold 12px Segoe UI, sans-serif';
+  c.textAlign='left';c.textBaseline='top';
+  c.fillText('Д-240  •  МТЗ-82 «Беларус»',45,10);
+  c.fillStyle=br?'#6a4a4a':'#5d7189';
+  c.font='bold 9px Segoe UI, sans-serif';
+  c.fillText('Рядная 4-ка  •  Атмосферный дизель  •  4,75 л',45,27);
 };
 
 })();
