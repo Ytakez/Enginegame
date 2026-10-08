@@ -7,7 +7,22 @@
 <link rel="icon" type="image/png" href="Icon.png">
 <link rel="apple-touch-icon" href="Icon.png">
 <link rel="shortcut icon" href="Icon.png">
-<link rel="stylesheet" href="style.css?v=800">
+<link rel="stylesheet" href="style.css?v=900">
+<style>
+.gears-auto{display:none;gap:6px;background:#0d1319;border:1px solid #2a3a4c;border-radius:10px;padding:6px}
+body.auto-mode .gears-auto{display:grid;grid-template-columns:repeat(3,1fr)}
+body.auto-mode #gearsManual{display:none}
+.agbtn{height:44px;border-radius:8px;border:1px solid #2c3e52;
+ background:linear-gradient(180deg,#1a2430,#0e161e);color:#8ea4bd;
+ font:700 16px/1 inherit;cursor:pointer;touch-action:manipulation;
+ transition:background .1s,border-color .1s,box-shadow .1s}
+.agbtn.on{background:linear-gradient(180deg,#2b7a56,#1c5a3d);border-color:#43c98a;
+ color:#e6fff3;box-shadow:0 0 12px rgba(67,201,138,.5)}
+.agbtn.neu.on{background:linear-gradient(180deg,#5a5f2b,#3d421c);border-color:#c9c943;
+ color:#fbffe6;box-shadow:0 0 12px rgba(201,201,67,.4)}
+.agbtn.rev.on{background:linear-gradient(180deg,#7a2b2b,#4a1a1a);border-color:#ff5b5b;
+ color:#ffe6e6;box-shadow:0 0 12px rgba(255,91,91,.5)}
+</style>
 </head>
 <body>
 
@@ -26,7 +41,7 @@
       <div class="ro"><div class="lbl">Скорость</div><div class="val" id="spdVal">0</div></div>
       <div class="ro"><div class="lbl">Передача</div><div class="val amber" id="gearVal">N</div></div>
     </div>
-    <div class="gears">
+    <div class="gears" id="gearsManual">
       <button class="gbtn" data-g="1" type="button">1</button>
       <button class="gbtn" data-g="3" type="button">3</button>
       <button class="gbtn" data-g="5" type="button">5</button>
@@ -34,6 +49,11 @@
       <button class="gbtn neu on gN" data-g="0" type="button">N</button>
       <button class="gbtn" data-g="4" type="button">4</button>
       <button class="gbtn rev" data-g="-1" type="button">R</button>
+    </div>
+    <div class="gears gears-auto" id="gearsAuto">
+      <button class="agbtn rev" data-ag="-1" type="button">R</button>
+      <button class="agbtn neu" data-ag="0" type="button">N</button>
+      <button class="agbtn on" data-ag="1" type="button">D</button>
     </div>
     <button class="ignbtn on" id="ignBtn" type="button">Зажигание</button>
   </div>
@@ -57,11 +77,11 @@
 <div id="breakBanner"></div>
 <div id="err"></div>
 
-<script src="physics.js?v=800" defer></script>
-<script src="render.js?v=800" defer></script>
-<script src="engine.js?v=800" defer></script>
-<script src="sound.js?v=800" defer></script>
-<script src="menu.js?v=800" defer></script>
-<script src="settings.js?v=800" defer></script>
+<script src="physics.js?v=900" defer></script>
+<script src="render.js?v=900" defer></script>
+<script src="engine.js?v=900" defer></script>
+<script src="sound.js?v=900" defer></script>
+<script src="menu.js?v=900" defer></script>
+<script src="settings.js?v=900" defer></script>
 </body>
 </html>
