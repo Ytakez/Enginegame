@@ -2,14 +2,14 @@
 "use strict";
 var errBox = document.getElementById('err');
 function showErr(msg){ errBox.style.display='block'; errBox.textContent = 'Ошибка: ' + msg; }
-window.addEventListener('error', function(ev){ showErr(ev.message + ' | ' + ev.filename + ':' + ev.lineno); });
+window.addEventListener('error', function(ev){ showErr(ev.message + ' | ' + (ev.filename||'') + ':' + (ev.lineno||0)); });
 
-try {
-
-var rpm=0, speed=0, gear=0, crankAngle=0;
-var running=false, stalled=false;
-var throttle=0, brakePedal=0, clutchPedal=0;
-var pressed={gas:false,brake:false,clutch:false};
+var S = window.DVS = {
+  rpm: 0, speed: 0, gear: 0, crankAngle: 0,
+  running: false, stalled: false,
+  throttle: 0, brakePedal: 0, clutchPedal: 0,
+  pressed: { gas:false, brake:false, clutch:false }
+};
 
 var gearRatios=[0,3.40,2.00,1.35,1.00,0.78];
 var finalDrive=3.90, wheelRadius=0.31, mass=1250;
@@ -23,6 +23,9 @@ function torqueCurve(r){
 }
 
 function physics(dt){
+  var rpm=S.rpm, speed=S.speed, gear=S.gear;
+  var throttle=S.throttle, brakePedal=S.brakePedal, clutchPedal=S.clutchPedal;
+  var running=S.running, stalled=S.stalled;
   var ratio=gearRatios[gear]*finalDrive;
   var eng=(gear===0||stalled||!running)?0:(1-clutchPedal);
   var omegaWheel=speed/3.6/wheelRadius;
@@ -49,16 +52,16 @@ function physics(dt){
   var nE=omegaEngine+dE*dt;
   var nW=omegaWheel+dW*dt;
   if(nE<0)nE=0; if(nW<0)nW=0;
-  rpm=nE*30/Math.PI;
-  speed=nW*wheelRadius*3.6;
-  if(speed<0.12&&(brakePedal>0.05||gear===0)){ if(nW<0.6){nW=0;speed=0;} }
-  if(!stalled&&running&&rpm<stallRpm&&(eng>0.25||rpm<120)){
-    stalled=true;running=false;rpm=0;
+  S.rpm=nE*30/Math.PI;
+  S.speed=nW*wheelRadius*3.6;
+  if(S.speed<0.12&&(brakePedal>0.05||gear===0)){ if(nW<0.6)S.speed=0; }
+  if(!stalled&&running&&S.rpm<stallRpm&&(eng>0.25||S.rpm<120)){
+    S.stalled=true;S.running=false;S.rpm=0;
   }
-  if(stalled)rpm=Math.max(0,rpm-2600*dt);
-  crankAngle+=(rpm*Math.PI/30)*dt*0.55;
+  if(S.stalled)S.rpm=Math.max(0,S.rpm-2600*dt);
+  S.crankAngle+=(S.rpm*Math.PI/30)*dt*0.55;
   var TAU=Math.PI*4;
-  crankAngle=((crankAngle%TAU)+TAU)%TAU;
+  S.crankAngle=((S.crankAngle%TAU)+TAU)%TAU;
 }
 
 var pedalEls={
@@ -71,14 +74,14 @@ var pedalCount={gas:0,brake:0,clutch:0};
 
 function pedalActivate(name){
   pedalCount[name]++;
-  pressed[name]=true;
+  S.pressed[name]=true;
   pedalEls[name].classList.add('active');
   try{if(navigator.vibrate)navigator.vibrate(8);}catch(e){}
 }
 function pedalDeactivate(name){
   pedalCount[name]=Math.max(0,pedalCount[name]-1);
   if(pedalCount[name]===0){
-    pressed[name]=false;
+    S.pressed[name]=false;
     pedalEls[name].classList.remove('active');
   }
 }
@@ -93,7 +96,6 @@ Object.keys(pedalEls).forEach(function(name){
   el.addEventListener('contextmenu',function(e){e.preventDefault();});
   el.addEventListener('dragstart',function(e){e.preventDefault();});
 });
-
 function releasePointer(e){
   var name=pedalPointers.get(e.pointerId);
   if(name){pedalPointers.delete(e.pointerId);pedalDeactivate(name);}
@@ -101,22 +103,9 @@ function releasePointer(e){
 window.addEventListener('pointerup',releasePointer);
 window.addEventListener('pointercancel',releasePointer);
 
-var keyMap={'ArrowUp':'gas','KeyW':'gas','ArrowDown':'brake','KeyS':'brake','Space':'clutch','KeyC':'clutch'};
-window.addEventListener('keydown',function(e){
-  var k=keyMap[e.code];
-  if(k){e.preventDefault();if(!pressed[k])pedalActivate(k);}
-  if(e.code==='Digit0'||e.code==='KeyN')setGear(0);
-  if(/^Digit[1-5]$/.test(e.code))setGear(Number(e.code.slice(5)));
-  if(e.code==='Enter')toggleIgnition();
-});
-window.addEventListener('keyup',function(e){
-  var k=keyMap[e.code];
-  if(k){e.preventDefault();pedalDeactivate(k);}
-});
-
 var gearBtns=Array.prototype.slice.call(document.querySelectorAll('.gearbtn'));
 function setGear(g){
-  gear=g;
+  S.gear=g;
   gearBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.g)===g);});
   document.getElementById('gearVal').textContent=(g===0?'N':String(g));
   try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}
@@ -127,27 +116,13 @@ gearBtns.forEach(function(b){
 
 var ignBtn=document.getElementById('ignBtn');
 function toggleIgnition(){
-  if(running&&!stalled){running=false;stalled=true;ignBtn.classList.remove('on');}
-  else{stalled=false;running=true;rpm=idleRpm;ignBtn.classList.add('on');}
+  if(S.running&&!S.stalled){S.running=false;S.stalled=true;ignBtn.classList.remove('on');}
+  else{S.stalled=false;S.running=true;S.rpm=idleRpm;ignBtn.classList.add('on');}
   try{if(navigator.vibrate)navigator.vibrate(12);}catch(e){}
 }
 ignBtn.addEventListener('click',function(ev){ev.preventDefault();toggleIgnition();});
 
-window.DVS={};
-Object.defineProperties(window.DVS,{
-  rpm:{get:function(){return rpm;}},
-  speed:{get:function(){return speed;}},
-  gear:{get:function(){return gear;}},
-  crankAngle:{get:function(){return crankAngle;}},
-  running:{get:function(){return running;}},
-  stalled:{get:function(){return stalled;}},
-  throttle:{get:function(){return throttle;},set:function(v){throttle=v;}},
-  brakePedal:{get:function(){return brakePedal;},set:function(v){brakePedal=v;}},
-  clutchPedal:{get:function(){return clutchPedal;},set:function(v){clutchPedal=v;}}
-});
-window.DVS.pressed=pressed;
 window.DVS.physics=physics;
 window.DVS.setGear=setGear;
 
-}catch(e){ showErr('Инициализация: '+(e&&e.message?e.message:e)); }
 })();
