@@ -4,7 +4,7 @@ var S = window.S;
 if (!S) return;
 
 var ecv, ectx, gcv, gctx;
-var MAXR = 9500;
+var MAXR = 10500;
 
 function init(){
   ecv = document.getElementById('engineCv');
@@ -40,7 +40,7 @@ function drawCylinder(c, cx, crankY, topY, botY, halfW, phase, CR, ROD, dir, isB
   var cpX = cx + CR * s;
   var cpY = crankY - CR * co;
 
-  /* ===== КОМПАКТНЫЙ ДИСК НА КОЛЕНВАЛЕ ===== */
+  /* диск на коленвале */
   var diskR = Math.min(halfW * 0.55, CR * 1.3);
   if (diskR < 6) diskR = 6;
   var cg = c.createRadialGradient(cx-diskR*0.3, crankY-diskR*0.3, 1, cx, crankY, diskR);
@@ -53,7 +53,7 @@ function drawCylinder(c, cx, crankY, topY, botY, halfW, phase, CR, ROD, dir, isB
   c.beginPath(); c.arc(cx, crankY, diskR, 0, 7); c.fill();
   c.strokeStyle = '#1a232e'; c.lineWidth = 1.5; c.stroke();
 
-  /* ===== ГИЛЬЗА ===== */
+  /* гильза */
   var bg = c.createLinearGradient(cx-halfW, 0, cx+halfW, 0);
   bg.addColorStop(0,'#070b10');
   bg.addColorStop(.5, isBroken ? '#1a0e0e' : '#0e141c');
@@ -64,7 +64,7 @@ function drawCylinder(c, cx, crankY, topY, botY, halfW, phase, CR, ROD, dir, isB
   c.lineWidth = 1.5;
   c.strokeRect(cx-halfW, topY, halfW*2, botY-topY);
 
-  /* ===== ПОРШЕНЬ ===== */
+  /* поршень */
   var pGrad = c.createLinearGradient(cx-halfW+2,0,cx+halfW-2,0);
   if (isBroken){
     pGrad.addColorStop(0,'#4a3838'); pGrad.addColorStop(.5,'#8a6a6a'); pGrad.addColorStop(1,'#3a2828');
@@ -84,7 +84,7 @@ function drawCylinder(c, cx, crankY, topY, botY, halfW, phase, CR, ROD, dir, isB
     c.stroke();
   }
 
-  /* ===== ШАТУН ===== */
+  /* шатун */
   c.strokeStyle='#1f2833'; c.lineWidth = 8; c.lineCap='round';
   c.beginPath(); c.moveTo(cx, pinY);
   if (isBroken) c.quadraticCurveTo((cx+cpX)/2+5,(pinY+cpY)/2,cpX,cpY);
@@ -99,7 +99,7 @@ function drawCylinder(c, cx, crankY, topY, botY, halfW, phase, CR, ROD, dir, isB
   c.fillStyle='#2a3543';
   c.beginPath(); c.arc(cx, pinY, 3.5, 0, 7); c.fill();
 
-  /* ===== ШАТУННАЯ ШЕЙКА ===== */
+  /* шатунная шейка */
   var pg = c.createRadialGradient(cpX-2,cpY-2,1,cpX,cpY,7);
   if (isBroken){ pg.addColorStop(0,'#8a6a6a'); pg.addColorStop(1,'#2a1a1a'); }
   else { pg.addColorStop(0,'#d8e4f0'); pg.addColorStop(.5,'#96a4b4'); pg.addColorStop(1,'#4a5866'); }
@@ -107,7 +107,7 @@ function drawCylinder(c, cx, crankY, topY, botY, halfW, phase, CR, ROD, dir, isB
   c.beginPath(); c.arc(cpX, cpY, 7, 0, 7); c.fill();
   c.strokeStyle='#1a232e'; c.lineWidth = 1.2; c.stroke();
 
-  /* ===== ВСПЫШКА ===== */
+  /* вспышка */
   if (firing){
     var d = cycPos - 2*Math.PI;
     var inten = Math.max(0, 1 - Math.abs(d)/1.25) * (0.35 + 0.65*throttle);
@@ -132,7 +132,7 @@ function drawCylinder(c, cx, crankY, topY, botY, halfW, phase, CR, ROD, dir, isB
     }
   }
 
-  /* ===== КЛАПАНЫ И СВЕЧА ===== */
+  /* клапаны и свеча */
   var inL=0, exL=0;
   if (isBroken){ inL=5; exL=6; }
   else if (S.running){
@@ -182,6 +182,60 @@ function drawCrankShaft(c, x1, x2, y, isBroken){
   c.fillStyle = sg; c.fillRect(x1, y-7, x2-x1, 14);
   c.strokeStyle='#0e151d'; c.lineWidth = 1.5;
   c.strokeRect(x1, y-7, x2-x1, 14);
+}
+
+function drawScooter(){
+  var c = ectx, W = ecv.width, H = ecv.height;
+  var isBroken = S.broken;
+  var cx = W/2;
+  var crankY = 355, CR = 42, ROD = 118;
+  var halfW = 78, topY = 110, botY = 340;
+
+  // корпус
+  var bg = c.createLinearGradient(0, 50, 0, H-20);
+  if (isBroken){ bg.addColorStop(0,'#3a2a2a'); bg.addColorStop(.5,'#2a1e1e'); bg.addColorStop(1,'#1a1212'); }
+  else { bg.addColorStop(0,'#2b3746'); bg.addColorStop(.5,'#1d2733'); bg.addColorStop(1,'#131b24'); }
+  c.fillStyle = bg; rr(c, 90, 50, W-180, H-100, 14); c.fill();
+  c.strokeStyle = isBroken?'#6a3a3a':'#3a4a5c'; c.lineWidth = 2; c.stroke();
+
+  // головка блока (маленькая сверху)
+  var headG = c.createLinearGradient(0, 40, 0, 80);
+  if (isBroken){ headG.addColorStop(0,'#4a3030'); headG.addColorStop(1,'#2a1c1c'); }
+  else { headG.addColorStop(0,'#334252'); headG.addColorStop(1,'#212b37'); }
+  c.fillStyle = headG;
+  rr(c, cx-70, 40, 140, 40, 8); c.fill();
+  c.strokeStyle = isBroken?'#7a3a3a':'#42556b'; c.lineWidth = 2; c.stroke();
+
+  // коленвал
+  drawCrankShaft(c, 130, W-130, crankY, isBroken);
+
+  // коренные шейки (края)
+  var mains = [140, W-140];
+  for (var mi=0; mi<mains.length; mi++){
+    var mx = mains[mi];
+    var mg = c.createRadialGradient(mx-4, crankY-4, 2, mx, crankY, 14);
+    if (isBroken){ mg.addColorStop(0,'#8a6a6a'); mg.addColorStop(.6,'#5a4040'); mg.addColorStop(1,'#2a1a1a'); }
+    else { mg.addColorStop(0,'#b8c6d4'); mg.addColorStop(.6,'#6d7a89'); mg.addColorStop(1,'#3a4756'); }
+    c.fillStyle = mg;
+    c.beginPath(); c.arc(mx, crankY, 14, 0, 7); c.fill();
+    c.strokeStyle='#1a232e'; c.lineWidth = 1.5; c.stroke();
+  }
+
+  // один цилиндр (свеча + 2 клапана сверху)
+  drawCylinder(c, cx, crankY, topY, botY, halfW,
+    S.crankAngle, CR, ROD, -1,
+    isBroken, S.running && !S.stalled && !isBroken, S.throttle, 1);
+
+  // подпись
+  c.fillStyle = isBroken ? '#8a5a5a' : '#5d7189';
+  c.font = 'bold 11px Segoe UI, sans-serif';
+  c.textAlign = 'left'; c.textBaseline = 'top';
+  c.fillText('S1  •  1 цилиндр  •  4-тактный', 105, 60);
+
+  c.textAlign = 'right';
+  c.font = 'bold 10px Segoe UI, sans-serif';
+  c.fillStyle = '#3d4a58';
+  c.fillText('СКУТЕР 50cc', W-105, 62);
 }
 
 function drawR4(){
@@ -294,7 +348,8 @@ function drawEngine(){
   c.fillStyle = bg; c.fillRect(0,0,W,H);
 
   var t = S.engineType;
-  if (t === 'v8') drawV(8);
+  if (t === 'scooter') drawScooter();
+  else if (t === 'v8') drawV(8);
   else if (t === 'v16') drawV(16);
   else drawR4();
 
@@ -329,15 +384,15 @@ function drawGauge(){
   c.strokeStyle = g; c.lineWidth = 13;
   c.beginPath(); c.arc(cx, cy, R, a0, curA); c.stroke();
 
-  for (var i=0;i<=9;i++){
-    var a = a0 + (i/9)*(a1-a0);
+  for (var i=0;i<=10;i++){
+    var a = a0 + (i/10)*(a1-a0);
     var x1 = cx + Math.cos(a)*(R-9), y1 = cy + Math.sin(a)*(R-9);
     var x2 = cx + Math.cos(a)*(R-19), y2 = cy + Math.sin(a)*(R-19);
-    c.strokeStyle = (i*MAXR/9 >= redline) ? '#ff6b6b' : '#4d6379';
+    c.strokeStyle = (i*MAXR/10 >= redline) ? '#ff6b6b' : '#4d6379';
     c.lineWidth = 2;
     c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.stroke();
     var tx = cx + Math.cos(a)*(R-33), ty = cy + Math.sin(a)*(R-33);
-    c.fillStyle = (i*MAXR/9 >= redline) ? '#ff8b8b' : '#6d8299';
+    c.fillStyle = (i*MAXR/10 >= redline) ? '#ff8b8b' : '#6d8299';
     c.font = 'bold 10px Segoe UI, sans-serif';
     c.textAlign='center'; c.textBaseline='middle';
     c.fillText(String(i), tx, ty);
