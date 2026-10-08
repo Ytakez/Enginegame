@@ -1,10 +1,9 @@
 (function(){
 "use strict";
-var S=window.S;
-if(!S)return;
+var S=window.S;if(!S)return;
 var ctx=null,nodes=null,muted=false;
+var crankNodes=null;
 try{if(localStorage.getItem('dvs_muted')==='1')muted=true;}catch(e){}
-function safe(n){return (typeof n==='number'&&isFinite(n))?n:0;}
 function hardCurve(){var n=4096,c=new Float32Array(n);for(var i=0;i<n;i++){var x=(i*2/n)-1,v=x*3;if(v>1)v=1;if(v<-1)v=-1;c[i]=v;}return c;}
 function softCurve(k){var n=4096,c=new Float32Array(n);for(var i=0;i<n;i++){var x=(i*2/n)-1;c[i]=Math.tanh(x*k);}return c;}
 function init(){
@@ -39,14 +38,11 @@ function init(){
   var clatter=ctx.createBufferSource();clatter.buffer=buf;clatter.loop=true;
   var cf=ctx.createBiquadFilter();cf.type='bandpass';cf.frequency.value=2400;cf.Q.value=2.5;
   var cG=ctx.createGain();cG.gain.value=0;clatter.connect(cf).connect(cG).connect(hc);clatter.start();
-  nodes={master:master,lp:lp,eg:eg,o1:o1,o1b:o1b,o2:o2,oS:oS,oS2:oS2,nG:nG,nG2:nG2,nf:nf,nf2:nf2,growl:growl,hs:hs,bp:bp,g1:g1,g1b:g1b,g2:g2,gS:gS,gS2:gS2,oTurbo:oTurbo,gTurbo:gTurbo,cG:cG,cf:cf};
+  nodes={master:master,lp:lp,eg:eg,o1:o1,o1b:o1b,o2:o2,oS:oS,oS2:oS2,nG:nG,nG2:nG2,nf:nf,nf2:nf2,growl:growl,hs:hs,bp:bp,g1:g1,g1b:g1b,g2:g2,gS:gS,gS2:gS2,oTurbo:oTurbo,gTurbo:gTurbo,cG:cG,cf:cf,buf:buf};
   return true;
 }
-function setP(param,v,sm){
-  if(!param)return;
-  v=safe(v);
-  try{param.setTargetAtTime(v,ctx.currentTime,sm||0.05);}catch(e){}
-}
+function setP(p,v,sm){if(!p)return;v=(typeof v==='number'&&isFinite(v))?v:0;try{p.setTargetAtTime(v,ctx.currentTime,sm||0.05);}catch(e){}}
+function safe(n){return (typeof n==='number'&&isFinite(n))?n:0;}
 function update(){
   if(!nodes||muted)return;
   var E=S.engines[S.engineType]||S.engines.r4;
@@ -61,20 +57,19 @@ function update(){
     setP(nodes.cG.gain,0,0.1);setP(nodes.gTurbo.gain,0,0.15);
     return;
   }
-  var fireHz=rpm/E.fireDiv;
-  if(!isFinite(fireHz))fireHz=0;
+  var fireHz=rpm/E.fireDiv;if(!isFinite(fireHz))fireHz=0;
   var rr=Math.max(1,E.redline-E.idle);
   var rpmF=Math.min(1,Math.max(0,(rpm-E.idle)/rr));
   var rpmF2=rpmF*rpmF;
+  /* ТРЯСКА ЗИМОЙ */
+  var cold=(S.engineTemp<40)?(40-S.engineTemp)/55:0;
+  if(cold>0.9)cold=0.9;
   if(isDiesel){
-    setP(nodes.o1.frequency,fireHz*1.5,sm);
-    setP(nodes.o1b.frequency,fireHz*1.5*1.008,sm);
-    setP(nodes.o2.frequency,fireHz*2,sm);
-    setP(nodes.oS.frequency,fireHz*0.5,sm);
+    setP(nodes.o1.frequency,fireHz*1.5,sm);setP(nodes.o1b.frequency,fireHz*1.5*1.008,sm);
+    setP(nodes.o2.frequency,fireHz*2,sm);setP(nodes.oS.frequency,fireHz*0.5,sm);
     setP(nodes.oS2.frequency,fireHz*0.25,sm);
     var bD=0.16+thr*0.22;var lD=bD*(0.8+rpmF*0.5);
-    if(rpm>E.redline*0.9)lD*=1.05;
-    if(rpm>E.redline)lD*=0.85;
+    if(rpm>E.redline*0.9)lD*=1.05;if(rpm>E.redline)lD*=0.85;
     setP(nodes.eg.gain,lD,0.05);
     var cl=0.10+rpmF*0.14+thr*0.10;
     setP(nodes.cG.gain,cl,0.04);
@@ -84,8 +79,7 @@ function update(){
     setP(nodes.nf.frequency,1400+rpm*0.7,0.05);
     setP(nodes.nG2.gain,0.03+rpmF*0.05,0.05);
     setP(nodes.nf2.frequency,3200+rpm*0.8,0.05);
-    var tF=2800+rpmF*5200;
-    setP(nodes.oTurbo.frequency,tF,0.15);
+    var tF=2800+rpmF*5200;setP(nodes.oTurbo.frequency,tF,0.15);
     var tOn=Math.max(0,rpmF-0.15);
     setP(nodes.gTurbo.gain,tOn*tOn*0.055*(0.4+thr*0.6),0.12);
     var lpF=350+rpm*0.12+thr*400+rpmF2*500;if(lpF>2800)lpF=2800;
@@ -95,11 +89,8 @@ function update(){
     setP(nodes.growl.gain,16+rpmF2*12,0.06);
     setP(nodes.bp.frequency,240+rpm*0.06+thr*200,0.06);
     setP(nodes.bp.Q,1.0+rpmF*1.5,0.06);
-    setP(nodes.g1.gain,0.35,0.05);
-    setP(nodes.g1b.gain,0.22,0.05);
-    setP(nodes.g2.gain,0.08,0.05);
-    setP(nodes.gS.gain,1.8,0.05);
-    setP(nodes.gS2.gain,1.1,0.05);
+    setP(nodes.g1.gain,0.35,0.05);setP(nodes.g1b.gain,0.22,0.05);
+    setP(nodes.g2.gain,0.08,0.05);setP(nodes.gS.gain,1.8,0.05);setP(nodes.gS2.gain,1.1,0.05);
     if(E.tractor){
       setP(nodes.oTurbo.frequency,0,0.01);setP(nodes.gTurbo.gain,0,0.01);
       setP(nodes.cG.gain,0.22+rpmF*0.18+thr*0.15,0.03);
@@ -118,28 +109,23 @@ function update(){
     setP(nodes.o1.frequency,fireHz*(isV6?2.5:2),sm);
     setP(nodes.o1b.frequency,fireHz*(isV6?2.5:2)*1.006,sm);
     setP(nodes.o2.frequency,fireHz*(isV6?3.5:3),sm);
-    setP(nodes.oS.frequency,fireHz*0.5,sm);
-    setP(nodes.oS2.frequency,fireHz*0.25,sm);
+    setP(nodes.oS.frequency,fireHz*0.5,sm);setP(nodes.oS2.frequency,fireHz*0.25,sm);
     var bJ=0.09+thr*0.26;var lJ=bJ*(0.5+rpmF*0.95);
-    if(rpm>E.redline*0.9)lJ*=1.12;
-    if(rpm>E.redline)lJ*=0.75;
+    if(rpm>E.redline*0.9)lJ*=1.12;if(rpm>E.redline)lJ*=0.75;
     setP(nodes.eg.gain,lJ,0.04);
     setP(nodes.nG.gain,0.02+thr*0.06+rpmF*0.02,0.05);
     setP(nodes.nf.frequency,1400+rpm*1.2,0.05);
     setP(nodes.nG2.gain,Math.max(0,rpmF-0.6)*0.08,0.05);
     setP(nodes.nf2.frequency,3500+rpm*1.5,0.05);
     var lpJ=(isV6?550:750)+rpm*0.18+thr*900;if(lpJ>4500)lpJ=4500;
-    setP(nodes.lp.frequency,lpJ,0.05);
-    setP(nodes.lp.Q,1.2+rpmF2*2.5,0.05);
+    setP(nodes.lp.frequency,lpJ,0.05);setP(nodes.lp.Q,1.2+rpmF2*2.5,0.05);
     setP(nodes.growl.frequency,(isV6?120:150)+rpm*0.04,0.06);
     setP(nodes.growl.gain,(isV6?14:10)+rpmF2*12,0.06);
     setP(nodes.bp.frequency,280+rpm*0.06+thr*250,0.06);
     setP(nodes.bp.Q,0.7+rpmF*1.3,0.06);
-    setP(nodes.g1.gain,safe(E.sawGain),0.05);
-    setP(nodes.g1b.gain,safe(E.sawGain)*0.6,0.05);
-    setP(nodes.g2.gain,safe(E.sqGain),0.05);
-    setP(nodes.gS.gain,safe(E.subGain),0.05);
-    setP(nodes.gS2.gain,safe(E.subGain)*0.6,0.05);
+    setP(nodes.g1.gain,E.sawGain,0.05);setP(nodes.g1b.gain,E.sawGain*0.6,0.05);
+    setP(nodes.g2.gain,E.sqGain,0.05);setP(nodes.gS.gain,E.subGain,0.05);
+    setP(nodes.gS2.gain,E.subGain*0.6,0.05);
     setP(nodes.gTurbo.gain,0,0.1);setP(nodes.cG.gain,0,0.1);
     return;
   }
@@ -147,13 +133,10 @@ function update(){
   setP(nodes.o1.frequency,fireHz*2,sm);
   setP(nodes.o1b.frequency,fireHz*2*1.005,sm);
   setP(nodes.o2.frequency,fireHz*3,sm);
-  setP(nodes.oS.frequency,fireHz*0.5,sm);
-  setP(nodes.oS2.frequency,fireHz*0.25,sm);
+  setP(nodes.oS.frequency,fireHz*0.5,sm);setP(nodes.oS2.frequency,fireHz*0.25,sm);
   var b2=isScooter?(0.09+thr*0.20):(0.10+thr*0.28);
   var l2=b2*(isScooter?(0.85+rpmF*1.05):(0.5+rpmF*0.9));
-  if(rpm>E.redline*0.9)l2*=1.15;
-  if(rpm>E.redline)l2*=0.7;
-  if(isScooter)l2*=0.45;
+  if(rpm>E.redline*0.9)l2*=1.15;if(rpm>E.redline)l2*=0.7;if(isScooter)l2*=0.45;
   setP(nodes.eg.gain,l2,0.04);
   var nB=(isScooter?(0.04+thr*0.07):(0.03+thr*0.07))+rpmF*E.noiseBase*1.2;
   setP(nodes.nG.gain,nB,0.05);
@@ -170,12 +153,11 @@ function update(){
   setP(nodes.growl.gain,(isScooter?14:10)+rpmF2*10,0.06);
   setP(nodes.bp.frequency,280+rpm*0.08+thr*300,0.06);
   setP(nodes.bp.Q,0.6+rpmF*1.4,0.06);
-  setP(nodes.g1.gain,safe(E.sawGain),0.05);
-  setP(nodes.g1b.gain,safe(E.sawGain)*0.65,0.05);
-  setP(nodes.g2.gain,safe(E.sqGain),0.05);
-  setP(nodes.gS.gain,safe(E.subGain),0.05);
-  setP(nodes.gS2.gain,safe(E.subGain)*0.6,0.05);
+  setP(nodes.g1.gain,E.sawGain,0.05);setP(nodes.g1b.gain,E.sawGain*0.65,0.05);
+  setP(nodes.g2.gain,E.sqGain,0.05);setP(nodes.gS.gain,E.subGain,0.05);
+  setP(nodes.gS2.gain,E.subGain*0.6,0.05);
 }
+/* СТАРТЕР — одиночный звук (при запуске) */
 function playStarter(){
   if(!ctx||muted)return;
   var E=S.engines[S.engineType];if(!E)return;
@@ -192,6 +174,52 @@ function playStarter(){
   var f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.value=isScooter?900:(isDiesel?400:500);
   o.connect(f).connect(d).connect(g).connect(ctx.destination);
   o.start(t);o.stop(t+(isScooter?0.55:0.9));
+}
+/* ===== НЕПРЕРЫВНЫЙ СТАРТЕР "ТАРАХ-ТАРАХ" ===== */
+function startCrank(){
+  if(!ctx||muted||crankNodes)return;
+  var t=ctx.currentTime;
+  var master=ctx.createGain();
+  master.gain.value=0.16;
+  master.connect(ctx.destination);
+  /* Низкое моторное гудение стартера */
+  var o1=ctx.createOscillator();o1.type='sawtooth';o1.frequency.value=48;
+  var lp=ctx.createBiquadFilter();lp.type='lowpass';lp.frequency.value=220;
+  var g1=ctx.createGain();g1.gain.value=0.35;
+  o1.connect(lp).connect(g1).connect(master);
+  /* LFO — пульсация "тарах" ~7 раз/сек */
+  var lfo=ctx.createOscillator();lfo.type='sine';lfo.frequency.value=7;
+  var lfoG=ctx.createGain();lfoG.gain.value=0.35;
+  lfo.connect(lfoG).connect(g1.gain);
+  /* Щелчки воспламенения */
+  var o2=ctx.createOscillator();o2.type='square';o2.frequency.value=95;
+  var g2=ctx.createGain();g2.gain.value=0;
+  var lfo2=ctx.createOscillator();lfo2.type='square';lfo2.frequency.value=7;
+  var lfo2G=ctx.createGain();lfo2G.gain.value=0.08;
+  lfo2.connect(lfo2G).connect(g2.gain);
+  o2.connect(g2).connect(master);
+  /* Шум стартера */
+  var nBuf=ctx.createBuffer(1,ctx.sampleRate,ctx.sampleRate);
+  var nd=nBuf.getChannelData(0);
+  for(var i=0;i<nd.length;i++)nd[i]=(Math.random()*2-1);
+  var ns=ctx.createBufferSource();ns.buffer=nBuf;ns.loop=true;
+  var nf=ctx.createBiquadFilter();nf.type='bandpass';nf.frequency.value=380;nf.Q.value=0.8;
+  var ng=ctx.createGain();ng.gain.value=0.12;
+  ns.connect(nf).connect(ng).connect(master);
+  o1.start();lfo.start();o2.start();lfo2.start();ns.start();
+  crankNodes={master:master,o1:o1,lfo:lfo,o2:o2,lfo2:lfo2,ns:ns,g1:g1,g2:g2};
+}
+function stopCrank(){
+  if(!crankNodes)return;
+  var t=ctx.currentTime;
+  var c=crankNodes;
+  c.master.gain.cancelScheduledValues(t);
+  c.master.gain.setValueAtTime(c.master.gain.value,t);
+  c.master.gain.linearRampToValueAtTime(0,t+0.08);
+  setTimeout(function(){
+    try{c.o1.stop();c.lfo.stop();c.o2.stop();c.lfo2.stop();c.ns.stop();c.master.disconnect();}catch(e){}
+  },200);
+  crankNodes=null;
 }
 function playFuelPump(){
   if(!ctx||muted)return;
@@ -216,12 +244,16 @@ document.addEventListener('mousedown',resume);
 document.addEventListener('keydown',resume);
 function setMuted(v){
   muted=!!v;
-  if(muted&&nodes&&ctx){setP(nodes.eg.gain,0,0.05);setP(nodes.nG.gain,0,0.05);setP(nodes.nG2.gain,0,0.05);setP(nodes.cG.gain,0,0.05);setP(nodes.gTurbo.gain,0,0.05);}
+  if(muted&&nodes&&ctx){setP(nodes.eg.gain,0,0.05);setP(nodes.nG.gain,0,0.05);setP(nodes.nG2.gain,0,0.05);setP(nodes.cG.gain,0,0.05);setP(nodes.gTurbo.gain,0,0.05);stopCrank();}
   try{localStorage.setItem('dvs_muted',muted?'1':'0');}catch(e){}
 }
 function isMuted(){return muted;}
 function toggleMute(){setMuted(!muted);return muted;}
-window.DVS_SOUND={setMuted:setMuted,isMuted:isMuted,toggleMute:toggleMute,resume:resume,starter:playStarter,fuelPump:playFuelPump};
+window.DVS_SOUND={
+  setMuted:setMuted,isMuted:isMuted,toggleMute:toggleMute,resume:resume,
+  starter:playStarter,fuelPump:playFuelPump,
+  startCrank:startCrank,stopCrank:stopCrank
+};
 function loop(){try{update();}catch(e){}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
 })();
