@@ -1,6 +1,8 @@
 (function(){
 "use strict";
 
+var STORAGE_KEY = 'dvs_engine_v3';   // новый ключ, чтобы старый не мешал
+
 var ENGINES = {
   r4: {
     name:'R4', cyls:4,
@@ -23,7 +25,7 @@ var ENGINES = {
 };
 
 var savedEng = 'r4';
-try { savedEng = localStorage.getItem('dvs_engine') || 'r4'; } catch(e){}
+try { savedEng = localStorage.getItem(STORAGE_KEY) || 'r4'; } catch(e){}
 if (!ENGINES[savedEng]) savedEng = 'r4';
 
 var S = window.S = {
@@ -75,7 +77,7 @@ S.repair=function(){
 S.setEngine=function(type){
   if(!ENGINES[type])return;
   S.engineType=type;
-  try{ localStorage.setItem('dvs_engine', type); }catch(e){}
+  try{ localStorage.setItem(STORAGE_KEY, type); }catch(e){}
   S.broken=false;S.stalled=false;S.running=false;
   S.rpm=0;S.speed=0;S.gear=0;S.crankAngle=0;
   document.body.classList.remove('broken');
