@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>test</title></head>
+<body style="background:#111;color:#0f0;font:20px monospace;padding:20px">
+<div id="out">ждём…</div>
+<button id="b" style="font-size:20px;padding:20px">жми</button>
+<script>
+var out = document.getElementById('out');
+var n = 0;
+document.getElementById('b').onclick = function(){ out.textContent = 'OK, нажатий: ' + (++n); };
+out.textContent = 'JavaScript работает';
+</script>
+</body></html>
