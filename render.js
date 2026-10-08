@@ -25,6 +25,7 @@ function drawEngine(){
   var t = S.engineType;
   if (t === 'scooter') RE.drawScooter(c, S);
   else if (t === 'tdi') RE.drawTDI(c, S);
+  else if (t === 'mt82') RE.drawMTZ(c, S);
   else if (t === 'v8') RE.drawV(c, S, 8);
   else if (t === 'v16') RE.drawV(c, S, 16);
   else RE.drawR4(c, S);
