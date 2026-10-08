@@ -2,7 +2,6 @@
 "use strict";
 
 var LANG_KEY = 'dvs_lang';
-var ENG_KEY = 'dvs_engine_v3';
 
 var LANGS = {
   ru: {
@@ -12,8 +11,7 @@ var LANGS = {
     ignition: 'Зажигание', speed: 'Скорость', gear: 'Передача',
     settingsTitle: 'Настройки', language: 'Язык',
     engine: 'Двигатель', engineSelect: 'Выбрать двигатель',
-    sound: 'Звук', soundOn: 'Включён', soundOff: 'Выключен',
-    soon: 'Скоро', repair: 'Ремонт', close: 'Закрыть'
+    sound: 'Звук', close: 'Закрыть'
   },
   uk: {
     label: '🇺🇦 Українська',
@@ -22,8 +20,7 @@ var LANGS = {
     ignition: 'Запалювання', speed: 'Швидкість', gear: 'Передача',
     settingsTitle: 'Налаштування', language: 'Мова',
     engine: 'Двигун', engineSelect: 'Вибрати двигун',
-    sound: 'Звук', soundOn: 'Увімкнено', soundOff: 'Вимкнено',
-    soon: 'Скоро', repair: 'Ремонт', close: 'Закрити'
+    sound: 'Звук', close: 'Закрити'
   },
   en: {
     label: '🇬🇧 English',
@@ -32,16 +29,15 @@ var LANGS = {
     ignition: 'Ignition', speed: 'Speed', gear: 'Gear',
     settingsTitle: 'Settings', language: 'Language',
     engine: 'Engine', engineSelect: 'Choose engine',
-    sound: 'Sound', soundOn: 'On', soundOff: 'Off',
-    soon: 'Soon', repair: 'Repair', close: 'Close'
+    sound: 'Sound', close: 'Close'
   }
 };
 
 var ENGINES_INFO = [
-  { id:'scooter', label:'🛵 Скутер (S1)',    sub:'1 цилиндр · 4-тактный · 50 cc' },
-  { id:'r4',      label:'🚗 R4 (рядная)',    sub:'4 цилиндра · в ряд' },
-  { id:'v8',      label:'🏎️ V8',            sub:'8 цилиндров · V-образный' },
-  { id:'v16',     label:'🔥 V16',           sub:'16 цилиндров · мощный' }
+  { id:'scooter', label:'🛵 Скутер (S1)',   sub:'1 цилиндр · 4-тактный · АКПП · 50 cc' },
+  { id:'r4',      label:'🚗 R4 (рядная)',   sub:'4 цилиндра · в ряд · механика' },
+  { id:'v8',      label:'🏎️ V8',           sub:'8 цилиндров · V-образный' },
+  { id:'v16',     label:'🔥 V16',          sub:'16 цилиндров · мощный' }
 ];
 
 var curLang = 'ru';
@@ -53,18 +49,15 @@ function t(key){
   return L[key] || (LANGS.ru[key] || key);
 }
 
-/* ======== ПЕРЕВОД ИНТЕРФЕЙСА ======== */
 function applyLang(){
   var header = document.querySelector('header');
   if (header) header.textContent = t('title');
-
   var map = { 'pClutch':'clutch', 'pBrake':'brake', 'pGas':'gas', 'ignBtn':'ignition' };
   for (var id in map){
     var el = document.getElementById(id);
     if (!el) continue;
-    if (el.tagName === 'BUTTON'){
-      el.textContent = t(map[id]);
-    } else {
+    if (el.tagName === 'BUTTON'){ el.textContent = t(map[id]); }
+    else {
       var spans = el.querySelectorAll('span');
       for (var i=0; i<spans.length; i++){
         if (spans[i].classList.contains('icon')) continue;
@@ -73,7 +66,6 @@ function applyLang(){
       }
     }
   }
-
   var roLabels = document.querySelectorAll('.ro .lbl');
   if (roLabels.length >= 2){
     roLabels[0].textContent = t('speed');
@@ -81,16 +73,6 @@ function applyLang(){
   }
 }
 
-/* ======== БЕЙДЖ ТЕКУЩЕГО ДВИГАТЕЛЯ ======== */
-function updateBadge(){
-  var b = document.getElementById('engBadge');
-  var S = window.S;
-  if (!b || !S) return;
-  var E = S.engines[S.engineType];
-  if (E) b.textContent = E.name;
-}
-
-/* ======== СТИЛИ ======== */
 function injectStyles(){
   if (document.getElementById('settingsStyle')) return;
   var st = document.createElement('style');
@@ -99,12 +81,12 @@ function injectStyles(){
     '.eng-badge{position:absolute;top:10px;left:50%;transform:translateX(-50%);' +
       'background:rgba(20,30,40,.9);border:1px solid #3a5170;border-radius:20px;' +
       'padding:4px 14px;font-size:11px;font-weight:800;letter-spacing:2px;' +
-      'color:#8fd8ff;pointer-events:none;z-index:10}' +
-    '.settings-btn{position:fixed;top:8px;left:60px;z-index:1000;width:44px;height:44px;' +
+      'color:#8fd8ff;pointer-events:none;z-index:10;font-family:inherit}' +
+    '.settings-btn{position:fixed;top:8px;left:8px;z-index:1000;width:44px;height:44px;' +
       'border-radius:50%;border:1px solid #263547;background:rgba(20,28,38,.85);' +
       'color:#8fd8ff;font-size:20px;cursor:pointer;touch-action:manipulation;' +
       'display:flex;align-items:center;justify-content:center;padding:0}' +
-    '.settings-btn:hover{border-color:#3a5170}' +
+    '#repairBtn{top:60px !important}' +
     '.settings-overlay{position:fixed;top:0;left:0;right:0;bottom:0;' +
       'background:rgba(5,10,15,.94);z-index:99999;display:flex;align-items:center;' +
       'justify-content:center;padding:20px;font-family:inherit}' +
@@ -141,7 +123,6 @@ function injectStyles(){
   document.head.appendChild(st);
 }
 
-/* ======== КНОПКА НАСТРОЕК ======== */
 function addSettingsButton(){
   if (document.getElementById('settingsBtn')) return;
   var btn = document.createElement('button');
@@ -154,7 +135,6 @@ function addSettingsButton(){
   document.body.appendChild(btn);
 }
 
-/* ======== ГЛАВНОЕ ОКНО ======== */
 function openMain(){
   var ov = makeOverlay();
   var m = makeModal();
@@ -164,13 +144,11 @@ function openMain(){
   h.textContent = '⚙ ' + t('settingsTitle');
   m.appendChild(h);
 
-  /* --- Двигатель --- */
   var sec1 = document.createElement('div');
   sec1.className = 'settings-section';
   var h1 = document.createElement('h3');
   h1.textContent = t('engine');
   sec1.appendChild(h1);
-
   var engBtn = document.createElement('button');
   engBtn.type = 'button';
   engBtn.className = 'settings-item';
@@ -178,20 +156,15 @@ function openMain(){
   var curName = S ? (S.engines[S.engineType] || {}).name || 'R4' : 'R4';
   engBtn.innerHTML = '<div class="txt"><span class="lbl">' + t('engineSelect') +
     '</span><span class="sub">' + curName + '</span></div><span class="check" style="opacity:1">›</span>';
-  engBtn.addEventListener('click', function(){
-    closeSettings();
-    openEnginePicker();
-  });
+  engBtn.addEventListener('click', function(){ closeSettings(); openEnginePicker(); });
   sec1.appendChild(engBtn);
   m.appendChild(sec1);
 
-  /* --- Язык --- */
   var sec2 = document.createElement('div');
   sec2.className = 'settings-section';
   var h2 = document.createElement('h3');
   h2.textContent = t('language');
   sec2.appendChild(h2);
-
   Object.keys(LANGS).forEach(function(code){
     var b = document.createElement('button');
     b.type = 'button';
@@ -213,7 +186,6 @@ function openMain(){
   });
   m.appendChild(sec2);
 
-  /* --- Закрыть --- */
   var closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'settings-close';
@@ -224,7 +196,6 @@ function openMain(){
   document.body.appendChild(ov);
 }
 
-/* ======== ОКНО ВЫБОРА ДВИГАТЕЛЯ ======== */
 function openEnginePicker(){
   var ov = makeOverlay();
   var m = makeModal();
@@ -238,10 +209,7 @@ function openEnginePicker(){
   back.type = 'button';
   back.className = 'settings-back';
   back.textContent = '‹ ' + t('settingsTitle');
-  back.addEventListener('click', function(){
-    closeSettings();
-    openMain();
-  });
+  back.addEventListener('click', function(){ closeSettings(); openMain(); });
   m.appendChild(back);
 
   var S = window.S;
@@ -258,7 +226,6 @@ function openEnginePicker(){
       var all = m.querySelectorAll('.settings-item');
       for (var i=0; i<all.length; i++) all[i].classList.remove('on');
       b.classList.add('on');
-      updateBadge();
       try{ if(navigator.vibrate) navigator.vibrate(15); }catch(e){}
     });
     m.appendChild(b);
@@ -274,13 +241,10 @@ function openEnginePicker(){
   document.body.appendChild(ov);
 }
 
-/* ======== ВСПОМОГАТЕЛЬНЫЕ ======== */
 function makeOverlay(){
   var ov = document.createElement('div');
   ov.className = 'settings-overlay';
-  ov.addEventListener('click', function(e){
-    if (e.target === ov) closeSettings();
-  });
+  ov.addEventListener('click', function(e){ if (e.target === ov) closeSettings(); });
   return ov;
 }
 function makeModal(){
@@ -293,7 +257,6 @@ function closeSettings(){
   if (ex) ex.remove();
 }
 
-/* ======== СМЕНА ЯЗЫКА ======== */
 function setLang(code){
   if (!LANGS[code]) return;
   curLang = code;
@@ -304,12 +267,10 @@ function setLang(code){
   if (sb) sb.title = t('settingsTitle');
 }
 
-/* ======== СТАРТ ======== */
 function init(){
   injectStyles();
   addSettingsButton();
   applyLang();
-  updateBadge();
 }
 
 if (document.readyState === 'loading'){
