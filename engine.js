@@ -6,7 +6,6 @@ function showErr(m){if(errBox){errBox.style.display='block';errBox.textContent='
 window.addEventListener('error',function(ev){if(!ev.filename||ev.filename.indexOf('github.io')===-1)return;showErr(ev.message+' | '+ev.filename+':'+ev.lineno);});
 if(!S){showErr('physics.js не загрузился');return;}
 
-/* ЗАЩИТА от старого physics.js в кэше */
 if(S.ignitionState===undefined)S.ignitionState='off';
 if(S.startAttempts===undefined)S.startAttempts=0;
 if(S.primingStart===undefined)S.primingStart=0;
@@ -45,14 +44,17 @@ autoBtns.forEach(function(b){b.addEventListener('click',function(e){e.preventDef
 
 var ignBtn=document.getElementById('ignBtn');
 var ignLock=false;
+var cranking=false;
+var crankStartTime=0;
+var primingStartTime=0;
 
 function setIgnBtn(txt,cls,active){if(!ignBtn)return;ignBtn.textContent=txt;ignBtn.className='ignbtn'+(cls?' '+cls:'')+(active?' on':'');}
 
-function resetToOff(){S.ignitionState='off';S.running=false;S.stalled=true;S.rpm=0;S.startAttempts=0;setIgnBtn('ЗАЖИГАНИЕ','',false);}
 function keyOn(){
   S.ignitionState='priming';
   S.primingStart=Date.now();
-  S.primingDuration=1500;   /* ВСЕГДА сбрасываем — защита от кэша */
+  S.primingDuration=1500;
+  primingStartTime=Date.now();
   S.running=false;S.stalled=true;S.rpm=0;S.startAttempts=0;
   setIgnBtn('КАЧАЕТ...','',true);
   try{if(navigator.vibrate)navigator.vibrate(20);}catch(e){}
@@ -60,59 +62,106 @@ function keyOn(){
 }
 function readyToStart(){S.ignitionState='ready';setIgnBtn('▶ ПУСК','start',false);try{if(navigator.vibrate)navigator.vibrate([30,30]);}catch(e){}}
 
-function showAttempt(msg){
-  if(!ignBtn)return;
-  ignBtn.textContent=msg;
-  ignBtn.className='ignbtn';
-  clearTimeout(ignBtn._t);
-  ignBtn._t=setTimeout(function(){
-    if(S.ignitionState==='ready')setIgnBtn('▶ ПУСК','start',false);
-  },900);
+/* Определяем сколько держать стартер в зависимости от температуры */
+function getCrankDuration(){
+  var t=S.engineTemp||25;
+  var base;
+  if(t>40)base=0.7;
+  else if(t>20)base=1.2;
+  else if(t>5)base=2.2;
+  else if(t>-5)base=3.5;
+  else base=5.0;
+  /* случайность ±30% */
+  return base*(0.85+Math.random()*0.3);
 }
 
-function startEngine(){
-  var E=S.engines[S.engineType];
-  var coldStart=(S.engineTemp<5);
-  if(coldStart){
-    S.startAttempts++;
-    var failChance=0.7;
-    if(S.weather==='winter')failChance=0.65;
-    if(S.startAttempts>=4)failChance=0;
-    if(Math.random()<failChance){
-      showAttempt('❄️ ПОПЫТКА '+S.startAttempts);
-      try{if(navigator.vibrate)navigator.vibrate([50,80,50]);}catch(e){}
-      S.stalled=false;S.running=true;S.rpm=E.idle*0.7;
-      setTimeout(function(){
-        if(S.rpm<E.idle&&S.running){
-          S.stalled=true;S.running=false;S.rpm=0;
-          if(ignBtn){ignBtn.textContent='ЗАГЛОХ...';}
-          setTimeout(function(){if(S.ignitionState==='ready')setIgnBtn('▶ ПУСК','start',false);},800);
-        }
-      },400);
-      return;
-    }
+function startCranking(){
+  if(cranking||S.ignitionState!=='ready')return;
+  cranking=true;
+  crankStartTime=Date.now();
+  /* сколько секунд нужно на этот раз */
+  cranking.needed=getCrankDuration();
+  setIgnBtn('🌀 ТАРАХ...','',true);
+  try{if(navigator.vibrate)navigator.vibrate([20,30,20]);}catch(e){}
+  if(window.DVS_SOUND&&window.DVS_SOUND.startCrank)window.DVS_SOUND.startCrank();
+}
+
+function stopCranking(success){
+  if(!cranking)return;
+  cranking=false;
+  if(window.DVS_SOUND&&window.DVS_SOUND.stopCrank)window.DVS_SOUND.stopCrank();
+  if(!success){
+    /* Отпустил рано — не завёлся */
+    setIgnBtn('▶ ПУСК','start',false);
   }
-  S.startAttempts=0;
+}
+
+function actualStart(){
+  var E=S.engines[S.engineType];
+  /* шанс что схватится с первого раза, но иногда глохнет */
+  var t=S.engineTemp||25;
+  var dieChance=0;
+  if(t<0)dieChance=0.35;
+  else if(t<15)dieChance=0.2;
+  else if(t<30)dieChance=0.1;
+
   S.ignitionState='running';
   S.stalled=false;S.running=true;
-  var idleBoost=coldStart?-200:0;
-  S.rpm=E.idle+idleBoost;
+  S.rpm=E.idle;
+  if(t<40)S.rpm=E.idle-200;
   if(S.rpm<400)S.rpm=400;
   setIgnBtn('СТОП','',true);
   try{if(navigator.vibrate)navigator.vibrate([30,40,30]);}catch(e){}
   if(window.DVS_SOUND&&window.DVS_SOUND.starter)window.DVS_SOUND.starter();
-}
-function stopEngine(){S.running=false;S.stalled=true;S.rpm=0;S.ignitionState='off';S.startAttempts=0;setIgnBtn('ЗАЖИГАНИЕ','',false);try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}}
 
-function toggleIgnition(){
-  if(S.broken){try{if(navigator.vibrate)navigator.vibrate([50,50,50]);}catch(e){}return;}
-  var st=S.ignitionState;
-  if(st==='running'){stopEngine();return;}
-  if(st==='off'){keyOn();return;}
-  if(st==='priming'){return;}
-  if(st==='ready'){startEngine();return;}
+  /* шанс что заглохнет через секунду */
+  if(Math.random()<dieChance){
+    setTimeout(function(){
+      if(S.running&&S.engineTemp<40){
+        S.stalled=true;S.running=false;S.rpm=0;
+        S.ignitionState='ready';
+        setIgnBtn('ЗАГЛОХ...','',false);
+        setTimeout(function(){if(S.ignitionState==='ready')setIgnBtn('▶ ПУСК','start',false);},1000);
+      }
+    },700);
+  }
 }
-if(ignBtn)ignBtn.addEventListener('click',function(e){e.preventDefault();if(ignLock)return;ignLock=true;toggleIgnition();setTimeout(function(){ignLock=false;},400);});
+
+function stopEngine(){
+  stopCranking(false);
+  S.running=false;S.stalled=true;S.rpm=0;
+  S.ignitionState='off';S.startAttempts=0;
+  setIgnBtn('ЗАЖИГАНИЕ','',false);
+  try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
+}
+
+function onIgnDown(e){
+  e.preventDefault();
+  if(ignLock)return;
+  var st=S.ignitionState;
+  if(st==='off'){ignLock=true;keyOn();setTimeout(function(){ignLock=false;},500);return;}
+  if(st==='priming'){return;}
+  if(st==='ready'){ignLock=true;startCranking();return;}
+  if(st==='running'){ignLock=true;stopEngine();setTimeout(function(){ignLock=false;},500);return;}
+}
+function onIgnUp(){
+  ignLock=false;
+  if(cranking)stopCranking(false);
+}
+if(ignBtn){
+  ignBtn.addEventListener('pointerdown',onIgnDown);
+  ignBtn.addEventListener('pointerup',onIgnUp);
+  ignBtn.addEventListener('pointercancel',onIgnUp);
+  ignBtn.addEventListener('pointerleave',function(e){
+    /* Если палец ушёл за пределы — тоже отпускаем */
+    if(cranking)stopCranking(false);
+  });
+  /* Резерв для браузеров без Pointer Events */
+  ignBtn.addEventListener('touchstart',function(e){if(window.PointerEvent)return;e.preventDefault();onIgnDown(e);},{passive:false});
+  ignBtn.addEventListener('touchend',function(e){if(window.PointerEvent)return;e.preventDefault();onIgnUp();},{passive:false});
+  ignBtn.addEventListener('mousedown',function(e){if(window.PointerEvent)return;e.preventDefault();onIgnDown(e);});
+  ignBtn.addEventListener('mouseup',function(){if(window.PointerEvent)return;onIgnUp();});
+}
 
 var repairBtn=document.getElementById('repairBtn');
 if(repairBtn)repairBtn.addEventListener('click',function(e){e.preventDefault();S.repair();});
@@ -139,24 +188,29 @@ function updateEngineUI(){
   if(gv){if(E.auto)gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':'D'));else gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':String(S.gear)));}
 }
 
-var primingStartTime=0;
 function loop(now){
   var frame=(now-last)/1000;last=now;
   if(frame>0.25)frame=0.25;
   if(frame<0)frame=0;
   updateEngineUI();
 
-  /* НАСОС — защита с жёстким таймаутом */
+  /* НАСОС */
   if(S.ignitionState==='priming'){
     if(primingStartTime===0)primingStartTime=Date.now();
-    var elapsed=Date.now()-primingStartTime;
-    var dur=S.primingDuration||1500;
-    if(elapsed>=dur){
+    if(Date.now()-primingStartTime>=(S.primingDuration||1500)){
       primingStartTime=0;
       readyToStart();
     }
-  } else {
-    primingStartTime=0;
+  }
+
+  /* СТАРТЕР — пока держат, крутит */
+  if(cranking&&S.ignitionState==='ready'){
+    var crankTime=(Date.now()-crankStartTime)/1000;
+    if(crankTime>=cranking.needed){
+      /* Хватит! Заводимся */
+      stopCranking(true);
+      actualStart();
+    }
   }
 
   tSm=smoothStep(tSm,S.pressed.gas?1:0,4.5,7.0,frame);
