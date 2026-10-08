@@ -128,19 +128,18 @@ S.physics=function(dt){
     else ratio=gearRatios[S.gear]*finalDrive;
   }
 
-  /* ===== СЦЕПЛЕНИЕ / ВАРИАТОР ===== */
+  /* ===== ЦЕНТРОБЕЖНОЕ СЦЕПЛЕНИЕ (только для CVT) ===== */
   var eng;
   if (E.auto){
-    if (S.gear === 0){
+    if (S.gear === 0 || S.stalled || !S.running){
       eng = 0;
     } else if (E.cvt){
-      var rpmF2 = Math.max(0, Math.min(1, (S.rpm - E.idle) / 500));
-      var vv2 = Math.abs(S.speed);
-      var engage = rpmF2 * 0.9 + vv2 * 0.25;
-      if (engage > 1) engage = 1;
-      eng = (S.stalled || !S.running) ? 0 : engage;
+      /* схватывает плавно: idle+300 → idle+1600 */
+      var engageRPM = E.idle + 300;
+      var fullRPM = E.idle + 1600;
+      eng = Math.max(0, Math.min(1, (S.rpm - engageRPM) / (fullRPM - engageRPM)));
     } else {
-      eng = (S.stalled || !S.running) ? 0 : 1;
+      eng = 1;
     }
   } else {
     eng = (S.gear===0||S.stalled||!S.running)?0:(1-S.clutchPedal);
@@ -159,20 +158,31 @@ S.physics=function(dt){
     var friction = 6 + S.rpm * 0.004;
     Te -= friction;
     if (thr < 0.05){
-      // Регулятор холостого хода
       var err = E.idle - S.rpm;
       if (err > 0) Te += err * 0.8;
       else Te += err * 0.5;
-      Te += friction;  // компенсация трения
+      Te += friction;
     } else {
       if (S.rpm < E.idle * 0.7) Te += (E.idle * 0.7 - S.rpm) * 0.5;
     }
   }
 
-  var slip=omegaEngine-omegaDirect;
-  var Tc=eng*clutchK*slip;
-  Tc=Math.max(-clutchMax,Math.min(clutchMax,Tc));
-  if(eng<0.001)Tc=0;
+  /* ===== МОМЕНТ СЦЕПЛЕНИЯ ===== */
+  var slip = omegaEngine - omegaDirect;
+  var Tc;
+  if (E.cvt){
+    /* Момент ограничен возможностями мотора — не даём заглохнуть */
+    var maxTrans = E.maxTorque * 0.65 * eng;
+    Tc = 8 * slip;
+    if (Tc >  maxTrans) Tc =  maxTrans;
+    if (Tc < -maxTrans) Tc = -maxTrans;
+    if (eng < 0.01) Tc = 0;
+  } else {
+    Tc = eng * clutchK * slip;
+    Tc = Math.max(-clutchMax, Math.min(clutchMax, Tc));
+    if (eng < 0.001) Tc = 0;
+  }
+
   var dE=(Te-Tc)/Iengine;
   var v=Math.abs(S.speed)/3.6;
   var dragF=0.42*v*v+150;
