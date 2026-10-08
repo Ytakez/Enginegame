@@ -6,28 +6,28 @@ var STORAGE_KEY = 'dvs_engine_v3';
 var ENGINES = {
   scooter: {
     name:'S1', cyls:1,
-    maxTorque:80, idle:700, redline:3000, breakRpm:3600, stallRpm:250,
+    maxTorque:60, idle:700, redline:3200, breakRpm:3800, stallRpm:250,
     fireDiv:30, lpBase:1400, lpRpm:0.35,
     subGain:0.5, sawGain:0.9, sqGain:0.4, noiseBase:0.08,
-    cvt:true, auto:true
+    cvt:true, auto:true, mass:200
   },
   r4: {
     name:'R4', cyls:4,
     maxTorque:250, idle:900, redline:6800, breakRpm:8000, stallRpm:350,
     fireDiv:30, lpBase:700, lpRpm:0.15,
-    subGain:0.9, sawGain:0.5, sqGain:0.15, noiseBase:0.015
+    subGain:0.9, sawGain:0.5, sqGain:0.15, noiseBase:0.015, mass:1250
   },
   v8: {
     name:'V8', cyls:8,
     maxTorque:420, idle:900, redline:7200, breakRpm:8700, stallRpm:350,
     fireDiv:20, lpBase:450, lpRpm:0.12,
-    subGain:1.5, sawGain:0.6, sqGain:0.10, noiseBase:0.028
+    subGain:1.5, sawGain:0.6, sqGain:0.10, noiseBase:0.028, mass:1400
   },
   v16: {
     name:'V16', cyls:16,
     maxTorque:680, idle:900, redline:7800, breakRpm:9200, stallRpm:350,
     fireDiv:10, lpBase:290, lpRpm:0.09,
-    subGain:2.2, sawGain:0.68, sqGain:0.05, noiseBase:0.05
+    subGain:2.2, sawGain:0.68, sqGain:0.05, noiseBase:0.05, mass:1600
   }
 };
 
@@ -47,9 +47,8 @@ if (S.engines[savedEng].auto) S.gear = 1;
 
 var gearRatios=[0,3.40,2.00,1.35,1.00,0.78];
 var reverseRatio=-3.17;
-var finalDrive=3.90,wheelRadius=0.31,mass=1250;
-var Iwheel=mass*wheelRadius*wheelRadius;
-var Iengine=0.55,clutchK=40,clutchMax=350;
+var finalDrive=3.90, wheelRadius=0.31;
+var clutchK=40, clutchMax=350;
 
 function curE(){ return ENGINES[S.engineType] || ENGINES.r4; }
 
@@ -108,6 +107,9 @@ S.setEngine=function(type){
 
 S.physics=function(dt){
   var E = curE();
+  var mass = E.mass || 1250;
+  var Iwheel = mass * wheelRadius * wheelRadius;
+
   if(S.broken){
     S.rpm=0;S.speed*=Math.max(0,1-2.5*dt);
     if(Math.abs(S.speed)<0.1)S.speed=0;
@@ -118,7 +120,8 @@ S.physics=function(dt){
   var ratio;
   if (E.cvt){
     var vv = Math.abs(S.speed);
-    var r = 3.5 / (1 + vv * 0.12);
+    // от 10 на старте → ~5 на 60 км/ч
+    var r = 10 / (1 + vv * 0.05);
     if (S.gear === 0) ratio = 0;
     else if (S.gear === -1) ratio = -r;
     else ratio = r;
@@ -128,15 +131,14 @@ S.physics=function(dt){
     else ratio=gearRatios[S.gear]*finalDrive;
   }
 
-  /* ===== ЦЕНТРОБЕЖНОЕ СЦЕПЛЕНИЕ (только для CVT) ===== */
+  /* ===== СЦЕПЛЕНИЕ ===== */
   var eng;
   if (E.auto){
     if (S.gear === 0 || S.stalled || !S.running){
       eng = 0;
     } else if (E.cvt){
-      /* схватывает плавно: idle+300 → idle+1600 */
-      var engageRPM = E.idle + 300;
-      var fullRPM = E.idle + 1600;
+      var engageRPM = E.idle + 200;
+      var fullRPM = E.idle + 1300;
       eng = Math.max(0, Math.min(1, (S.rpm - engageRPM) / (fullRPM - engageRPM)));
     } else {
       eng = 1;
@@ -149,13 +151,13 @@ S.physics=function(dt){
   var omegaDirect=omegaWheel*ratio;
   var omegaEngine=S.rpm*Math.PI/30;
 
-  /* ===== КРУТЯЩИЙ МОМЕНТ ДВИГАТЕЛЯ ===== */
+  /* ===== МОМЕНТ ДВИГАТЕЛЯ ===== */
   var Te=0;
   if(S.running&&!S.stalled){
     var thr=S.throttle;
     if(S.rpm>E.redline)thr=0;
     Te=thr*E.maxTorque*torqueCurve(S.rpm, E);
-    var friction = 6 + S.rpm * 0.004;
+    var friction = 5 + S.rpm * 0.003;
     Te -= friction;
     if (thr < 0.05){
       var err = E.idle - S.rpm;
@@ -171,11 +173,13 @@ S.physics=function(dt){
   var slip = omegaEngine - omegaDirect;
   var Tc;
   if (E.cvt){
-    /* Момент ограничен возможностями мотора — не даём заглохнуть */
-    var maxTrans = E.maxTorque * 0.65 * eng;
-    Tc = 8 * slip;
-    if (Tc >  maxTrans) Tc =  maxTrans;
-    if (Tc < -maxTrans) Tc = -maxTrans;
+    /* Передаём момент двигателя напрямую + небольшое демпфирование */
+    var target = Te * eng;
+    var damp = slip * 3;
+    var maxT = Math.max(5, E.maxTorque * 1.1);
+    Tc = target + damp;
+    if (Tc >  maxT) Tc =  maxT;
+    if (Tc < -maxT) Tc = -maxT;
     if (eng < 0.01) Tc = 0;
   } else {
     Tc = eng * clutchK * slip;
@@ -183,11 +187,15 @@ S.physics=function(dt){
     if (eng < 0.001) Tc = 0;
   }
 
+  var Iengine = E.cvt ? 0.25 : 0.55;
   var dE=(Te-Tc)/Iengine;
+
+  /* ===== СОПРОТИВЛЕНИЕ ===== */
   var v=Math.abs(S.speed)/3.6;
-  var dragF=0.42*v*v+150;
+  var dragF=0.42*v*v + (E.cvt ? 60 : 150);
   var dragT=dragF*wheelRadius*(omegaWheel>=0?1:-1);
   var brakeT=S.brakePedal*2600*(omegaWheel>=0?1:-1);
+
   var wheelTorque=Tc*ratio-brakeT-dragT;
   var dW=wheelTorque/Iwheel;
   var nE=omegaEngine+dE*dt;
