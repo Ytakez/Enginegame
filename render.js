@@ -4,19 +4,20 @@ var S=window.S;var RB=window.RB;var RE=window.RE;
 if(!S||!RB||!RE)return;
 var ecv,ectx,gcv,gctx;var MAXR=10500;
 function init(){ecv=document.getElementById('engineCv');if(ecv)ectx=ecv.getContext('2d');gcv=document.getElementById('gaugeCv');if(gcv)gctx=gcv.getContext('2d');}
-function call(fn,c){try{if(typeof fn==='function')return fn.apply(null,Array.prototype.slice.call(arguments,1));}catch(e){console.log('draw error:',e);}return false;}
 function drawEngine(){var c=ectx,W=ecv.width,H=ecv.height;c.clearRect(0,0,W,H);
 var bg=c.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0e151d');bg.addColorStop(1,'#070a0e');c.fillStyle=bg;c.fillRect(0,0,W,H);
 var t=S.engineType;var drawn=false;
-if(t==='scooter'&&typeof RE.drawScooter==='function')drawn=call(RE.drawScooter,c,S);
-else if(t==='tdi'&&typeof RE.drawTDI==='function')drawn=call(RE.drawTDI,c,S);
-else if(t==='mt82'&&typeof RE.drawMTZ==='function')drawn=call(RE.drawMTZ,c,S);
-else if(t==='passatb3'&&typeof RE.drawPassatB3==='function')drawn=call(RE.drawPassatB3,c,S);
-else if(t==='bluebird'&&typeof RE.drawBluebird==='function')drawn=call(RE.drawBluebird,c,S);
-else if(t==='galant6'&&typeof RE.drawGalant6==='function')drawn=call(RE.drawGalant6,c,S);
-else if(t==='v8'&&typeof RE.drawV==='function')drawn=call(RE.drawV,c,S,8);
-else if(t==='v16'&&typeof RE.drawV==='function')drawn=call(RE.drawV,c,S,16);
-if(!drawn){if(typeof RE.drawR4==='function'){call(RE.drawR4,c,S);}else{c.fillStyle='#5d7189';c.font='bold 14px Segoe UI';c.textAlign='center';c.fillText('Двигатель не загружен',W/2,H/2);}}
+try{
+if(t==='scooter'&&typeof RE.drawScooter==='function'){RE.drawScooter(c,S);drawn=true;}
+else if(t==='tdi'&&typeof RE.drawTDI==='function'){RE.drawTDI(c,S);drawn=true;}
+else if(t==='mt82'&&typeof RE.drawMTZ==='function'){RE.drawMTZ(c,S);drawn=true;}
+else if(t==='passatb3'&&typeof RE.drawPassatB3==='function'){RE.drawPassatB3(c,S);drawn=true;}
+else if(t==='bluebird'&&typeof RE.drawBluebird==='function'){RE.drawBluebird(c,S);drawn=true;}
+else if(t==='galant6'&&typeof RE.drawGalant6==='function'){RE.drawGalant6(c,S);drawn=true;}
+else if(t==='v8'&&typeof RE.drawV==='function'){RE.drawV(c,S,8);drawn=true;}
+else if(t==='v16'&&typeof RE.drawV==='function'){RE.drawV(c,S,16);drawn=true;}
+}catch(err){console.log('draw error:',err);}
+if(!drawn){if(typeof RE.drawR4==='function'){try{RE.drawR4(c,S);}catch(e){}}else{c.fillStyle='#5d7189';c.font='bold 14px Segoe UI';c.textAlign='center';c.fillText('Двигатель не загружен',W/2,H/2);}}
 if(S.broken){c.fillStyle='rgba(200,20,20,0.06)';c.fillRect(0,0,W,H);}}
 function drawGauge(){if(!gctx)return;var c=gctx,W=gcv.width,H=gcv.height;c.clearRect(0,0,W,H);
 var cx=W/2,cy=H-20,R=Math.min(W/2-14,H-44);var a0=Math.PI,a1=Math.PI*2;
@@ -35,6 +36,6 @@ c.beginPath();c.moveTo(-12,-4);c.lineTo(R-22,-2);c.lineTo(R-16,0);c.lineTo(R-22,
 c.fillStyle='#1b2531';c.beginPath();c.arc(cx,cy,13,0,7);c.fill();c.strokeStyle='#3a4d61';c.lineWidth=2;c.stroke();
 var rc=rpm>redline?'#ff5b5b':(rpm>redline*0.85?'#ffc93c':'#9fe8c0');c.fillStyle=rc;c.font='bold 24px Segoe UI, sans-serif';c.textAlign='center';c.textBaseline='alphabetic';c.fillText(String(Math.round(rpm)),cx,cy-26);
 c.fillStyle='#4f6277';c.font='bold 9px Segoe UI, sans-serif';c.fillText('ОБ/МИН',cx,cy-14);}
-function paint(){if(!ecv)init();if(!ecv)return;try{drawEngine();drawGauge();}catch(e){console.log('paint error:',e);}}
+function paint(){if(!ecv)init();if(!ecv)return;try{drawEngine();drawGauge();}catch(e){console.log(e);}}
 window.DVS_RENDER={draw:paint,init:init};init();
 })();
