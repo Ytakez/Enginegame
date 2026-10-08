@@ -27,6 +27,18 @@ function softCurve(k){
   }
   return c;
 }
+/* Спец-кривая для дизеля — «жёсткий» клип с овершутом */
+function dieselCurve(){
+  var n = 4096, c = new Float32Array(n);
+  for (var i=0;i<n;i++){
+    var x = (i*2/n) - 1;
+    var v = Math.tanh(x * 5) + 0.15 * Math.sin(x * 12);
+    if (v > 1.2) v = 1.2;
+    if (v < -1.2) v = -1.2;
+    c[i] = v;
+  }
+  return c;
+}
 
 function init(){
   if (ctx) return true;
@@ -39,6 +51,7 @@ function init(){
 
   var hc = ctx.createWaveShaper(); hc.curve = hardCurve(); hc.oversample = '4x';
   var ss = ctx.createWaveShaper(); ss.curve = softCurve(3.5); ss.oversample = '2x';
+  var dc = ctx.createWaveShaper(); dc.curve = dieselCurve(); dc.oversample = '4x';
 
   var growl = ctx.createBiquadFilter();
   growl.type='peaking'; growl.frequency.value=180; growl.Q.value=2.5; growl.gain.value=12;
@@ -52,7 +65,7 @@ function init(){
   var bp = ctx.createBiquadFilter();
   bp.type='bandpass'; bp.frequency.value=320; bp.Q.value=0.7;
 
-  lp.connect(hc); hc.connect(ss); ss.connect(growl);
+  lp.connect(hc); hc.connect(ss); ss.connect(dc); dc.connect(growl);
   growl.connect(hs); hs.connect(bp);
 
   var eg = ctx.createGain(); eg.gain.value = 0;
@@ -78,6 +91,12 @@ function init(){
   var gS2 = ctx.createGain(); gS2.gain.value = 0.7;
   oS2.connect(gS2).connect(lp); oS2.start();
 
+  /* ===== ТУРБИНА: высокочастотный свист ===== */
+  var oTurbo = ctx.createOscillator(); oTurbo.type='sine';
+  var gTurbo = ctx.createGain(); gTurbo.gain.value = 0;
+  oTurbo.connect(gTurbo).connect(master); oTurbo.start();
+
+  /* ===== ДИЗЕЛЬНЫЙ «КЛАЦ»: узкополосный шум на 2-3 кГц ===== */
   var buf = ctx.createBuffer(1, 2*ctx.sampleRate, ctx.sampleRate);
   var d = buf.getChannelData(0);
   for (var i2=0;i2<d.length;i2++) d[i2] = Math.random()*2-1;
@@ -92,9 +111,15 @@ function init(){
   var nG2 = ctx.createGain(); nG2.gain.value = 0;
   noise2.connect(nf2).connect(nG2).connect(hc); noise2.start();
 
+  var clatter = ctx.createBufferSource(); clatter.buffer = buf; clatter.loop = true;
+  var cf = ctx.createBiquadFilter(); cf.type='bandpass'; cf.frequency.value=2400; cf.Q.value=2.5;
+  var cG = ctx.createGain(); cG.gain.value = 0;
+  clatter.connect(cf).connect(cG).connect(hc); clatter.start();
+
   nodes = { master:master, lp:lp, eg:eg, o1:o1, o1b:o1b, o2:o2, oS:oS, oS2:oS2,
             nG:nG, nG2:nG2, nf:nf, nf2:nf2, growl:growl, hs:hs, bp:bp,
-            g1:g1, g1b:g1b, g2:g2, gS:gS, gS2:gS2 };
+            g1:g1, g1b:g1b, g2:g2, gS:gS, gS2:gS2,
+            oTurbo:oTurbo, gTurbo:gTurbo, cG:cG, cf:cf, nf2: nf2 };
   return true;
 }
 
@@ -106,50 +131,116 @@ function update(){
   var t = ctx.currentTime;
   var sm = 0.02;
   var isScooter = S.engineType === 'scooter';
+  var isDiesel = E.diesel === true;
 
   if (!run || rpm < 20){
     nodes.eg.gain.setTargetAtTime(0, t, 0.1);
     nodes.nG.gain.setTargetAtTime(0, t, 0.1);
     nodes.nG2.gain.setTargetAtTime(0, t, 0.1);
+    nodes.cG.gain.setTargetAtTime(0, t, 0.1);
+    nodes.gTurbo.gain.setTargetAtTime(0, t, 0.15);
     return;
   }
 
   var fireHz = rpm / E.fireDiv;
+  var rr = Math.max(1, E.redline - E.idle);
+  var rpmF = Math.min(1, Math.max(0, (rpm - E.idle) / rr));
+  var rpmF2 = rpmF * rpmF;
+
+  /* ===== ДИЗЕЛЬ ===== */
+  if (isDiesel){
+    // Ниже тон — глубокий рокот
+    nodes.o1.frequency.setTargetAtTime(fireHz * 1.5, t, sm);
+    nodes.o1b.frequency.setTargetAtTime(fireHz * 1.5 * 1.008, t, sm);
+    nodes.o2.frequency.setTargetAtTime(fireHz * 2, t, sm);
+    nodes.oS.frequency.setTargetAtTime(fireHz * 0.5, t, sm);
+    nodes.oS2.frequency.setTargetAtTime(fireHz * 0.25, t, sm);
+
+    // Громкость — ровная, дизель громкий на холостых
+    var base = 0.16 + thr * 0.22;
+    var lvl = base * (0.8 + rpmF * 0.5);
+    if (rpm > E.redline * 0.9) lvl *= 1.05;
+    if (rpm > E.redline) lvl *= 0.85;
+    nodes.eg.gain.setTargetAtTime(lvl, t, 0.05);
+
+    // ОСНОВНОЙ ДИЗЕЛЬНЫЙ «КЛАЦ» — короткие импульсы на каждый цикл
+    var clatterLvl = 0.10 + rpmF * 0.14 + thr * 0.10;
+    nodes.cG.gain.setTargetAtTime(clatterLvl, t, 0.04);
+    nodes.cf.frequency.setTargetAtTime(2200 + rpm * 0.5 + thr * 800, t, 0.05);
+    nodes.cf.Q.setTargetAtTime(2.8 + rpmF * 1.5, t, 0.05);
+
+    // Обычный шум выхлопа — мягче
+    var nLvl = 0.05 + thr * 0.06;
+    nodes.nG.gain.setTargetAtTime(nLvl, t, 0.05);
+    nodes.nf.frequency.setTargetAtTime(1400 + rpm * 0.7, t, 0.05);
+
+    // Высокочастотный «песок» — тоже клац
+    var nLvl2 = 0.03 + rpmF * 0.05;
+    nodes.nG2.gain.setTargetAtTime(nLvl2, t, 0.05);
+    nodes.nf2.frequency.setTargetAtTime(3200 + rpm * 0.8, t, 0.05);
+
+    // ТУРБИНА — появляется после 1800 об/мин
+    var turboFreq = 2800 + rpmF * 5200;   // от 2.8 до 8 кГц
+    nodes.oTurbo.frequency.setTargetAtTime(turboFreq, t, 0.15);
+    var turboOn = Math.max(0, rpmF - 0.15);
+    var turboLvl = turboOn * turboOn * 0.055 * (0.4 + thr * 0.6);
+    nodes.gTurbo.gain.setTargetAtTime(turboLvl, t, 0.12);
+
+    // Фильтры
+    var lpF = 350 + rpm * 0.12 + thr * 400 + rpmF2 * 500;
+    if (lpF > 2800) lpF = 2800;
+    nodes.lp.frequency.setTargetAtTime(lpF, t, 0.05);
+    nodes.lp.Q.setTargetAtTime(2.8 + rpmF2 * 3, t, 0.05);
+
+    nodes.growl.frequency.setTargetAtTime(110 + rpm * 0.05, t, 0.06);
+    nodes.growl.gain.setTargetAtTime(16 + rpmF2 * 12, t, 0.06);
+
+    nodes.bp.frequency.setTargetAtTime(240 + rpm * 0.06 + thr * 200, t, 0.06);
+    nodes.bp.Q.setTargetAtTime(1.0 + rpmF * 1.5, t, 0.06);
+
+    // Громкость осцилляторов
+    nodes.g1.gain.setTargetAtTime(0.35, t, 0.05);
+    nodes.g1b.gain.setTargetAtTime(0.22, t, 0.05);
+    nodes.g2.gain.setTargetAtTime(0.08, t, 0.05);
+    nodes.gS.gain.setTargetAtTime(1.8, t, 0.05);
+    nodes.gS2.gain.setTargetAtTime(1.1, t, 0.05);
+    return;
+  }
+
+  /* ===== ОБЫЧНЫЕ БЕНЗИНОВЫЕ ===== */
+  nodes.gTurbo.gain.setTargetAtTime(0, t, 0.15);
+  nodes.cG.gain.setTargetAtTime(0, t, 0.1);
   nodes.o1.frequency.setTargetAtTime(fireHz * 2, t, sm);
   nodes.o1b.frequency.setTargetAtTime(fireHz * 2 * 1.005, t, sm);
   nodes.o2.frequency.setTargetAtTime(fireHz * 3, t, sm);
   nodes.oS.frequency.setTargetAtTime(fireHz * 0.5, t, sm);
   nodes.oS2.frequency.setTargetAtTime(fireHz * 0.25, t, sm);
 
-  var rr = Math.max(1, E.redline - E.idle);
-  var rpmF = Math.min(1, Math.max(0, (rpm - E.idle) / rr));
-  var rpmF2 = rpmF * rpmF;
+  var base2 = isScooter ? (0.09 + thr * 0.20) : (0.10 + thr * 0.28);
+  var lvl2 = base2 * (isScooter ? (0.85 + rpmF * 1.05) : (0.5 + rpmF * 0.9));
+  if (rpm > E.redline * 0.9) lvl2 *= 1.15;
+  if (rpm > E.redline) lvl2 *= 0.7;
+  if (isScooter) lvl2 *= 0.45;
+  nodes.eg.gain.setTargetAtTime(lvl2, t, 0.04);
 
-  var base = isScooter ? (0.09 + thr * 0.20) : (0.10 + thr * 0.28);
-  var lvl = base * (isScooter ? (0.85 + rpmF * 1.05) : (0.5 + rpmF * 0.9));
-  if (rpm > E.redline * 0.9) lvl *= 1.15;
-  if (rpm > E.redline) lvl *= 0.7;
-  if (isScooter) lvl *= 0.45;
-  nodes.eg.gain.setTargetAtTime(lvl, t, 0.04);
-
-  var nLvl = (isScooter ? (0.04 + thr * 0.07) : (0.03 + thr * 0.07)) + rpmF * E.noiseBase * 1.2;
-  nodes.nG.gain.setTargetAtTime(nLvl, t, 0.05);
+  var nLvlB = (isScooter ? (0.04 + thr * 0.07) : (0.03 + thr * 0.07)) + rpmF * E.noiseBase * 1.2;
+  nodes.nG.gain.setTargetAtTime(nLvlB, t, 0.05);
   nodes.nf.frequency.setTargetAtTime((isScooter ? 1800 : 1200) + rpm * 1.0 + thr * 1500, t, 0.05);
 
-  var nLvl2 = Math.max(0, (rpmF - 0.5)) * (isScooter ? 0.12 : 0.15) + thr * rpmF2 * (isScooter ? 0.08 : 0.12);
-  nodes.nG2.gain.setTargetAtTime(nLvl2, t, 0.05);
+  var nLvl2B = Math.max(0, (rpmF - 0.5)) * (isScooter ? 0.12 : 0.15) + thr * rpmF2 * (isScooter ? 0.08 : 0.12);
+  nodes.nG2.gain.setTargetAtTime(nLvl2B, t, 0.05);
   nodes.nf2.frequency.setTargetAtTime(3500 + rpm * 1.5, t, 0.05);
 
-  var lpF;
+  var lpF2;
   if (isScooter){
-    lpF = E.lpBase - rpm * 0.4 + thr * 700 + rpmF2 * 900;
-    if (lpF < 400) lpF = 400;
-    if (lpF > 3200) lpF = 3200;
+    lpF2 = E.lpBase - rpm * 0.4 + thr * 700 + rpmF2 * 900;
+    if (lpF2 < 400) lpF2 = 400;
+    if (lpF2 > 3200) lpF2 = 3200;
   } else {
-    lpF = E.lpBase + rpm * E.lpRpm + thr * 900 + rpmF2 * 1500;
-    if (lpF > 4500) lpF = 4500;
+    lpF2 = E.lpBase + rpm * E.lpRpm + thr * 900 + rpmF2 * 1500;
+    if (lpF2 > 4500) lpF2 = 4500;
   }
-  nodes.lp.frequency.setTargetAtTime(lpF, t, 0.05);
+  nodes.lp.frequency.setTargetAtTime(lpF2, t, 0.05);
   nodes.lp.Q.setTargetAtTime((isScooter ? 2.0 : 1.2) + rpmF2 * 2.5, t, 0.05);
 
   nodes.growl.frequency.setTargetAtTime((isScooter ? 200 : 140) + rpm * (isScooter ? 0.15 : 0.03), t, 0.06);
@@ -167,18 +258,20 @@ function update(){
 
 function starter(){
   if (!ctx || muted) return;
+  var E = S.engines[S.engineType];
   var isScooter = S.engineType === 'scooter';
+  var isDiesel = E && E.diesel;
   var t = ctx.currentTime;
   var o = ctx.createOscillator(); o.type = 'sawtooth';
-  o.frequency.setValueAtTime(isScooter ? 120 : 55, t);
-  o.frequency.linearRampToValueAtTime(isScooter ? 320 : 180, t + (isScooter ? 0.4 : 0.7));
+  o.frequency.setValueAtTime(isScooter ? 120 : (isDiesel ? 60 : 55), t);
+  o.frequency.linearRampToValueAtTime(isScooter ? 320 : (isDiesel ? 160 : 180), t + (isScooter ? 0.4 : 0.7));
   var g = ctx.createGain();
   g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(isScooter ? 0.10 : 0.18, t + 0.06);
+  g.gain.linearRampToValueAtTime(isScooter ? 0.10 : (isDiesel ? 0.20 : 0.18), t + 0.06);
   g.gain.linearRampToValueAtTime(0, t + (isScooter ? 0.5 : 0.85));
   var d = ctx.createWaveShaper(); d.curve = hardCurve();
   var f = ctx.createBiquadFilter(); f.type='lowpass';
-  f.frequency.value = isScooter ? 900 : 500;
+  f.frequency.value = isScooter ? 900 : (isDiesel ? 400 : 500);
   o.connect(f).connect(d).connect(g).connect(ctx.destination);
   o.start(t); o.stop(t + (isScooter ? 0.55 : 0.9));
 }
@@ -205,6 +298,8 @@ function setMuted(v){
     nodes.eg.gain.setTargetAtTime(0, t, 0.05);
     nodes.nG.gain.setTargetAtTime(0, t, 0.05);
     nodes.nG2.gain.setTargetAtTime(0, t, 0.05);
+    nodes.cG.gain.setTargetAtTime(0, t, 0.05);
+    nodes.gTurbo.gain.setTargetAtTime(0, t, 0.05);
   }
   try { localStorage.setItem('dvs_muted', muted ? '1' : '0'); } catch(e){}
 }
