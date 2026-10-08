@@ -27,18 +27,6 @@ function softCurve(k){
   }
   return c;
 }
-/* Спец-кривая для дизеля — «жёсткий» клип с овершутом */
-function dieselCurve(){
-  var n = 4096, c = new Float32Array(n);
-  for (var i=0;i<n;i++){
-    var x = (i*2/n) - 1;
-    var v = Math.tanh(x * 5) + 0.15 * Math.sin(x * 12);
-    if (v > 1.2) v = 1.2;
-    if (v < -1.2) v = -1.2;
-    c[i] = v;
-  }
-  return c;
-}
 
 function init(){
   if (ctx) return true;
@@ -51,7 +39,6 @@ function init(){
 
   var hc = ctx.createWaveShaper(); hc.curve = hardCurve(); hc.oversample = '4x';
   var ss = ctx.createWaveShaper(); ss.curve = softCurve(3.5); ss.oversample = '2x';
-  var dc = ctx.createWaveShaper(); dc.curve = dieselCurve(); dc.oversample = '4x';
 
   var growl = ctx.createBiquadFilter();
   growl.type='peaking'; growl.frequency.value=180; growl.Q.value=2.5; growl.gain.value=12;
@@ -65,7 +52,7 @@ function init(){
   var bp = ctx.createBiquadFilter();
   bp.type='bandpass'; bp.frequency.value=320; bp.Q.value=0.7;
 
-  lp.connect(hc); hc.connect(ss); ss.connect(dc); dc.connect(growl);
+  lp.connect(hc); hc.connect(ss); ss.connect(growl);
   growl.connect(hs); hs.connect(bp);
 
   var eg = ctx.createGain(); eg.gain.value = 0;
@@ -91,12 +78,10 @@ function init(){
   var gS2 = ctx.createGain(); gS2.gain.value = 0.7;
   oS2.connect(gS2).connect(lp); oS2.start();
 
-  /* ===== ТУРБИНА: высокочастотный свист ===== */
   var oTurbo = ctx.createOscillator(); oTurbo.type='sine';
   var gTurbo = ctx.createGain(); gTurbo.gain.value = 0;
   oTurbo.connect(gTurbo).connect(master); oTurbo.start();
 
-  /* ===== ДИЗЕЛЬНЫЙ «КЛАЦ»: узкополосный шум на 2-3 кГц ===== */
   var buf = ctx.createBuffer(1, 2*ctx.sampleRate, ctx.sampleRate);
   var d = buf.getChannelData(0);
   for (var i2=0;i2<d.length;i2++) d[i2] = Math.random()*2-1;
@@ -119,7 +104,7 @@ function init(){
   nodes = { master:master, lp:lp, eg:eg, o1:o1, o1b:o1b, o2:o2, oS:oS, oS2:oS2,
             nG:nG, nG2:nG2, nf:nf, nf2:nf2, growl:growl, hs:hs, bp:bp,
             g1:g1, g1b:g1b, g2:g2, gS:gS, gS2:gS2,
-            oTurbo:oTurbo, gTurbo:gTurbo, cG:cG, cf:cf, nf2: nf2 };
+            oTurbo:oTurbo, gTurbo:gTurbo, cG:cG, cf:cf };
   return true;
 }
 
@@ -147,46 +132,38 @@ function update(){
   var rpmF = Math.min(1, Math.max(0, (rpm - E.idle) / rr));
   var rpmF2 = rpmF * rpmF;
 
-  /* ===== ДИЗЕЛЬ ===== */
   if (isDiesel){
-    // Ниже тон — глубокий рокот
     nodes.o1.frequency.setTargetAtTime(fireHz * 1.5, t, sm);
     nodes.o1b.frequency.setTargetAtTime(fireHz * 1.5 * 1.008, t, sm);
     nodes.o2.frequency.setTargetAtTime(fireHz * 2, t, sm);
     nodes.oS.frequency.setTargetAtTime(fireHz * 0.5, t, sm);
     nodes.oS2.frequency.setTargetAtTime(fireHz * 0.25, t, sm);
 
-    // Громкость — ровная, дизель громкий на холостых
     var base = 0.16 + thr * 0.22;
     var lvl = base * (0.8 + rpmF * 0.5);
     if (rpm > E.redline * 0.9) lvl *= 1.05;
     if (rpm > E.redline) lvl *= 0.85;
     nodes.eg.gain.setTargetAtTime(lvl, t, 0.05);
 
-    // ОСНОВНОЙ ДИЗЕЛЬНЫЙ «КЛАЦ» — короткие импульсы на каждый цикл
     var clatterLvl = 0.10 + rpmF * 0.14 + thr * 0.10;
     nodes.cG.gain.setTargetAtTime(clatterLvl, t, 0.04);
     nodes.cf.frequency.setTargetAtTime(2200 + rpm * 0.5 + thr * 800, t, 0.05);
     nodes.cf.Q.setTargetAtTime(2.8 + rpmF * 1.5, t, 0.05);
 
-    // Обычный шум выхлопа — мягче
     var nLvl = 0.05 + thr * 0.06;
     nodes.nG.gain.setTargetAtTime(nLvl, t, 0.05);
     nodes.nf.frequency.setTargetAtTime(1400 + rpm * 0.7, t, 0.05);
 
-    // Высокочастотный «песок» — тоже клац
     var nLvl2 = 0.03 + rpmF * 0.05;
     nodes.nG2.gain.setTargetAtTime(nLvl2, t, 0.05);
     nodes.nf2.frequency.setTargetAtTime(3200 + rpm * 0.8, t, 0.05);
 
-    // ТУРБИНА — появляется после 1800 об/мин
-    var turboFreq = 2800 + rpmF * 5200;   // от 2.8 до 8 кГц
+    var turboFreq = 2800 + rpmF * 5200;
     nodes.oTurbo.frequency.setTargetAtTime(turboFreq, t, 0.15);
     var turboOn = Math.max(0, rpmF - 0.15);
     var turboLvl = turboOn * turboOn * 0.055 * (0.4 + thr * 0.6);
     nodes.gTurbo.gain.setTargetAtTime(turboLvl, t, 0.12);
 
-    // Фильтры
     var lpF = 350 + rpm * 0.12 + thr * 400 + rpmF2 * 500;
     if (lpF > 2800) lpF = 2800;
     nodes.lp.frequency.setTargetAtTime(lpF, t, 0.05);
@@ -198,16 +175,29 @@ function update(){
     nodes.bp.frequency.setTargetAtTime(240 + rpm * 0.06 + thr * 200, t, 0.06);
     nodes.bp.Q.setTargetAtTime(1.0 + rpmF * 1.5, t, 0.06);
 
-    // Громкость осцилляторов
     nodes.g1.gain.setTargetAtTime(0.35, t, 0.05);
     nodes.g1b.gain.setTargetAtTime(0.22, t, 0.05);
     nodes.g2.gain.setTargetAtTime(0.08, t, 0.05);
     nodes.gS.gain.setTargetAtTime(1.8, t, 0.05);
     nodes.gS2.gain.setTargetAtTime(1.1, t, 0.05);
+
+    if (E.tractor){
+      nodes.oTurbo.frequency.setTargetAtTime(0, t, 0.01);
+      nodes.gTurbo.gain.setTargetAtTime(0, t, 0.01);
+      nodes.cG.gain.setTargetAtTime(0.22 + rpmF * 0.18 + thr * 0.15, t, 0.03);
+      nodes.cf.frequency.setTargetAtTime(1600 + rpm * 0.4 + thr * 500, t, 0.04);
+      nodes.gS.gain.setTargetAtTime(2.4, t, 0.04);
+      nodes.gS2.gain.setTargetAtTime(1.6, t, 0.04);
+      var lpTr = 280 + rpm * 0.08 + thr * 300;
+      if (lpTr > 2000) lpTr = 2000;
+      nodes.lp.frequency.setTargetAtTime(lpTr, t, 0.04);
+      nodes.lp.Q.setTargetAtTime(3.5 + rpmF * 2.5, t, 0.04);
+      nodes.growl.frequency.setTargetAtTime(80 + rpm * 0.03, t, 0.05);
+      nodes.growl.gain.setTargetAtTime(20 + rpmF * 14, t, 0.05);
+    }
     return;
   }
 
-  /* ===== ОБЫЧНЫЕ БЕНЗИНОВЫЕ ===== */
   nodes.gTurbo.gain.setTargetAtTime(0, t, 0.15);
   nodes.cG.gain.setTargetAtTime(0, t, 0.1);
   nodes.o1.frequency.setTargetAtTime(fireHz * 2, t, sm);
