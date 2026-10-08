@@ -15,12 +15,34 @@ var gearRatios=[0,3.40,2.00,1.35,1.00,0.78];
 var finalDrive=3.90, wheelRadius=0.31, mass=1250;
 var Iwheel=mass*wheelRadius*wheelRadius;
 var Iengine=0.55, maxTorque=250, clutchK=40, clutchMax=350;
-var idleRpm=900, stallRpm=350, redlineRpm=6800, breakRpm=7800;
+var idleRpm=900, stallRpm=350, redlineRpm=6800, breakRpm=8000;
 
 function torqueCurve(r){
   var x=Math.max(800,Math.min(6500,r));
   return 0.55+0.45*Math.sin(Math.PI*(x-800)/(6500-800));
 }
+
+/* ===== КНОПКА РЕМОНТА (маленькая, круглая, в углу) ===== */
+var repairBtn = document.createElement('button');
+repairBtn.type = 'button';
+repairBtn.textContent = '🔧';
+repairBtn.setAttribute('style',
+  'position:fixed;top:8px;left:8px;z-index:1000;width:38px;height:38px;' +
+  'border-radius:50%;border:1px solid #7a3030;background:rgba(40,10,10,.85);' +
+  'color:#ff9090;font-size:18px;cursor:pointer;touch-action:manipulation;' +
+  'display:none');
+repairBtn.addEventListener('click', function(e){ e.preventDefault(); repair(); });
+document.body.appendChild(repairBtn);
+
+/* ===== БАННЕР ПОЛОМКИ ===== */
+var banner = document.createElement('div');
+banner.setAttribute('style',
+  'position:fixed;top:0;left:0;right:0;z-index:999;' +
+  'background:linear-gradient(180deg,#c11,#8a0a0a);color:#fff;' +
+  'text-align:center;font-weight:700;padding:10px;' +
+  'font-size:13px;letter-spacing:1px;display:none;' +
+  'box-shadow:0 4px 20px rgba(200,0,0,.5)');
+document.body.appendChild(banner);
 
 function breakEngine(reason){
   if (S.broken) return;
@@ -29,13 +51,9 @@ function breakEngine(reason){
   S.stalled = true;
   S.rpm = 0;
   document.body.classList.add('broken');
-  var rb = document.getElementById('repairBtn');
-  if (rb) rb.style.display = 'block';
-  var banner = document.getElementById('breakBanner');
-  if (banner){
-    banner.textContent = '⚠ ДВИГАТЕЛЬ СЛОМАН: ' + (reason||'поломка');
-    banner.style.display = 'block';
-  }
+  repairBtn.style.display = 'block';
+  banner.textContent = '⚠ ДВИГАТЕЛЬ СЛОМАН: ' + (reason||'поломка');
+  banner.style.display = 'block';
   var ignBtn = document.getElementById('ignBtn');
   if (ignBtn) ignBtn.classList.remove('on');
   try{ if(navigator.vibrate) navigator.vibrate([100,60,100,60,200]); }catch(e){}
@@ -49,13 +67,12 @@ function repair(){
   S.speed = 0;
   S.gear = 0;
   document.body.classList.remove('broken');
-  var rb = document.getElementById('repairBtn');
-  if (rb) rb.style.display = 'none';
-  var banner = document.getElementById('breakBanner');
-  if (banner) banner.style.display = 'none';
-  var gearBtns = document.querySelectorAll('.gearbtn');
-  gearBtns.forEach(function(b){ b.classList.toggle('on', Number(b.dataset.g) === 0); });
-  document.getElementById('gearVal').textContent = 'N';
+  repairBtn.style.display = 'none';
+  banner.style.display = 'none';
+  var gb = document.querySelectorAll('.gearbtn');
+  for (var i=0;i<gb.length;i++) gb[i].classList.toggle('on', Number(gb[i].dataset.g) === 0);
+  var gv = document.getElementById('gearVal');
+  if (gv) gv.textContent = 'N';
   var ignBtn = document.getElementById('ignBtn');
   if (ignBtn) ignBtn.classList.remove('on');
   try{ if(navigator.vibrate) navigator.vibrate(15); }catch(e){}
@@ -102,7 +119,6 @@ function physics(dt){
   S.rpm=nE*30/Math.PI;
   S.speed=nW*wheelRadius*3.6;
 
-  // ПЕРЕКРУТ
   if (S.rpm > breakRpm){
     breakEngine('перекрут ' + Math.round(S.rpm) + ' об/мин');
     return;
@@ -162,12 +178,12 @@ function setGear(g){
   if (S.broken) return;
   if (g === S.gear) return;
 
-  var clutchPressed = S.clutchPedal > 0.7;
-  var isMoving = Math.abs(S.speed) > 3;
+  // Разрешаем переключение, если палец УЖЕ на сцеплении
+  var clutchOK = S.pressed.clutch || S.clutchPedal > 0.4;
+  var isMoving = Math.abs(S.speed) > 5;
   var isRunning = S.running && !S.stalled;
 
-  // ПРОВЕРКА СЦЕПЛЕНИЯ
-  if (!clutchPressed && (isMoving || isRunning)){
+  if (!clutchOK && (isMoving || isRunning)){
     breakEngine('переключение без сцепления');
     return;
   }
@@ -192,9 +208,6 @@ function toggleIgnition(){
   try{if(navigator.vibrate)navigator.vibrate(12);}catch(e){}
 }
 ignBtn.addEventListener('click',function(ev){ev.preventDefault();toggleIgnition();});
-
-var repairBtn = document.getElementById('repairBtn');
-if (repairBtn) repairBtn.addEventListener('click', function(ev){ ev.preventDefault(); repair(); });
 
 window.DVS.physics=physics;
 window.DVS.setGear=setGear;
