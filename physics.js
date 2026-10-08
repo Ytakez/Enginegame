@@ -1,9 +1,15 @@
 (function(){
 "use strict";
 
-var STORAGE_KEY = 'dvs_engine_v3';   // новый ключ, чтобы старый не мешал
+var STORAGE_KEY = 'dvs_engine_v3';
 
 var ENGINES = {
+  scooter: {
+    name:'S1', cyls:1,
+    maxTorque:18, redline:8200, breakRpm:9800,
+    fireDiv:60, lpBase:1100, lpRpm:0.22,
+    subGain:0.5, sawGain:0.75, sqGain:0.3, noiseBase:0.045
+  },
   r4: {
     name:'R4', cyls:4,
     maxTorque:250, redline:6800, breakRpm:8000,
