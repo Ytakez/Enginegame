@@ -6,8 +6,20 @@ function showErr(m){if(errBox){errBox.style.display='block';errBox.textContent='
 window.addEventListener('error',function(ev){if(!ev.filename||ev.filename.indexOf('github.io')===-1)return;showErr(ev.message+' | '+ev.filename+':'+ev.lineno);});
 if(!S){showErr('physics.js не загрузился');return;}
 
+/* ЗАЩИТА от старого physics.js в кэше */
 if(S.ignitionState===undefined)S.ignitionState='off';
 if(S.startAttempts===undefined)S.startAttempts=0;
+if(S.primingStart===undefined)S.primingStart=0;
+if(S.primingDuration===undefined)S.primingDuration=1500;
+if(S.weather===undefined)S.weather='summer';
+if(S.ambientTemp===undefined)S.ambientTemp=25;
+if(S.engineTemp===undefined)S.engineTemp=S.ambientTemp;
+if(S.setWeather===undefined)S.setWeather=function(w){
+  var AMB={summer:25,autumn:8,winter:-15};
+  S.weather=w;S.ambientTemp=AMB[w]||25;
+  if(!S.running)S.engineTemp=S.ambientTemp;
+  try{localStorage.setItem('dvs_weather',w);}catch(e){}
+};
 
 var pedalEls={clutch:document.getElementById('pClutch'),brake:document.getElementById('pBrake'),gas:document.getElementById('pGas')};
 var activeTouches={};
@@ -37,7 +49,15 @@ var ignLock=false;
 function setIgnBtn(txt,cls,active){if(!ignBtn)return;ignBtn.textContent=txt;ignBtn.className='ignbtn'+(cls?' '+cls:'')+(active?' on':'');}
 
 function resetToOff(){S.ignitionState='off';S.running=false;S.stalled=true;S.rpm=0;S.startAttempts=0;setIgnBtn('ЗАЖИГАНИЕ','',false);}
-function keyOn(){S.ignitionState='priming';S.primingStart=Date.now();S.running=false;S.stalled=true;S.rpm=0;S.startAttempts=0;setIgnBtn('КАЧАЕТ...','',true);try{if(navigator.vibrate)navigator.vibrate(20);}catch(e){}if(window.DVS_SOUND&&window.DVS_SOUND.fuelPump)window.DVS_SOUND.fuelPump();}
+function keyOn(){
+  S.ignitionState='priming';
+  S.primingStart=Date.now();
+  S.primingDuration=1500;   /* ВСЕГДА сбрасываем — защита от кэша */
+  S.running=false;S.stalled=true;S.rpm=0;S.startAttempts=0;
+  setIgnBtn('КАЧАЕТ...','',true);
+  try{if(navigator.vibrate)navigator.vibrate(20);}catch(e){}
+  if(window.DVS_SOUND&&window.DVS_SOUND.fuelPump)window.DVS_SOUND.fuelPump();
+}
 function readyToStart(){S.ignitionState='ready';setIgnBtn('▶ ПУСК','start',false);try{if(navigator.vibrate)navigator.vibrate([30,30]);}catch(e){}}
 
 function showAttempt(msg){
@@ -53,17 +73,14 @@ function showAttempt(msg){
 function startEngine(){
   var E=S.engines[S.engineType];
   var coldStart=(S.engineTemp<5);
-
   if(coldStart){
     S.startAttempts++;
     var failChance=0.7;
     if(S.weather==='winter')failChance=0.65;
     if(S.startAttempts>=4)failChance=0;
     if(Math.random()<failChance){
-      /* Неудачная попытка */
       showAttempt('❄️ ПОПЫТКА '+S.startAttempts);
       try{if(navigator.vibrate)navigator.vibrate([50,80,50]);}catch(e){}
-      /* Воспламенение, но заглох */
       S.stalled=false;S.running=true;S.rpm=E.idle*0.7;
       setTimeout(function(){
         if(S.rpm<E.idle&&S.running){
@@ -75,8 +92,6 @@ function startEngine(){
       return;
     }
   }
-
-  /* Успех */
   S.startAttempts=0;
   S.ignitionState='running';
   S.stalled=false;S.running=true;
@@ -124,12 +139,26 @@ function updateEngineUI(){
   if(gv){if(E.auto)gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':'D'));else gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':String(S.gear)));}
 }
 
+var primingStartTime=0;
 function loop(now){
   var frame=(now-last)/1000;last=now;
   if(frame>0.25)frame=0.25;
   if(frame<0)frame=0;
   updateEngineUI();
-  if(S.ignitionState==='priming'&&Date.now()-S.primingStart>=S.primingDuration)readyToStart();
+
+  /* НАСОС — защита с жёстким таймаутом */
+  if(S.ignitionState==='priming'){
+    if(primingStartTime===0)primingStartTime=Date.now();
+    var elapsed=Date.now()-primingStartTime;
+    var dur=S.primingDuration||1500;
+    if(elapsed>=dur){
+      primingStartTime=0;
+      readyToStart();
+    }
+  } else {
+    primingStartTime=0;
+  }
+
   tSm=smoothStep(tSm,S.pressed.gas?1:0,4.5,7.0,frame);
   bSm=smoothStep(bSm,S.pressed.brake?1:0,5.0,7.0,frame);
   cSm=smoothStep(cSm,S.pressed.clutch?1:0,7.0,1.6,frame);
