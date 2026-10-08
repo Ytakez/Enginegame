@@ -5,93 +5,129 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>ДВС — сенсорный симулятор</title>
+<title>ДВС — интерактивный симулятор</title>
 <style>
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
-  html,body{margin:0;padding:0;height:100%;overflow:hidden;overscroll-behavior:none;touch-action:none}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{height:100%;-webkit-text-size-adjust:100%}
   body{
+    height:100vh;
+    height:100dvh;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
     background:radial-gradient(ellipse at 50% -10%,#1e2a38 0%,#0a0e13 65%);
     color:#dbe4ee;
     font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
-    display:flex;flex-direction:column;
-    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    -webkit-user-select:none;user-select:none;
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
   }
-
-  header{padding:6px 10px 2px;text-align:center;font-size:11px;letter-spacing:3px;
-    text-transform:uppercase;color:#6d7f96;font-weight:600}
-
-  .stage{flex:1;display:flex;gap:8px;padding:6px 8px;min-height:0;overflow:hidden}
-  .panel{background:linear-gradient(180deg,#151d27,#0d131a);border:1px solid #22303f;
-    border-radius:12px;padding:6px;box-shadow:0 10px 26px rgba(0,0,0,.5);min-height:0;
-    display:flex;flex-direction:column}
-
-  #engineWrap{flex:1.4;align-items:center;justify-content:center;min-width:0}
-  #engineCv{width:100%;height:100%;max-height:100%;display:block;object-fit:contain}
-
-  #dash{flex:1;min-width:0;max-width:340px;gap:6px;align-items:center}
-  #gaugeCv{width:100%;max-width:100%;display:block}
-
+  header{
+    flex:0 0 auto;padding:6px 10px 2px;text-align:center;
+    font-size:11px;letter-spacing:3px;text-transform:uppercase;
+    color:#6d7f96;font-weight:600;
+  }
+  main.stage{
+    flex:1 1 0;min-height:0;
+    display:flex;gap:8px;padding:6px 8px;
+  }
+  .panel{
+    background:linear-gradient(180deg,#151d27,#0d131a);
+    border:1px solid #22303f;border-radius:12px;padding:6px;
+    box-shadow:0 10px 26px rgba(0,0,0,.5);
+  }
+  #engineWrap{position:relative;flex:1 1 0;min-width:0;min-height:0;overflow:hidden}
+  #engineCv{
+    position:absolute;top:0;left:0;right:0;bottom:0;
+    width:100%;height:100%;display:block;
+    object-fit:contain;
+  }
+  #dash{
+    flex:0 0 auto;width:min(38%,340px);
+    display:flex;flex-direction:column;gap:6px;
+    min-height:0;
+  }
+  #gaugeCv{display:block;width:100%;height:auto}
   .readouts{display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%}
   .ro{background:#0b1119;border:1px solid #1d2836;border-radius:8px;padding:4px 6px;text-align:center}
   .ro .lbl{font-size:8px;letter-spacing:1.4px;color:#5d7189;text-transform:uppercase}
   .ro .val{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums;color:#9fe8c0;line-height:1.1}
   .ro .val.amber{color:#ffc93c}
 
-  /* --- КНОПКИ ПЕРЕДАЧ --- */
   .gears{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;width:100%}
   .gearbtn{
     height:44px;border-radius:9px;border:1px solid #263547;
     background:linear-gradient(180deg,#1a2430,#111922);color:#8ea4bd;
-    font-size:15px;font-weight:700;cursor:pointer;transition:.1s;
+    font:700 15px/1 inherit;cursor:pointer;
+    transition:background .1s,border-color .1s,box-shadow .1s;
     touch-action:manipulation;
   }
-  .gearbtn.on{background:linear-gradient(180deg,#2b7a56,#1c5a3d);border-color:#43c98a;color:#e6fff3;
-              box-shadow:0 0 12px rgba(67,201,138,.45)}
-  .gearbtn.neu.on{background:linear-gradient(180deg,#5a5f2b,#3d421c);border-color:#c9c943;color:#fbffe6;
-              box-shadow:0 0 12px rgba(201,201,67,.4)}
-
+  .gearbtn.on{
+    background:linear-gradient(180deg,#2b7a56,#1c5a3d);
+    border-color:#43c98a;color:#e6fff3;
+    box-shadow:0 0 12px rgba(67,201,138,.45);
+  }
+  .gearbtn.neu.on{
+    background:linear-gradient(180deg,#5a5f2b,#3d421c);
+    border-color:#c9c943;color:#fbffe6;
+    box-shadow:0 0 12px rgba(201,201,67,.4);
+  }
   .ignbtn{
     width:100%;height:44px;border-radius:10px;border:1px solid #2c4a63;
-    background:linear-gradient(180deg,#1d2f3f,#101a23);color:#8fd8ff;font-weight:800;
-    letter-spacing:1.5px;font-size:12px;cursor:pointer;text-transform:uppercase;transition:.1s;
-    touch-action:manipulation;
+    background:linear-gradient(180deg,#1d2f3f,#101a23);color:#8fd8ff;
+    font:800 12px/1 inherit;letter-spacing:1.5px;text-transform:uppercase;
+    cursor:pointer;touch-action:manipulation;
+    transition:background .1s,border-color .1s;
   }
-  .ignbtn.on{background:linear-gradient(180deg,#2b7a56,#1c5a3d);border-color:#43c98a;color:#e6fff3}
+  .ignbtn.on{
+    background:linear-gradient(180deg,#2b7a56,#1c5a3d);
+    border-color:#43c98a;color:#e6fff3;
+  }
 
-  /* --- ПЕДАЛИ --- */
   .pedals{
+    flex:0 0 auto;
     display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
-    padding:8px 8px calc(8px + env(safe-area-inset-bottom));
-    flex-shrink:0;
+    padding:8px;
+    padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
+    padding-left:calc(8px + env(safe-area-inset-left,0px));
+    padding-right:calc(8px + env(safe-area-inset-right,0px));
   }
   .pedal{
-    height:110px;border-radius:16px;border:1px solid #263547;
-    background:linear-gradient(180deg,#1a2430,#0f161e);color:#a9bdd4;
+    position:relative;height:110px;border-radius:16px;
+    border:1px solid #263547;
+    background:linear-gradient(180deg,#1a2430,#0f161e);
+    color:#a9bdd4;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
-    font-size:12px;font-weight:800;letter-spacing:1.2px;cursor:pointer;
-    position:relative;overflow:hidden;touch-action:none;
-    transition:transform .08s, box-shadow .12s, border-color .12s;
+    font:800 12px/1 inherit;letter-spacing:1.2px;
+    cursor:pointer;overflow:hidden;
+    touch-action:none;
+    -webkit-user-select:none;user-select:none;
+    transition:transform .08s,box-shadow .12s,border-color .12s,color .12s;
   }
-  .pedal .bar{position:absolute;left:0;bottom:0;height:100%;width:0%;
+  .pedal .bar{
+    position:absolute;left:0;bottom:0;height:100%;width:0%;
     background:linear-gradient(90deg,rgba(67,201,138,.4),rgba(67,201,138,.06));
-    transition:width .04s linear;pointer-events:none}
+    pointer-events:none;transition:width .04s linear;
+  }
   .pedal.brake .bar{background:linear-gradient(90deg,rgba(255,80,80,.4),rgba(255,80,80,.06))}
   .pedal.clutch .bar{background:linear-gradient(90deg,rgba(255,200,60,.38),rgba(255,200,60,.05))}
   .pedal .icon{font-size:26px;line-height:1}
-  .pedal .sub{font-size:9px;color:#5d7189;letter-spacing:1px}
-  .pedal.active{transform:scale(.96)}
-  .pedal.active{border-color:#43c98a;color:#eafff5;box-shadow:0 0 22px rgba(67,201,138,.4)}
+  .pedal .sub{font-size:9px;color:#5d7189;letter-spacing:1px;font-weight:600}
+  .pedal.active{transform:scale(.97);border-color:#43c98a;color:#eafff5;
+    box-shadow:0 0 22px rgba(67,201,138,.4)}
   .pedal.brake.active{border-color:#ff5b5b;box-shadow:0 0 22px rgba(255,91,91,.4);color:#ffecec}
   .pedal.clutch.active{border-color:#ffc93c;box-shadow:0 0 22px rgba(255,201,60,.4);color:#fff8e0}
 
-  /* --- Портретная ориентация телефона --- */
   @media (orientation:portrait) and (max-width:820px){
-    .stage{flex-direction:column;gap:6px}
-    #engineWrap{flex:0 0 auto;height:38vh}
-    #dash{max-width:none;flex:0 0 auto;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:8px}
-    #gaugeCv{max-width:170px}
-    .readouts{flex:1 1 130px;min-width:130px}
-    .gears{flex:1 1 100%;min-width:200px}
+    main.stage{flex-direction:column;gap:6px}
+    #engineWrap{flex:0 0 auto;height:36vh}
+    #dash{
+      flex:0 0 auto;width:auto;flex-direction:row;flex-wrap:wrap;
+      align-items:center;justify-content:center;gap:6px;
+    }
+    #gaugeCv{flex:0 0 auto;width:min(45%,170px)}
+    .readouts{flex:1 1 130px;min-width:120px}
+    .gears{flex:1 1 100%}
     .ignbtn{flex:1 1 100%}
     .pedal{height:95px}
     .pedal .icon{font-size:22px}
@@ -101,13 +137,20 @@
     .pedal{height:78px}
     .pedal .icon{font-size:20px}
   }
+
+  #err{
+    position:fixed;left:0;right:0;bottom:0;
+    background:#a00;color:#fff;font:12px/1.4 monospace;
+    padding:8px;z-index:9999;display:none;white-space:pre-wrap;
+    max-height:40vh;overflow:auto;
+  }
 </style>
 </head>
 <body>
 
 <header>Двигатель внутреннего сгорания</header>
 
-<div class="stage">
+<main class="stage">
   <div class="panel" id="engineWrap">
     <canvas id="engineCv" width="640" height="430"></canvas>
   </div>
@@ -119,61 +162,69 @@
       <div class="ro"><div class="lbl">Передача</div><div class="val amber" id="gearVal">N</div></div>
     </div>
     <div class="gears" id="gears">
-      <button class="gearbtn neu on" data-g="0">N</button>
-      <button class="gearbtn" data-g="1">1</button>
-      <button class="gearbtn" data-g="2">2</button>
-      <button class="gearbtn" data-g="3">3</button>
-      <button class="gearbtn" data-g="4">4</button>
-      <button class="gearbtn" data-g="5">5</button>
+      <button class="gearbtn neu on" data-g="0" type="button">N</button>
+      <button class="gearbtn" data-g="1" type="button">1</button>
+      <button class="gearbtn" data-g="2" type="button">2</button>
+      <button class="gearbtn" data-g="3" type="button">3</button>
+      <button class="gearbtn" data-g="4" type="button">4</button>
+      <button class="gearbtn" data-g="5" type="button">5</button>
     </div>
-    <button class="ignbtn on" id="ignBtn">Зажигание</button>
+    <button class="ignbtn on" id="ignBtn" type="button">Зажигание</button>
+  </div>
+</main>
+
+<div class="pedals">
+  <div class="pedal clutch" id="pClutch">
+    <div class="bar"></div><span class="icon">🦶</span>
+    <span>СЦЕПЛЕНИЕ</span><span class="sub">держать</span>
+  </div>
+  <div class="pedal brake" id="pBrake">
+    <div class="bar"></div><span class="icon">🛑</span>
+    <span>ТОРМОЗ</span><span class="sub">держать</span>
+  </div>
+  <div class="pedal" id="pGas">
+    <div class="bar"></div><span class="icon">⛽</span>
+    <span>ГАЗ</span><span class="sub">держать</span>
   </div>
 </div>
 
-<div class="pedals">
-  <div class="pedal clutch" id="pClutch" data-pedal="clutch">
-    <div class="bar"></div>
-    <span class="icon">🦶</span>
-    <span>СЦЕПЛЕНИЕ</span>
-    <span class="sub">держать палец</span>
-  </div>
-  <div class="pedal brake" id="pBrake" data-pedal="brake">
-    <div class="bar"></div>
-    <span class="icon">🛑</span>
-    <span>ТОРМОЗ</span>
-    <span class="sub">держать палец</span>
-  </div>
-  <div class="pedal" id="pGas" data-pedal="gas">
-    <div class="bar"></div>
-    <span class="icon">⛽</span>
-    <span>ГАЗ</span>
-    <span class="sub">держать палец</span>
-  </div>
-</div>
+<div id="err"></div>
 
 <script>
 (function(){
 "use strict";
 
-/* ============================================================
-   1. ФИЗИКА
-   ============================================================ */
+/* ---- показ ошибок на экране ---- */
+const errBox = document.getElementById('err');
+window.addEventListener('error', function(ev){
+  errBox.style.display = 'block';
+  errBox.textContent = 'Ошибка: ' + ev.message + '\n' + (ev.filename||'') + ':' + (ev.lineno||'');
+});
+window.addEventListener('unhandledrejection', function(ev){
+  errBox.style.display = 'block';
+  errBox.textContent = 'Promise: ' + (ev.reason && ev.reason.message ? ev.reason.message : ev.reason);
+});
+
+try {
+
+/* ================== ФИЗИКА ================== */
 const gearRatios = [0, 3.40, 2.00, 1.35, 1.00, 0.78];
 const finalDrive = 3.90;
 const wheelRadius = 0.31;
-const mass        = 1250;
-const Iwheel      = mass * wheelRadius * wheelRadius;
-const Iengine     = 0.55;
-const maxTorque   = 250;
-const clutchK     = 40;
-const clutchMax   = 350;
-const idleRpm     = 900;
-const stallRpm    = 350;
-const redlineRpm  = 6800;
+const mass = 1250;
+const Iwheel = mass * wheelRadius * wheelRadius;
+const Iengine = 0.55;
+const maxTorque = 250;
+const clutchK = 40;
+const clutchMax = 350;
+const idleRpm = 900;
+const stallRpm = 350;
+const redlineRpm = 6800;
 
-let rpm=0, speed=0, gear=0, crankAngle=0, running=false, stalled=false;
-let throttle=0, brakePedal=0, clutchPedal=0;
-const keyState = { gas:false, brake:false, clutch:false };
+let rpm = 0, speed = 0, gear = 0, crankAngle = 0;
+let running = false, stalled = false;
+let throttle = 0, brakePedal = 0, clutchPedal = 0;
+const pressed = { gas:false, brake:false, clutch:false };
 
 function torqueCurve(r){
   const x = Math.max(800, Math.min(6500, r));
@@ -184,7 +235,7 @@ function physics(dt){
   const ratio = gearRatios[gear] * finalDrive;
   const eng = (gear === 0 || stalled || !running) ? 0 : (1 - clutchPedal);
 
-  const omegaWheel  = speed / 3.6 / wheelRadius;
+  const omegaWheel = speed / 3.6 / wheelRadius;
   const omegaDirect = omegaWheel * ratio;
   const omegaEngine = rpm * Math.PI / 30;
 
@@ -192,7 +243,7 @@ function physics(dt){
   if (running && !stalled){
     let thr = throttle;
     if (rpm > redlineRpm) thr = 0;
-    Te  = thr * maxTorque * torqueCurve(rpm);
+    Te = thr * maxTorque * torqueCurve(rpm);
     Te -= 10 + rpm * 0.006;
     if (rpm < idleRpm) Te += (idleRpm - rpm) * 0.35;
   }
@@ -205,19 +256,19 @@ function physics(dt){
   const dOmegaE = (Te - Tclutch) / Iengine;
 
   const v = Math.abs(speed) / 3.6;
-  const dragF  = 0.42 * v * v + 150;
-  const dragT  = dragF * wheelRadius * (omegaWheel >= 0 ? 1 : -1);
+  const dragF = 0.42 * v * v + 150;
+  const dragT = dragF * wheelRadius * (omegaWheel >= 0 ? 1 : -1);
   const brakeT = brakePedal * 2600 * (omegaWheel >= 0 ? 1 : -1);
 
   const wheelTorque = Tclutch * ratio - brakeT - dragT;
   const dOmegaW = wheelTorque / Iwheel;
 
   let nOmegaE = omegaEngine + dOmegaE * dt;
-  let nOmegaW = omegaWheel  + dOmegaW * dt;
+  let nOmegaW = omegaWheel + dOmegaW * dt;
   if (nOmegaE < 0) nOmegaE = 0;
   if (nOmegaW < 0) nOmegaW = 0;
 
-  rpm   = nOmegaE * 30 / Math.PI;
+  rpm = nOmegaE * 30 / Math.PI;
   speed = nOmegaW * wheelRadius * 3.6;
 
   if (speed < 0.12 && (brakePedal > 0.05 || gear === 0)){
@@ -234,12 +285,9 @@ function physics(dt){
   crankAngle = ((crankAngle % TAU4) + TAU4) % TAU4;
 }
 
-/* ============================================================
-   2. ОТРИСОВКА ДВИГАТЕЛЯ
-   ============================================================ */
-const ecv  = document.getElementById('engineCv');
+/* ================== РИСОВАНИЕ ДВИГАТЕЛЯ ================== */
+const ecv = document.getElementById('engineCv');
 const ectx = ecv.getContext('2d');
-
 const crankY = 290, CR = 33, ROD = 98;
 const cylCenters = [110, 250, 390, 530];
 const cylHalfW = 46, cylTopY = 120, cylBotY = 272;
@@ -253,6 +301,22 @@ function rr(c,x,y,w,h,r){
   c.arcTo(x,y+h,x,y,r);
   c.arcTo(x,y,x+w,y,r);
   c.closePath();
+}
+
+function drawValve(c, x, baseY, lift, color){
+  const w = 15;
+  c.fillStyle = '#3a4756';
+  c.fillRect(x - 3, baseY - 46, 6, 34);
+  const y = baseY + lift;
+  c.fillStyle = color;
+  c.beginPath();
+  c.moveTo(x - w/2, y - 4);
+  c.lineTo(x + w/2, y - 4);
+  c.lineTo(x + w/2 - 4, y + 8);
+  c.lineTo(x - w/2 + 4, y + 8);
+  c.closePath(); c.fill();
+  c.fillStyle = '#2a3543';
+  c.fillRect(x - 8, baseY - 50, 16, 6);
 }
 
 function drawEngine(){
@@ -279,7 +343,7 @@ function drawEngine(){
   const firing = running && !stalled;
 
   for (let i = 0; i < 4; i++){
-    const cx  = cylCenters[i];
+    const cx = cylCenters[i];
     const cyc = crankAngle + offsets[i];
     const cycPos = ((cyc % (Math.PI*4)) + Math.PI*4) % (Math.PI*4);
     const stroke = Math.floor(cycPos / Math.PI);
@@ -299,8 +363,9 @@ function drawEngine(){
     c.strokeRect(cx - cylHalfW, cylTopY, cylHalfW*2, cylBotY - cylTopY);
 
     const pistonTopY = pinY - 32;
+
     if (firing){
-      let d = cycPos - 2*Math.PI;
+      const d = cycPos - 2*Math.PI;
       const inten = Math.max(0, 1 - Math.abs(d) / 1.25) * (0.35 + 0.65*throttle);
       if (inten > 0.01){
         const g = c.createRadialGradient(cx, cylTopY + 26, 2, cx, cylTopY + 26, 74);
@@ -319,10 +384,10 @@ function drawEngine(){
     }
 
     let inLift = 0, exLift = 0;
-    if (stroke === 0) inLift = Math.sin((cycPos % Math.PI)) * 9;
-    if (stroke === 3) exLift = Math.sin((cycPos - 3*Math.PI)) * 9;
-    if (!running) { inLift = 0; exLift = 0; }
-
+    if (running){
+      if (stroke === 0) inLift = Math.sin(cycPos % Math.PI) * 9;
+      if (stroke === 3) exLift = Math.sin(cycPos - 3*Math.PI) * 9;
+    }
     drawValve(c, cx - 24, cylTopY, inLift, '#6fd0ff');
     drawValve(c, cx + 24, cylTopY, exLift, '#ff8a6f');
 
@@ -331,11 +396,11 @@ function drawEngine(){
     c.fillStyle = firing ? '#fff6c0' : '#5a6572';
     c.beginPath(); c.arc(cx, cylTopY + 2, 3.2, 0, 7); c.fill();
 
-    const pH = 48;
     const pg = c.createLinearGradient(cx - cylHalfW + 2, 0, cx + cylHalfW - 2, 0);
-    pg.addColorStop(0,'#5d6a79'); pg.addColorStop(.28,'#c3ceda'); pg.addColorStop(.55,'#8b98a7'); pg.addColorStop(1,'#4c5866');
+    pg.addColorStop(0,'#5d6a79'); pg.addColorStop(.28,'#c3ceda');
+    pg.addColorStop(.55,'#8b98a7'); pg.addColorStop(1,'#4c5866');
     c.fillStyle = pg;
-    rr(c, cx - cylHalfW + 3, pinY - 32, (cylHalfW-3)*2, pH, 5); c.fill();
+    rr(c, cx - cylHalfW + 3, pinY - 32, (cylHalfW-3)*2, 48, 5); c.fill();
     c.strokeStyle = '#2e3a47'; c.lineWidth = 1.5; c.stroke();
 
     c.strokeStyle = '#39485a'; c.lineWidth = 2.5;
@@ -345,6 +410,7 @@ function drawEngine(){
       c.lineTo(cx + cylHalfW - 5, pinY - 24 + k*6);
       c.stroke();
     }
+
     c.fillStyle = '#2a3543';
     c.beginPath(); c.arc(cx, pinY, 7, 0, 7); c.fill();
     c.strokeStyle = '#586a7d'; c.lineWidth = 1.5; c.stroke();
@@ -368,19 +434,19 @@ function drawEngine(){
     c.closePath(); c.fill();
     c.restore();
 
-    const pinG2 = c.createRadialGradient(cpX-3, cpY-3, 1, cpX, cpY, 12);
-    pinG2.addColorStop(0,'#c8d6e4'); pinG2.addColorStop(1,'#5f7a92');
-    c.fillStyle = pinG2;
+    const pinG = c.createRadialGradient(cpX-3, cpY-3, 1, cpX, cpY, 12);
+    pinG.addColorStop(0,'#c8d6e4'); pinG.addColorStop(1,'#5f7a92');
+    c.fillStyle = pinG;
     c.beginPath(); c.arc(cpX, cpY, 11, 0, 7); c.fill();
     c.strokeStyle = '#2b3746'; c.lineWidth = 2; c.stroke();
 
     c.fillStyle = '#4a5c70';
     c.font = 'bold 12px Segoe UI, sans-serif';
-    c.textAlign = 'center';
+    c.textAlign = 'center'; c.textBaseline = 'alphabetic';
     c.fillText('ЦИЛ. ' + (i+1), cx, cylBotY + 22);
 
     const names = ['ВПУСК','СЖАТИЕ','РАБОЧИЙ','ВЫПУСК'];
-    const cols  = ['#6fd0ff','#ffc93c','#ff6b3d','#9aa8b8'];
+    const cols = ['#6fd0ff','#ffc93c','#ff6b3d','#9aa8b8'];
     c.fillStyle = firing ? cols[stroke] : '#3d4a58';
     c.font = 'bold 10px Segoe UI, sans-serif';
     c.fillText(names[stroke], cx, cylBotY + 38);
@@ -394,26 +460,8 @@ function drawEngine(){
   c.fillText('4 ЦИЛИНДРА  •  1-3-4-2', 594, 405);
 }
 
-function drawValve(c, x, baseY, lift, color){
-  const w = 15;
-  c.fillStyle = '#3a4756';
-  c.fillRect(x - 3, baseY - 46, 6, 34);
-  c.fillStyle = color;
-  const y = baseY + lift;
-  c.beginPath();
-  c.moveTo(x - w/2, y - 4);
-  c.lineTo(x + w/2, y - 4);
-  c.lineTo(x + w/2 - 4, y + 8);
-  c.lineTo(x - w/2 + 4, y + 8);
-  c.closePath(); c.fill();
-  c.fillStyle = '#2a3543';
-  c.fillRect(x - 8, baseY - 50, 16, 6);
-}
-
-/* ============================================================
-   3. ТАХОМЕТР
-   ============================================================ */
-const gcv  = document.getElementById('gaugeCv');
+/* ================== ТАХОМЕТР ================== */
+const gcv = document.getElementById('gaugeCv');
 const gctx = gcv.getContext('2d');
 const MAXR = 8000;
 
@@ -447,7 +495,6 @@ function drawGauge(){
     c.strokeStyle = i >= 7 ? '#ff6b6b' : '#4d6379';
     c.lineWidth = 2.5;
     c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.stroke();
-
     const tx = cx + Math.cos(a) * (R - 38);
     const ty = cy + Math.sin(a) * (R - 38);
     c.fillStyle = i >= 7 ? '#ff8b8b' : '#6d8299';
@@ -464,7 +511,8 @@ function drawGauge(){
   ng.addColorStop(0,'#ff5b5b'); ng.addColorStop(1,'#ffb0b0');
   c.fillStyle = ng;
   c.beginPath();
-  c.moveTo(-14, -5); c.lineTo(R - 24, -2.2); c.lineTo(R - 18, 0); c.lineTo(R - 24, 2.2); c.lineTo(-14, 5);
+  c.moveTo(-14, -5); c.lineTo(R - 24, -2.2); c.lineTo(R - 18, 0);
+  c.lineTo(R - 24, 2.2); c.lineTo(-14, 5);
   c.closePath(); c.fill();
   c.restore();
 
@@ -476,60 +524,35 @@ function drawGauge(){
   c.fillStyle = rpmColor;
   c.font = 'bold 27px Segoe UI, sans-serif';
   c.textAlign = 'center'; c.textBaseline = 'alphabetic';
-  c.fillText(Math.round(rpm), cx, cy - 30);
+  c.fillText(String(Math.round(rpm)), cx, cy - 30);
   c.fillStyle = '#4f6277';
   c.font = 'bold 10px Segoe UI, sans-serif';
   c.fillText('ОБ/МИН', cx, cy - 16);
 }
 
-/* ============================================================
-   4. МУЛЬТИТАЧ-УПРАВЛЕНИЕ
-   ============================================================ */
+/* ================== УПРАВЛЕНИЕ ================== */
 const pedalEls = {
-  gas:    document.getElementById('pGas'),
+  clutch: document.getElementById('pClutch'),
   brake:  document.getElementById('pBrake'),
-  clutch: document.getElementById('pClutch')
+  gas:    document.getElementById('pGas')
 };
+const pedalPointers = new Map();          // pointerId -> имя педали
+const pedalCount = { gas:0, brake:0, clutch:0 };
 
-/* Какая педаль нажата каким пальцем (touch.identifier -> название педали) */
-const touchMap = new Map();
-/* Какая педаль нажата какой мышью (pointerId -> название) — для десктопа */
-const pointerMap = new Map();
-
-function pedalDown(name){
-  if (keyState[name]) return;
-  keyState[name] = true;
+function pedalActivate(name){
+  pedalCount[name]++;
+  pressed[name] = true;
   pedalEls[name].classList.add('active');
-  if (navigator.vibrate) navigator.vibrate(8);
+  try{ if (navigator.vibrate) navigator.vibrate(8); }catch(e){}
 }
-function pedalUp(name){
-  keyState[name] = false;
-  pedalEls[name].classList.remove('active');
+function pedalDeactivate(name){
+  pedalCount[name] = Math.max(0, pedalCount[name] - 1);
+  if (pedalCount[name] === 0){
+    pressed[name] = false;
+    pedalEls[name].classList.remove('active');
+  }
 }
 
-/* --- РАБОТА С КАСАНИЯМИ (основное для телефона) --- */
-function handleTouch(e, isStart){
-  e.preventDefault();
-  const rectCache = {};
-  const touches = isStart ? e.changedTouches : e.changedTouches;
-
-  for (let i = 0; i < touches.length; i++){
-    const t = touches[i];
-    const id = t.identifier;
-
-    if (isStart){
-      // определить, по какой педали тапнули
-      let hit = null;
-      for (const name in pedalEls){
-        const el = pedalEls[name];
-        const r = el.getBoundingClientRect();
-        if (t.clientX >= r.left && t.clientX <= r.right &&
-            t.clientY >= r.top  && t.clientY <= r.bottom){
-          hit = name; break;
-        }
-      }
-      if (hit){
-        touchMap.set(id, hit);
-        pedalDown(hit);
-      }
-    } el
+Object.keys(pedalEls).forEach(function(name){
+  const el = pedalEls[name];
+  el.addEventListener('pointerdown', functi
