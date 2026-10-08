@@ -161,19 +161,21 @@ function toggleIgnition(){
 ignBtn.addEventListener('click', function(ev){ ev.preventDefault(); toggleIgnition(); });
 
 /* экспорт в window для render.js */
-window.DVS = {
-  get rpm(){ return rpm; },
-  get speed(){ return speed; },
-  get gear(){ return gear; },
-  get crankAngle(){ return crankAngle; },
-  get running(){ return running; },
-  get stalled(){ return stalled; },
-  get throttle(){ return throttle; },
-  get brakePedal(){ return brakePedal; },
-  get clutchPedal(){ return clutchPedal; },
-  pressed: pressed,
-  physics: physics,
-  setGear: setGear
+window.DVS = {};
+Object.defineProperties(window.DVS, {
+  rpm:         { get: function(){ return rpm; } },
+  speed:       { get: function(){ return speed; } },
+  gear:        { get: function(){ return gear; } },
+  crankAngle:  { get: function(){ return crankAngle; } },
+  running:     { get: function(){ return running; } },
+  stalled:     { get: function(){ return stalled; } },
+  throttle:    { get: function(){ return throttle; },   set: function(v){ throttle = v; } },
+  brakePedal:  { get: function(){ return brakePedal; }, set: function(v){ brakePedal = v; } },
+  clutchPedal: { get: function(){ return clutchPedal; },set: function(v){ clutchPedal = v; } }
+});
+window.DVS.pressed = pressed;
+window.DVS.physics = physics;
+window.DVS.setGear = setGear;
 };
 
 } catch(e){
