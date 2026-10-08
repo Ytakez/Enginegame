@@ -12,7 +12,6 @@ var LANGS = {
     settingsTitle: 'Настройки', language: 'Языки', languageSelect: 'Выбрать язык',
     engine: 'Двигатель', engineSelect: 'Выбрать двигатель',
     sound: 'Звук', soundOn: 'Включён', soundOff: 'Выключен',
-    toggleOn: 'ВКЛ', toggleOff: 'ВЫКЛ',
     back: 'Назад', close: 'Закрыть'
   },
   uk: {
@@ -23,7 +22,6 @@ var LANGS = {
     settingsTitle: 'Налаштування', language: 'Мови', languageSelect: 'Вибрати мову',
     engine: 'Двигун', engineSelect: 'Вибрати двигун',
     sound: 'Звук', soundOn: 'Увімкнено', soundOff: 'Вимкнено',
-    toggleOn: 'УВІМК', toggleOff: 'ВИКЛ',
     back: 'Назад', close: 'Закрити'
   },
   en: {
@@ -34,16 +32,16 @@ var LANGS = {
     settingsTitle: 'Settings', language: 'Languages', languageSelect: 'Choose language',
     engine: 'Engine', engineSelect: 'Choose engine',
     sound: 'Sound', soundOn: 'On', soundOff: 'Off',
-    toggleOn: 'ON', toggleOff: 'OFF',
     back: 'Back', close: 'Close'
   }
 };
 
 var ENGINES_INFO = [
-  { id:'scooter', label:'🛵 Скутер (S1)',   sub:'1 цилиндр · 4-тактный · АКПП · 50 cc' },
-  { id:'r4',      label:'🚗 R4 (рядная)',   sub:'4 цилиндра · в ряд · механика' },
-  { id:'v8',      label:'🏎️ V8',           sub:'8 цилиндров · V-образный' },
-  { id:'v16',     label:'🔥 V16',          sub:'16 цилиндров · мощный' }
+  { id:'scooter', label:'🛵 Скутер (S1)',       sub:'1 цилиндр · 4-тактный · АКПП · 50 cc' },
+  { id:'tdi',     label:'🚐 1.9 TDI',           sub:'4 цилиндра · турбодизель · Passat B5' },
+  { id:'r4',      label:'🚗 R4 (рядная)',       sub:'4 цилиндра · в ряд · механика' },
+  { id:'v8',      label:'🏎️ V8',               sub:'8 цилиндров · V-образный' },
+  { id:'v16',     label:'🔥 V16',              sub:'16 цилиндров · мощный' }
 ];
 
 var curLang = 'ru';
@@ -149,7 +147,6 @@ function addSettingsButton(){
   document.body.appendChild(btn);
 }
 
-/* ===== ГЛАВНОЕ МЕНЮ ===== */
 function openMain(){
   closeSettings();
   var ov = makeOverlay();
@@ -160,7 +157,6 @@ function openMain(){
   h.textContent = '⚙ ' + t('settingsTitle');
   m.appendChild(h);
 
-  // Двигатель
   var S = window.S;
   var curName = S ? (S.engines[S.engineType] || {}).name || 'R4' : 'R4';
   var engBtn = document.createElement('button');
@@ -171,7 +167,6 @@ function openMain(){
   engBtn.addEventListener('click', function(){ closeSettings(); openEnginePicker(); });
   m.appendChild(engBtn);
 
-  // Язык
   var langName = (LANGS[curLang] || LANGS.ru).label;
   var langBtn = document.createElement('button');
   langBtn.type = 'button';
@@ -181,7 +176,6 @@ function openMain(){
   langBtn.addEventListener('click', function(){ closeSettings(); openLangPicker(); });
   m.appendChild(langBtn);
 
-  // Звук — переключатель
   var soundOn = false;
   if (window.DVS_SOUND && window.DVS_SOUND.isMuted){
     soundOn = !window.DVS_SOUND.isMuted();
@@ -206,7 +200,6 @@ function openMain(){
   });
   m.appendChild(soundBtn);
 
-  // Закрыть
   var closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'settings-close';
@@ -217,7 +210,6 @@ function openMain(){
   document.body.appendChild(ov);
 }
 
-/* ===== ВЫБОР ДВИГАТЕЛЯ ===== */
 function openEnginePicker(){
   closeSettings();
   var ov = makeOverlay();
@@ -264,7 +256,6 @@ function openEnginePicker(){
   document.body.appendChild(ov);
 }
 
-/* ===== ВЫБОР ЯЗЫКА ===== */
 function openLangPicker(){
   closeSettings();
   var ov = makeOverlay();
