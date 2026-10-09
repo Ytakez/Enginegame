@@ -30,12 +30,8 @@ function waitRef(){
     var p=new THREE.Group();
     p.position.y=o.h*0.55;
     p.add(cy(o.r,o.r*0.9,18,0xd8e0e8,0.95,0.15));
-    for(var k=0;k<3;k++){
-      var rg=cy(o.r+0.03,0.06,18,0x2a333f,0.6,0.7);
-      rg.position.y=o.r*0.3-k*o.r*0.2;p.add(rg);
-    }
-    var pin=cy(o.r*0.15,o.r*1.1,10,0x2a3543,0.9,0.3);
-    pin.rotation.z=Math.PI/2;p.add(pin);
+    for(var k=0;k<3;k++){var rg=cy(o.r+0.03,0.06,18,0x2a333f,0.6,0.7);rg.position.y=o.r*0.3-k*o.r*0.2;p.add(rg);}
+    var pin=cy(o.r*0.15,o.r*1.1,10,0x2a3543,0.9,0.3);pin.rotation.z=Math.PI/2;p.add(pin);
     g.add(p);
     var rod=bx(o.r*0.3,o.h*0.5,o.r*0.3,0x8894a2,0.9,0.25);g.add(rod);
     var ign=new THREE.Group();
@@ -57,7 +53,7 @@ function waitRef(){
     return {g:g,p:p,rod:rod,vv:vv,x:o.x,y:o.y,z:o.z,h:o.h,r:o.r,off:o.off||0};
   }
 
-  /* ===================== ВАНКЕЛЬ (роторный) ===================== */
+  /* =========== ВАНКЕЛЬ =========== */
   function makeEpiShape(Rr,e){
     var pts=[];
     for(var i=0;i<=96;i++){
@@ -69,7 +65,6 @@ function waitRef(){
     }
     return new THREE.Shape(pts);
   }
-
   function makeRotorShape(rotR){
     var sh=new THREE.Shape();
     for(var k=0;k<3;k++){
@@ -82,88 +77,91 @@ function waitRef(){
   }
 
   function buildWankel(root,cfg){
-    var Rr=2.0, ecc=0.4, depth=1.6, rotR=1.15, space=5.0;
+    var Rr=2.0, ecc=0.4, depth=1.6, rotR=1.2, space=5.0;
 
     var base=bx(space+2.5,0.6,5.5,0x2a3340,0.7,0.5);
     base.position.y=-2.2;root.add(base);
 
-    window._wankelRotors=[];
-    window._wankelFlashes=[];
+    /* НОВЫЕ имена — не конфликтуют со старой анимацией в view3d.js */
+    window._dvsWankelRotors=[];
+    window._dvsWankelPins=[];
+    window._dvsWankelFlashes=[];
 
+    /* ОБЩАЯ ОСЬ ВАЛА — статичная */
+    var axisMesh=new THREE.Mesh(
+      new THREE.CylinderGeometry(0.28,0.28,space+3,16),
+      m(0xc8d4e0,0.95,0.2)
+    );
+    axisMesh.rotation.z=Math.PI/2;
+    root.add(axisMesh);
+
+    /* 2 РОТОРА */
     for(var ri=0;ri<2;ri++){
       var rx=(ri-0.5)*space;
       var unit=new THREE.Group();
       unit.position.set(rx,0,0);
 
-      /* Корпус — эпитрохоида, полупрозрачный */
-      var epiShape=makeEpiShape(Rr,ecc);
-      var epiGeo=new THREE.ExtrudeGeometry(epiShape,{depth:depth,bevelEnabled:false,curveSegments:64});
+      /* Корпус */
+      var epiGeo=new THREE.ExtrudeGeometry(makeEpiShape(Rr,ecc),{depth:depth,bevelEnabled:false,curveSegments:64});
       epiGeo.center();
       var caseMesh=new THREE.Mesh(epiGeo,new THREE.MeshStandardMaterial({
         color:0x8894a2,metalness:0.92,roughness:0.2,
-        transparent:true,opacity:0.35,side:THREE.DoubleSide
+        transparent:true,opacity:0.32,side:THREE.DoubleSide
       }));
-      unit.add(caseMesh);
-      pB(caseMesh);
+      unit.add(caseMesh);pB(caseMesh);
 
       /* Задняя стенка */
-      var backShape=makeEpiShape(Rr*0.98,ecc*0.98);
-      var backGeo=new THREE.ExtrudeGeometry(backShape,{depth:0.1,bevelEnabled:false,curveSegments:64});
+      var backGeo=new THREE.ExtrudeGeometry(makeEpiShape(Rr*0.98,ecc*0.98),{depth:0.12,bevelEnabled:false,curveSegments:64});
       backGeo.center();
       var backMesh=new THREE.Mesh(backGeo,m(0x1a232e,0.8,0.5));
-      backMesh.position.z=-depth/2-0.1;
-      unit.add(backMesh);
+      backMesh.position.z=-depth/2-0.12;unit.add(backMesh);
 
       /* Рёбра охлаждения */
       for(var rb=0;rb<16;rb++){
         var ang=(rb/16)*Math.PI*2;
         var rr=Rr+0.35;
-        var rib=bx(0.14,0.5,0.25,0x2a3340,0.7,0.5);
-        rib.position.set(Math.cos(ang)*rr,Math.sin(ang)*rr,depth/2+0.18);
-        rib.rotation.z=ang;unit.add(rib);pR(rib);
-        var rib2=bx(0.14,0.5,0.25,0x2a3340,0.7,0.5);
-        rib2.position.set(Math.cos(ang)*rr,Math.sin(ang)*rr,-depth/2-0.18);
-        rib2.rotation.z=ang;unit.add(rib2);
+        var ribF=bx(0.14,0.5,0.22,0x2a3340,0.7,0.5);
+        ribF.position.set(Math.cos(ang)*rr,Math.sin(ang)*rr,depth/2+0.16);
+        ribF.rotation.z=ang;unit.add(ribF);pR(ribF);
+        var ribB=bx(0.14,0.5,0.22,0x2a3340,0.7,0.5);
+        ribB.position.set(Math.cos(ang)*rr,Math.sin(ang)*rr,-depth/2-0.16);
+        ribB.rotation.z=ang;unit.add(ribB);
       }
 
-      /* РОТОР — треугольный */
-      var rotGeo=new THREE.ExtrudeGeometry(makeRotorShape(rotR),{depth:depth*0.75,bevelEnabled:false});
+      /* РОТОР (треугольник) */
+      var rotGeo=new THREE.ExtrudeGeometry(makeRotorShape(rotR),{depth:depth*0.72,bevelEnabled:false});
       rotGeo.center();
       var rotorMesh=new THREE.Mesh(rotGeo,m(0xdde5ee,0.95,0.15));
       unit.add(rotorMesh);
 
-      /* Уплотнения на вершинах */
+      /* Уплотнения на 3 вершинах */
       for(var v=0;v<3;v++){
         var va=v*(Math.PI*2/3)-Math.PI/2;
-        var seal=cy(0.13,0.75,10,0x1a232e,0.9,0.25);
+        var seal=cy(0.13,0.85,10,0x1a232e,0.9,0.25);
         seal.rotation.x=Math.PI/2;
         seal.position.set(Math.cos(va)*rotR,Math.sin(va)*rotR,0);
         rotorMesh.add(seal);
       }
 
-      /* Втулка ротора */
+      /* Втулка + кольцо */
       var hub=cy(0.5,0.9,20,0x1a232e,0.9,0.3);
-      hub.rotation.x=Math.PI/2;
-      rotorMesh.add(hub);
+      hub.rotation.x=Math.PI/2;rotorMesh.add(hub);
       var hubRing=new THREE.Mesh(new THREE.TorusGeometry(0.65,0.06,8,20),m(0x8a95a3,0.95,0.2));
-      hubRing.rotation.x=Math.PI/2;
-      rotorMesh.add(hubRing);
+      hubRing.rotation.x=Math.PI/2;rotorMesh.add(hubRing);
 
       /* 2 свечи */
       for(var s=0;s<2;s++){
-        var sAng=Math.PI/2+(s===0?-0.55:0.55);
+        var sAng=Math.PI/2+(s===0?-0.5:0.5);
         var sX=Math.cos(sAng)*(Rr+ecc);
         var sY=Math.sin(sAng)*(Rr+ecc);
         var sGrp=new THREE.Group();
         sGrp.position.set(sX*0.95,sY*0.95,0);
         sGrp.rotation.z=sAng-Math.PI/2;
-        var sm=cy(0.18,0.5,10,0x8a95a3,0.9,0.3);
-        sm.position.y=0.25;sGrp.add(sm);
-        var sc=cy(0.13,0.5,10,0xe8e4dc,0.3,0.5);
-        sc.position.y=0.75;sGrp.add(sc);
+        var sm=cy(0.18,0.5,10,0x8a95a3,0.9,0.3);sm.position.y=0.25;sGrp.add(sm);
+        var sc=cy(0.13,0.5,10,0xe8e4dc,0.3,0.5);sc.position.y=0.75;sGrp.add(sc);
         var st=new THREE.Mesh(new THREE.SphereGeometry(0.1,8,8),
           new THREE.MeshStandardMaterial({color:0xfff6c0,emissive:0xfff6c0,emissiveIntensity:0.8}));
-        st.position.y=0.0;sGrp.add(st);
+        st.position.y=0;sGrp.add(st);
         unit.add(sGrp);
 
         /* Вспышка */
@@ -171,82 +169,114 @@ function waitRef(){
           new THREE.SphereGeometry(0.6,14,14),
           new THREE.MeshBasicMaterial({color:0xffaa30,transparent:true,opacity:0,blending:THREE.AdditiveBlending})
         );
-        flash.position.set(sX*0.6,sY*0.6,0);
+        flash.position.set(sX*0.55,sY*0.55,0);
         unit.add(flash);
         var light=new THREE.PointLight(0xffaa30,0,6);
         light.position.copy(flash.position);
         unit.add(light);
-        window._wankelFlashes.push({mesh:flash,light:light,rotor:ri,phase:s*Math.PI+ri*Math.PI/3});
+        window._dvsWankelFlashes.push({mesh:flash,light:light,rotor:ri,phase:s*Math.PI});
       }
 
-      /* Впускной патрубок */
-      var inPipe=new THREE.Group();
-      var inCyl=cy(0.35,0.9,12,0x3a4654,0.85,0.4);
-      inCyl.rotation.z=Math.PI/2;inPipe.add(inCyl);
-      inPipe.position.set(Rr+0.5,0,0);unit.add(inPipe);
+      /* Патрубки */
+      var inPipe=cy(0.35,0.9,12,0x3a4654,0.85,0.4);
+      inPipe.rotation.z=Math.PI/2;inPipe.position.set(Rr+0.5,0,0);unit.add(inPipe);
+      var exPipe=cy(0.42,1.0,12,0x2a2a2a,0.7,0.5);
+      exPipe.rotation.z=Math.PI/2;exPipe.position.set(-Rr-0.55,0,0);unit.add(exPipe);
 
-      /* Выпускной патрубок */
-      var exPipe=new THREE.Group();
-      var exCyl=cy(0.42,1.0,12,0x2a2a2a,0.7,0.5);
-      exCyl.rotation.z=Math.PI/2;exPipe.add(exCyl);
-      exPipe.position.set(-Rr-0.55,0,0);unit.add(exPipe);
+      /* Сохраняем ротор для анимации */
+      window._dvsWankelRotors.push({mesh:rotorMesh,ecc:ecc,initPhase:0});
 
-      window._wankelRotors.push({mesh:rotorMesh,ecc:ecc,phase:ri*Math.PI/3});
       root.add(unit);
     }
 
-    /* Эксцентриковый вал */
-    var shaft=new THREE.Group();
-    var mainShaft=cy(0.32,space+3,16,0xc8d4e0,0.95,0.2);
-    mainShaft.rotation.z=Math.PI/2;shaft.add(mainShaft);
-    for(var sh=0;sh<2;sh++){
-      var shX=(sh-0.5)*space;
-      var pin=cy(0.5,0.75,16,0xe8eff6,0.95,0.15);
-      pin.rotation.z=Math.PI/2;pin.position.set(shX,0,0);shaft.add(pin);
+    /* ЭКСЦЕНТРИКОВЫЕ ШЕЙКИ — по одной на ротор */
+    for(var pi=0;pi<2;pi++){
+      var px=(pi-0.5)*space;
+      var pinGrp=new THREE.Group();
+      pinGrp.position.set(px,0,0);
+      var pinMesh=cy(0.5,0.75,16,0xe8eff6,0.95,0.15);
+      pinMesh.rotation.z=Math.PI/2;
+      pinMesh.position.set(ecc,0,0);   /* смещение от центра группы */
+      pinGrp.add(pinMesh);
+      /* маленькая метка для наглядности вращения */
+      var mark=bx(0.2,0.15,0.15,0xff5b5b,0.4,0.6);
+      mark.position.set(ecc,0.3,0);
+      pinGrp.add(mark);
+      root.add(pinGrp);
+      window._dvsWankelPins.push({grp:pinGrp});
     }
-    root.add(shaft);sCr(shaft);
 
-    /* Маховик */
+    /* МАХОВИК — ось X */
     var fw=new THREE.Group();
     var fwR=1.6;
-    var fwD=cy(fwR,0.5,28,0x8a95a3,0.92,0.28);
-    fwD.rotation.x=Math.PI/2;fw.add(fwD);
+    var fwDisc=new THREE.Mesh(
+      new THREE.CylinderGeometry(fwR,fwR,0.4,32),
+      m(0x8a95a3,0.92,0.28)
+    );
+    fwDisc.rotation.z=Math.PI/2;
+    fw.add(fwDisc);
+    /* зубья по окружности в плоскости YZ */
     for(var ft=0;ft<28;ft++){
-      var tooth=bx(0.22,0.18,0.25,0x6a7685,0.9,0.3);
       var ta=(ft/28)*Math.PI*2;
-      tooth.position.set(Math.cos(ta)*(fwR+0.08),Math.sin(ta)*(fwR+0.08),0);
-      tooth.rotation.z=-ta;fw.add(tooth);
+      var tooth=bx(0.3,0.25,0.2,0x6a7685,0.9,0.3);
+      tooth.position.set(0,Math.cos(ta)*(fwR+0.08),Math.sin(ta)*(fwR+0.08));
+      tooth.rotation.x=ta;
+      fw.add(tooth);
     }
-    var fwHub=cy(0.4,0.6,16,0x1a232e,0.9,0.3);
-    fwHub.rotation.x=Math.PI/2;fw.add(fwHub);
-    fw.position.set(space+2.0,0,0);root.add(fw);sF(fw);
+    /* красная метка чтобы видеть вращение */
+    var fwMark=bx(0.4,0.5,0.3,0xff5b5b,0.4,0.6);
+    fwMark.position.set(0.25,fwR*0.6,0);
+    fw.add(fwMark);
+    var fwHub=cy(0.35,0.6,16,0x1a232e,0.9,0.3);
+    fwHub.rotation.z=Math.PI/2;
+    fw.add(fwHub);
+    fw.position.set(space+2.0,0,0);
+    root.add(fw);
+    sF(fw);
 
-    /* Выпускной коллектор */
+    /* Коллектор */
     var col=bx(space+1.5,0.5,0.6,0x3a2a1a,0.85,0.4);
     col.position.set(0,-Rr-1.0,-0.5);root.add(col);
 
-    /* Тик вспышек */
-    if(!window._wankelTick){
-      window._wankelTick=function(){
+    /* ТИК АНИМАЦИИ ВАНКЕЛЯ */
+    if(!window._dvsWankelTickActive){
+      window._dvsWankelTickActive=true;
+      window._dvsWankelTick=function(){
+        if(S.engineType!=='wankel'){window._dvsWankelTickActive=false;return;}
         var ang=S.crankAngle||0;
-        var fl=window._wankelFlashes||[];
-        for(var i=0;i<fl.length;i++){
-          var f=fl[i];
-          var cycle=((ang*1.5+f.phase)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+
+        /* Ротор — вращается в 3 раза медленнее вала + движется по орбите */
+        var wr=window._dvsWankelRotors||[];
+        for(var i=0;i<wr.length;i++){
+          var W=wr[i];
+          W.mesh.rotation.z=-ang/3;                 /* -ang/3 = по часовой, как у вала */
+          W.mesh.position.x=Math.cos(ang)*W.ecc;    /* орбита */
+          W.mesh.position.y=Math.sin(ang)*W.ecc;
+        }
+        /* Шейки */
+        var wp=window._dvsWankelPins||[];
+        for(var j=0;j<wp.length;j++){
+          wp[j].grp.rotation.z=ang;                 /* группа вращается вокруг центра вала */
+        }
+        /* Вспышки */
+        var fl=window._dvsWankelFlashes||[];
+        for(var f=0;f<fl.length;f++){
+          var F=fl[f];
+          var cycle=((ang*1.5+F.phase)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
           var intensity=Math.max(0,1-Math.abs(cycle-Math.PI)*1.8);
           if(intensity<0)intensity=0;
-          f.mesh.material.opacity=intensity*0.85;
-          f.light.intensity=intensity*4;
+          F.mesh.material.opacity=intensity*0.85;
+          F.light.intensity=intensity*4;
           var sc=0.4+intensity*0.9;
-          f.mesh.scale.set(sc,sc,sc);
+          F.mesh.scale.set(sc,sc,sc);
         }
-        requestAnimationFrame(window._wankelTick);
+        requestAnimationFrame(window._dvsWankelTick);
       };
-      requestAnimationFrame(window._wankelTick);
+      requestAnimationFrame(window._dvsWankelTick);
     }
   }
 
-  /* ===================== ОБЫЧНЫЙ ДВИГАТЕЛЬ ===================== */
+  /* =========== ОБЫЧНЫЙ ДВИГАТЕЛЬ =========== */
   function buildNormal(root,cfg){
     var isV=cfg.v,totalN=cfg.n;
     var perRow=isV?Math.floor(totalN/2):totalN;
@@ -408,10 +438,10 @@ function waitRef(){
     scene.add(root);
     R.setRoot(root);
     R.clearAll();
-    window._wankelRotors=[];
-    window._wankelFlashes=[];
+    window._dvsWankelRotors=[];
+    window._dvsWankelPins=[];
+    window._dvsWankelFlashes=[];
 
-    /* ВАНКЕЛЬ встроен прямо сюда */
     if(S.engineType==='wankel'){
       buildWankel(root,cfg);
     } else {
