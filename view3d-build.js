@@ -21,237 +21,164 @@ function waitRef(){
     for(var k=0;k<3;k++){var rg=cy(o.r+0.03,0.06,18,0x2a333f,0.6,0.7);rg.position.y=o.r*0.3-k*o.r*0.2;p.add(rg);}
     var pin=cy(o.r*0.15,o.r*1.1,10,0x2a3543,0.9,0.3);pin.rotation.z=Math.PI/2;p.add(pin);
     g.add(p);
-    var rod=bx(o.r*0.35,o.h*0.5,o.r*0.35,0x8894a2,0.9,0.25);g.add(rod);
+    var rod=bx(o.r*0.3,o.h*0.5,o.r*0.3,0x8894a2,0.9,0.25);g.add(rod);
     var ign=new THREE.Group();
     if(o.diesel){
-      ign.add(cy(o.r*0.18,o.r*0.6,10,0x3a3a3a,0.7,0.4));
-      var fy=cy(o.r*0.25,o.r*0.3,10,0x8a95a3,0.9,0.3);fy.position.y=-0.1;ign.add(fy);
+      ign.add(cy(o.r*0.15,o.r*0.5,10,0x3a3a3a,0.7,0.4));
+      var fy=cy(o.r*0.2,o.r*0.25,10,0x8a95a3,0.9,0.3);fy.position.y=-0.1;ign.add(fy);
     } else {
-      ign.add(cy(o.r*0.15,o.r*0.6,10,0xe8e4dc,0.3,0.5));
-      var mt=cy(o.r*0.2,o.r*0.3,10,0x8a95a3,0.9,0.3);mt.position.y=-0.1;ign.add(mt);
+      ign.add(cy(o.r*0.13,o.r*0.5,10,0xe8e4dc,0.3,0.5));
+      var mt=cy(o.r*0.17,o.r*0.25,10,0x8a95a3,0.9,0.3);mt.position.y=-0.1;ign.add(mt);
     }
-    ign.position.y=o.h+0.6;g.add(ign);
+    ign.position.y=o.h+0.4;g.add(ign);
     var vv=[];
     for(var s=0;s<2;s++){
       var vg=new THREE.Group();
-      vg.add(cy(o.r*0.35,0.14,12,s===0?0x6fd0ff:0xff8a6f,0.75,0.4));
-      var vs=cy(0.08,o.r*0.8,6,0xa8b4c0,0.9,0.3);vs.position.y=o.r*0.4;vg.add(vs);
-      vg.position.set((s===0?-1:1)*o.r*0.5,o.h+0.1,0);g.add(vg);vv.push(vg);
+      vg.add(cy(o.r*0.28,0.1,12,s===0?0x6fd0ff:0xff8a6f,0.75,0.4));
+      var vs=cy(0.05,o.r*0.6,6,0xa8b4c0,0.9,0.3);vs.position.y=o.r*0.3;vg.add(vs);
+      vg.position.set((s===0?-1:1)*o.r*0.4,o.h+0.05,0);g.add(vg);vv.push(vg);
     }
     return {g:g,p:p,rod:rod,vv:vv,x:o.x,y:o.y,z:o.z,h:o.h,r:o.r,off:o.off||0};
   }
 
-  /* ============ МТЗ-82 — ОГРОМНЫЙ V4 ============ */
-  function buildMTZ(root,cfg){
-    var perRow=2;                /* V4 → по 2 цилиндра в каждом ряду */
-    var totalN=4;
-    var spacing=5.0;             /* очень широко */
-    var totalWidth=perRow*spacing;
-    var blockLen=totalWidth+3.5;
-    var pistonR=2.0;
-    var cylH=7.5;
-    var angV=Math.PI/5;          /* угол V — 36° на сторону (72° между блоками) */
-
-    /* ОГРОМНЫЙ ПОДДОН */
-    var pod=bx(blockLen+1.5,2.0,11,0x2a3340,0.7,0.5);
-    pod.position.y=-1.3;root.add(pod);
-    var podnut=cy(0.5,0.4,10,0xb8c6d4,0.95,0.2);
-    podnut.position.set(0,-2.3,0);root.add(podnut);
-
-    /* КОЛЕНВАЛ — общая ось */
-    var cg=new THREE.Group();cg.position.y=1.0;
-    var ax=cy(0.8,blockLen+2,20,0xa8b4c0,0.95,0.2);ax.rotation.z=Math.PI/2;cg.add(ax);
-    for(var mi=0;mi<perRow+1;mi++){
-      var mx=-blockLen/2+1.0+mi*(blockLen-2.0)/(perRow);
-      var mn=cy(1.0,0.7,16,0xb8c6d4,0.95,0.2);mn.rotation.z=Math.PI/2;mn.position.x=mx;cg.add(mn);
+  /* ====== ЭПИТРОХОИДА ВАНКЕЛЯ ====== */
+  function makeEpiShape(R,e){
+    var shape=new THREE.Shape();
+    var steps=64;
+    for(var i=0;i<=steps;i++){
+      var t=(i/steps)*Math.PI*2;
+      var x=R*Math.cos(t)+e*Math.cos(3*t);
+      var y=R*Math.sin(t)+e*Math.sin(3*t);
+      if(i===0)shape.moveTo(x,y);
+      else shape.lineTo(x,y);
     }
-    /* Шейки — V4: два смещения */
-    for(var ci=0;ci<perRow;ci++){
-      var cxx=-totalWidth/2+spacing/2+ci*spacing;
-      var o1=ci*Math.PI;         /* 0, 180 */
-      var p1=new THREE.Group();
-      var pin1=cy(0.55,0.9,12,0xd8e4f0,0.95,0.2);pin1.rotation.z=Math.PI/2;p1.add(pin1);
-      p1.position.set(cxx,Math.sin(o1)*0.95,0);cg.add(p1);
-      var o2=o1+Math.PI;
-      var p2=new THREE.Group();
-      var pin2=cy(0.55,0.9,12,0xd8e4f0,0.95,0.2);pin2.rotation.z=Math.PI/2;p2.add(pin2);
-      p2.position.set(cxx,Math.sin(o2)*0.95,0);cg.add(p2);
-    }
-    root.add(cg);R.setCrank(cg);
-
-    /* ОГРОМНЫЙ МАХОВИК */
-    var fw=new THREE.Group();var fwR=4.5;
-    var fwD=cy(fwR,0.9,36,0x8a95a3,0.9,0.3);fwD.rotation.z=Math.PI/2;fw.add(fwD);
-    for(var ft=0;ft<40;ft++){
-      var th=bx(0.9,0.7,0.3,0x6a7685,0.9,0.3);
-      var a=(ft/40)*Math.PI*2;
-      th.position.set(0,Math.cos(a)*(fwR+0.2),Math.sin(a)*(fwR+0.2));
-      th.rotation.x=-a;fw.add(th);
-    }
-    var fwHub=cy(0.9,1.0,20,0x1a232e,0.9,0.3);fwHub.rotation.z=Math.PI/2;fw.add(fwHub);
-    fw.position.set(blockLen/2+1.6,1.0,0);root.add(fw);R.setFly(fw);
-
-    /* ШЕСТЕРНИ ГРМ — огромные */
-    var bt=new THREE.Group();
-    var gt=cy(1.7,0.7,20,0x8a95a3,0.9,0.3);gt.rotation.z=Math.PI/2;bt.add(gt);
-    for(var gtt=0;gtt<24;gtt++){
-      var tg=bx(0.42,0.35,0.25,0x6a7685,0.9,0.3);
-      var a2=(gtt/24)*Math.PI*2;
-      tg.position.set(0,Math.cos(a2)*1.75,Math.sin(a2)*1.75);tg.rotation.x=-a2;bt.add(tg);
-    }
-    bt.position.set(-blockLen/2-1.4,11.3,0);root.add(bt);R.setBeltT(bt);
-
-    var bb=new THREE.Group();
-    var gb=cy(2.3,0.7,24,0x8a95a3,0.9,0.3);gb.rotation.z=Math.PI/2;bb.add(gb);
-    for(var gbt=0;gbt<30;gbt++){
-      var tg2=bx(0.42,0.35,0.25,0x6a7685,0.9,0.3);
-      var a3=(gbt/30)*Math.PI*2;
-      tg2.position.set(0,Math.cos(a3)*2.35,Math.sin(a3)*2.35);tg2.rotation.x=-a3;bb.add(tg2);
-    }
-    bb.position.set(-blockLen/2-1.4,1.0,0);root.add(bb);R.setBeltB(bb);
-
-    /* РЕМЕНЬ */
-    var beltMat=new THREE.MeshStandardMaterial({color:0x1a1a1a,metalness:0.2,roughness:0.9});
-    var b1=new THREE.Mesh(new THREE.BoxGeometry(0.3,10.5,1.3),beltMat);b1.position.set(-blockLen/2-2.6,6.2,0);root.add(b1);
-    var b2=new THREE.Mesh(new THREE.BoxGeometry(0.3,10.5,1.8),beltMat);b2.position.set(-blockLen/2+0.3,6.2,0);root.add(b2);
-
-    /* ===== ДВА V-БЛОКА ===== */
-    for(var side=0;side<2;side++){
-      var sign=side===0?-1:1;
-
-      /* Блок — толстый, под углом */
-      var bk=bx(blockLen,9.0,3.6,0x4a5566,0.85,0.4);
-      bk.position.set(0,5.8,sign*2.2);
-      bk.rotation.x=sign*angV;
-      root.add(bk);R.pushBlock(bk);
-
-      /* РЁБРА */
-      for(var rr=0;rr<11;rr++){
-        var rb=bx(blockLen+0.15,0.15,3.65,0x2a3340,0.6,0.6);
-        rb.position.set(0,1.8+rr*0.7,sign*2.2);
-        rb.rotation.x=sign*angV;
-        root.add(rb);R.pushRib(rb);
-      }
-
-      /* ГОЛОВКА */
-      var hd=bx(blockLen+0.6,2.5,3.8,0x3a4756,0.85,0.35);
-      hd.position.set(0,11.3,sign*4.9);
-      hd.rotation.x=sign*angV;
-      root.add(hd);R.pushHead(hd);
-
-      /* КРЫШКА РАСПРЕДВАЛА */
-      var cv=bx(blockLen,1.4,3.4,0x2a3340,0.75,0.4);
-      cv.position.set(0,13.1,sign*5.9);
-      cv.rotation.x=sign*angV;
-      root.add(cv);R.pushCover(cv);
-
-      /* БОЛТЫ */
-      for(var b=0;b<perRow*2+1;b++){
-        var bxx=-totalWidth/2+b*(totalWidth/(perRow*2));
-        var bo=bl(0.28);
-        bo.position.set(bxx,13.9,sign*6.5);
-        root.add(bo);
-      }
-    }
-
-    /* РАСПРЕДВАЛ — 2 вала, по одному в каждом блоке */
-    var cs=new THREE.Group();
-    var camArr=[];
-    for(var side2=0;side2<2;side2++){
-      var sg2=side2===0?-1:1;
-      var ca=cy(0.4,blockLen+1,16,0xa8b4c0,0.95,0.2);
-      ca.rotation.z=Math.PI/2;
-      ca.position.set(0,sg2*6.9*0.85,0);
-      ca.rotation.x=sg2*angV;
-      cs.add(ca);
-      for(var cc=0;cc<perRow*2;cc++){
-        var cg2=new THREE.Group();
-        var cd=cy(0.5,0.4,16,0x8a95a3,0.9,0.3);cd.rotation.z=Math.PI/2;cg2.add(cd);
-        var nb=cy(0.22,0.4,10,0x6a7685,0.9,0.3);nb.rotation.z=Math.PI/2;nb.position.y=0.5;cg2.add(nb);
-        var cx2=-totalWidth/2+0.7+cc*(totalWidth-1.4)/(perRow*2-1);
-        cg2.position.set(cx2,sg2*6.9*0.85,0);
-        cg2.rotation.x=sg2*angV;
-        cs.add(cg2);
-        camArr.push({grp:cg2,off:(side2*Math.PI)+cc*Math.PI*1.5/Math.max(1,perRow*2)});
-      }
-    }
-    cs.position.y=11.7;root.add(cs);R.setCam(cs);R.setCams(camArr);
-
-    /* ===== ОГРОМНЫЕ ЦИЛИНДРЫ + ПОРШНИ ===== */
-    var arr=[];
-    for(var s3=0;s3<2;s3++){
-      var sg3=s3===0?-1:1;
-      for(var i=0;i<perRow;i++){
-        var xx=-totalWidth/2+spacing/2+i*spacing;
-        var off=(s3===0?i*Math.PI:(i*Math.PI)+Math.PI);
-        var a4=makeCylAss({
-          x:xx,y:1.6,z:sg3*3.0,
-          r:pistonR,h:cylH,
-          diesel:true,
-          off:off
-        });
-        a4.g.rotation.x=sg3*angV;
-        root.add(a4.g);arr.push(a4);
-      }
-    }
-    R.setAsm(arr);
-
-    /* ОГРОМНЫЙ ТНВД */
-    var pump=bx(3.4,2.5,2.8,0x3a4654,0.85,0.4);
-    pump.position.set(-blockLen/2-1.0,14,0);root.add(pump);
-    var pumpTop=bx(2.4,0.8,2.0,0x2a3340,0.85,0.4);
-    pumpTop.position.set(-blockLen/2-1.0,15.4,0);root.add(pumpTop);
-    var pg=cy(1.1,0.6,16,0x8a95a3,0.9,0.3);
-    pg.rotation.z=Math.PI/2;pg.position.set(-blockLen/2-1.0,14,2.0);root.add(pg);
-
-    /* ТРУБКИ ВЫСОКОГО ДАВЛЕНИЯ */
-    for(var fi=0;fi<2;fi++){
-      var fx=-totalWidth/2+spacing/2+fi*spacing;
-      var curve=new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-blockLen/2-1.0,14,0),
-        new THREE.Vector3(fx*0.4,15.8,2),
-        new THREE.Vector3(fx,12.5,4)
-      ]);
-      var tube=new THREE.Mesh(new THREE.TubeGeometry(curve,20,0.14,8,false),m(0x666666,0.8,0.4));
-      root.add(tube);
-      var curve2=new THREE.CatmullRomCurve3([
-        new THREE.Vector3(-blockLen/2-1.0,14,0),
-        new THREE.Vector3(fx*0.4,15.8,-2),
-        new THREE.Vector3(fx,12.5,-4)
-      ]);
-      var tube2=new THREE.Mesh(new THREE.TubeGeometry(curve2,20,0.14,8,false),m(0x666666,0.8,0.4));
-      root.add(tube2);
-    }
-
-    /* ВЫПУСКНОЙ КОЛЛЕКТОР — сзади */
-    for(var e=0;e<perRow;e++){
-      var ex=-totalWidth/2+spacing/2+e*spacing;
-      var pp=cy(0.55,2.5,12,0x3a2a1a,0.8,0.5);pp.position.set(ex,14.5,-6);root.add(pp);
-    }
-    var mp=cy(0.8,blockLen,16,0x3a2a1a,0.8,0.5);mp.rotation.z=Math.PI/2;mp.position.set(0,16,-6);root.add(mp);
-
-    /* ОГРОМНАЯ ТРАКТОРНАЯ ТРУБА ВВЕРХ */
-    var stack=cy(0.7,6.0,16,0x1a1a1a,0.4,0.8);
-    stack.position.set(blockLen/2-1.5,19,-6);root.add(stack);
-    var stackRim=cy(0.85,0.5,16,0x2a2a2a,0.5,0.7);
-    stackRim.position.set(blockLen/2-1.5,16.3,-6);root.add(stackRim);
-    var cap=cy(0.95,0.5,16,0x0a0a0a,0.4,0.9);
-    cap.position.set(blockLen/2-1.5,22.2,-6);root.add(cap);
-    var flap=bx(1.6,0.1,1.6,0x1a1a1a,0.4,0.9);
-    flap.position.set(blockLen/2-1.5,22,-6);root.add(flap);
-
-    /* ВЕНТИЛЯТОР СПЕРЕДИ */
-    var fanGrp=new THREE.Group();
-    var fanDisc=cy(1.8,0.3,20,0x2a3340,0.7,0.5);fanDisc.rotation.z=Math.PI/2;fanGrp.add(fanDisc);
-    for(var bl2=0;bl2<6;bl2++){
-      var blade=bx(0.3,3.2,0.5,0x4a5566,0.7,0.5);
-      blade.position.set(0,Math.cos(bl2/6*Math.PI*2)*1.6,Math.sin(bl2/6*Math.PI*2)*1.6);
-      blade.rotation.x=-bl2/6*Math.PI*2;
-      fanGrp.add(blade);
-    }
-    fanGrp.position.set(-blockLen/2-1.4,11.3,0);root.add(fanGrp);
+    return shape;
   }
 
+  /* ====== ТРЕУГОЛЬНЫЙ РОТОР ====== */
+  function makeRotorMesh(rotR,depth){
+    var shape=new THREE.Shape();
+    var A=Math.PI*2/3;
+    for(var k=0;k<3;k++){
+      var ang=k*A-Math.PI/2;
+      var x=Math.cos(ang)*rotR;
+      var y=Math.sin(ang)*rotR;
+      if(k===0)shape.moveTo(x,y);
+      else shape.lineTo(x,y);
+    }
+    shape.closePath();
+    var geo=new THREE.ExtrudeGeometry(shape,{depth:depth,bevelEnabled:false});
+    geo.center();
+    return new THREE.Mesh(geo,m(0xd8e0e8,0.9,0.25));
+  }
+
+  /* ====== СБОРКА ВАНКЕЛЯ (Mazda RX-8) ====== */
+  function buildWankel(root,cfg){
+    var perRotor=1;
+    var R=1.8;        // радиус корпуса
+    var e=0.35;       // эксцентриситет
+    var depth=1.4;    // толщина корпуса
+    var rotR=1.1;     // радиус ротора
+    var rotorSpace=4.2; // расстояние между роторами
+
+    /* ОСНОВАНИЕ */
+    var base=bx(4.5,0.6,5.5,0x2a3340,0.7,0.5);
+    base.position.y=-1.8;
+    root.add(base);
+
+    /* 2 РОТОРА */
+    var rotors=[];
+    for(var i=0;i<2;i++){
+      var rx=(i-0.5)*rotorSpace;
+      var rg=new THREE.Group();
+      rg.position.set(rx,0,0);
+
+      /* Эпитрохоидальный корпус */
+      var epiShape=makeEpiShape(R,e);
+      var epiGeo=new THREE.ExtrudeGeometry(epiShape,{depth:depth,bevelEnabled:false});
+      epiGeo.center();
+      var caseMesh=new THREE.Mesh(epiGeo,new THREE.MeshStandardMaterial({
+        color:0x5a6878,metalness:0.85,roughness:0.3,transparent:true,opacity:0.55,side:THREE.DoubleSide
+      }));
+      rg.add(caseMesh);
+      R.pushBlock(caseMesh);
+
+      /* Обод корпуса (тонкий слой) */
+      var rimMesh=new THREE.Mesh(epiGeo.clone(),m(0x3a4654,0.9,0.3));
+      rimMesh.scale.set(1.08,1.08,1.08);
+      rg.add(rimMesh);
+
+      /* РОТОР ВНУТРИ (треугольник) */
+      var rotorMesh=makeRotorMesh(rotR,depth*0.75);
+      rg.add(rotorMesh);
+      rotors.push(rotorMesh);
+
+      /* Втулка в центре ротора */
+      var hub=cy(0.4,0.4,16,0x2a333f,0.9,0.3);
+      hub.rotation.x=Math.PI/2;
+      rg.add(hub);
+
+      /* Свеча зажигания сверху */
+      var spark=cy(0.15,0.7,10,0xe8e4dc,0.3,0.5);
+      spark.position.set(0,R+e,0);
+      rg.add(spark);
+      var sparkMetal=cy(0.2,0.4,10,0x8a95a3,0.9,0.3);
+      sparkMetal.position.set(0,R+e-0.4,0);
+      rg.add(sparkMetal);
+
+      /* Впускное окно справа */
+      var inPort=bx(0.7,0.8,0.4,0x1d2530,0.7,0.4);
+      inPort.position.set(R-0.1,0,0);
+      rg.add(inPort);
+      /* Выпускное окно слева */
+      var exPort=bx(0.7,0.8,0.4,0x1d2530,0.7,0.4);
+      exPort.position.set(-R+0.1,0,0);
+      rg.add(exPort);
+
+      /* Рёбра охлаждения сбоку */
+      for(var rb=0;rb<6;rb++){
+        var rib=bx(0.1,1.2,0.15,0x2a3340,0.6,0.6);
+        rib.position.set(rx+ (rb-2.5)*0.15, 0, depth/2 + 0.2);
+        root.add(rib);
+        R.pushRib(rib);
+      }
+
+      root.add(rg);
+
+      /* Сохраняем ротор для анимации */
+      if(!R.setAsm)continue;
+    }
+
+    /* МАХОВИК */
+    var fw=new THREE.Group();
+    var fwR=1.2;
+    var fwD=cy(fwR,0.35,24,0x8a95a3,0.9,0.3);
+    fwD.rotation.x=Math.PI/2;
+    fw.add(fwD);
+    for(var ft=0;ft<20;ft++){
+      var th=bx(0.25,0.2,0.1,0x6a7685,0.9,0.3);
+      var a=(ft/20)*Math.PI*2;
+      th.position.set(Math.cos(a)*(fwR+0.1),Math.sin(a)*(fwR+0.1),0);
+      th.rotation.z=-a;
+      fw.add(th);
+    }
+    fw.position.set(rotorSpace+1.2,0,0);
+    root.add(fw);
+    R.setFly(fw);
+
+    /* ВЫПУСКНОЙ КОЛЛЕКТОР */
+    var col=bx(4,0.5,0.5,0x3a2a1a,0.8,0.5);
+    col.position.set(0,-R-0.6,-1);
+    root.add(col);
+
+    /* Вспомогательный объект для передачи роторов в анимацию */
+    window._wankelRotors=[];
+    for(var ri=0;ri<rotors.length;ri++){
+      window._wankelRotors.push({mesh:rotors[ri],ecc:0.35,phase:ri*Math.PI/3});
+    }
+  }
+
+  /* ====== ОБЫЧНЫЙ ДВИГАТЕЛЬ ====== */
   function buildNormal(root,cfg){
     var isV=cfg.v,totalN=cfg.n;
     var perRow=isV?Math.floor(totalN/2):totalN;
@@ -336,13 +263,16 @@ function waitRef(){
         cv.position.set(0,7.5,sign*3.1);cv.rotation.x=sign*angV;root.add(cv);R.pushCover(cv);
       }
     } else {
-      var bk2=bx(blockLen,5,5,0x4a5566,0.85,0.4);bk2.position.y=3.4;root.add(bk2);R.pushBlock(bk2);
+      var bk2=bx(blockLen,5,5,0x4a5566,0.85,0.4);
+      bk2.position.y=3.4;root.add(bk2);R.pushBlock(bk2);
       for(var rr2=0;rr2<9;rr2++){
         var rb2=bx(blockLen+0.05,0.06,5.05,0x2a3340,0.6,0.6);
         rb2.position.y=1.2+rr2*0.55;root.add(rb2);R.pushRib(rb2);
       }
-      var hd2=bx(blockLen+0.2,1.4,5.3,0x3a4756,0.85,0.35);hd2.position.y=6.4;root.add(hd2);R.pushHead(hd2);
-      var cv2=bx(blockLen,0.8,5,0x2a3340,0.75,0.4);cv2.position.y=7.5;root.add(cv2);R.pushCover(cv2);
+      var hd2=bx(blockLen+0.2,1.4,5.3,0x3a4756,0.85,0.35);
+      hd2.position.y=6.4;root.add(hd2);R.pushHead(hd2);
+      var cv2=bx(blockLen,0.8,5,0x2a3340,0.75,0.4);
+      cv2.position.y=7.5;root.add(cv2);R.pushCover(cv2);
     }
     for(var b=0;b<perRow+1;b++){
       var bxx=-totalWidth/2+b*(totalWidth/perRow);
@@ -400,6 +330,7 @@ function waitRef(){
     }
   }
 
+  /* ====== ЗАПУСК ПЕРЕСБОРКИ ====== */
   window.DVS_3D_REBUILD=function(){
     var scene=R.getScene();
     if(!scene)return;
@@ -410,9 +341,17 @@ function waitRef(){
     scene.add(root);
     R.setRoot(root);
     R.clearAll();
-    if(S.engineType==='mt82')buildMTZ(root,cfg);
+    window._wankelRotors=[];
+    if(S.engineType==='mt82')buildMTZPlaceholder(root,cfg);
+    else if(S.engineType==='wankel')buildWankel(root,cfg);
     else buildNormal(root,cfg);
   };
+
+  /* Заглушка для МТЗ — использует обычную сборку, если buildMTZ не определено */
+  function buildMTZPlaceholder(root,cfg){
+    if(typeof buildMTZReal==='function'){buildMTZReal(root,cfg);return;}
+    buildNormal(root,cfg);
+  }
 }
 waitRef();
 })();
