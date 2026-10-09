@@ -8,93 +8,50 @@
 <link rel="apple-touch-icon" href="launchericon-192x192.png">
 <link rel="shortcut icon" href="launchericon-96x96.png">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css?v=1000020">
+<link rel="stylesheet" href="style.css?v=1000030">
 </head>
 <body>
 <header>Двигатель внутреннего сгорания</header>
 <div class="eng-badge" id="engBadge">R4</div>
 <button id="repairBtn" type="button">🔧</button>
 
-<div class="pages-wrap">
-  <div class="pages" id="pages">
-
-    <section class="page">
-      <div class="panel" id="engineWrap2d">
-        <canvas id="engineCv" width="640" height="430"></canvas>
-      </div>
-    </section>
-
-    <section class="page">
-      <div class="panel" id="engineWrap">
-        <canvas id="engine3dCv" width="640" height="430"></canvas>
-        <button id="ghostBtn" type="button">👁 Скрыто</button>
-        <button id="lockBtn" type="button">🔓</button>
-      </div>
-    </section>
-
-    <section class="page">
-      <div class="panel chart-panel">
-        <div class="chart-title">MANIFOLD PRESSURE</div>
-        <canvas id="manifoldCv"></canvas>
-      </div>
-    </section>
-
-    <section class="page">
-      <div class="panel chart-panel">
-        <div class="chart-title">CYLINDERS</div>
-        <canvas id="cylsCv"></canvas>
-      </div>
-    </section>
-
-    <section class="page">
-      <div class="panel chart-panel">
-        <div class="chart-title">TORQUE / POWER</div>
-        <canvas id="torqueCv"></canvas>
-      </div>
-    </section>
-
-    <section class="page">
-      <div class="panel chart-panel">
-        <div class="chart-title">EXHAUST / INTAKE FLOW</div>
-        <canvas id="flowCv"></canvas>
-      </div>
-    </section>
-
+<main>
+  <div class="panel" id="engineWrap">
+    <canvas id="engineCv" width="640" height="430"></canvas>
+    <button id="view3dBtn" type="button">🎥 3D</button>
+    <button id="ghostBtn" type="button">👁 Скрыто</button>
+    <button id="lockBtn" type="button">🔓</button>
   </div>
-  <div class="dots" id="dots">
-    <span class="dot on"></span><span class="dot"></span><span class="dot"></span>
-    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-  </div>
-</div>
 
-<div class="panel" id="dash">
-  <canvas id="gaugeCv" width="340" height="190"></canvas>
-  <div class="gears-box" id="gearsManual">
-    <svg class="gb-lines" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <line x1="12.5" y1="25" x2="12.5" y2="50" vector-effect="non-scaling-stroke"/>
-      <line x1="37.5" y1="25" x2="37.5" y2="75" vector-effect="non-scaling-stroke"/>
-      <line x1="62.5" y1="25" x2="62.5" y2="75" vector-effect="non-scaling-stroke"/>
-      <line x1="87.5" y1="25" x2="87.5" y2="75" vector-effect="non-scaling-stroke"/>
-      <line x1="12.5" y1="50" x2="87.5" y2="50" vector-effect="non-scaling-stroke"/>
-    </svg>
-    <div class="gb-grid">
-      <button class="gbtn gb-r" data-g="-1" type="button">R</button>
-      <button class="gbtn" data-g="1" type="button">1</button>
-      <button class="gbtn" data-g="3" type="button">3</button>
-      <button class="gbtn" data-g="5" type="button">5</button>
-      <button class="gbtn neu gb-n" data-g="0" type="button">N</button>
-      <button class="gbtn" data-g="2" type="button">2</button>
-      <button class="gbtn" data-g="4" type="button">4</button>
-      <button class="gbtn" data-g="6" type="button">6</button>
+  <div class="panel" id="dash">
+    <canvas id="gaugeCv" width="340" height="190"></canvas>
+    <div class="gears-box" id="gearsManual">
+      <svg class="gb-lines" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="12.5" y1="25" x2="12.5" y2="50" vector-effect="non-scaling-stroke"/>
+        <line x1="37.5" y1="25" x2="37.5" y2="75" vector-effect="non-scaling-stroke"/>
+        <line x1="62.5" y1="25" x2="62.5" y2="75" vector-effect="non-scaling-stroke"/>
+        <line x1="87.5" y1="25" x2="87.5" y2="75" vector-effect="non-scaling-stroke"/>
+        <line x1="12.5" y1="50" x2="87.5" y2="50" vector-effect="non-scaling-stroke"/>
+      </svg>
+      <div class="gb-grid">
+        <button class="gbtn gb-r" data-g="-1" type="button">R</button>
+        <button class="gbtn" data-g="1" type="button">1</button>
+        <button class="gbtn" data-g="3" type="button">3</button>
+        <button class="gbtn" data-g="5" type="button">5</button>
+        <button class="gbtn neu gb-n" data-g="0" type="button">N</button>
+        <button class="gbtn" data-g="2" type="button">2</button>
+        <button class="gbtn" data-g="4" type="button">4</button>
+        <button class="gbtn" data-g="6" type="button">6</button>
+      </div>
     </div>
+    <div class="gears-auto" id="gearsAuto">
+      <button class="agbtn rev" data-ag="-1" type="button">R</button>
+      <button class="agbtn neu" data-ag="0" type="button">N</button>
+      <button class="agbtn on" data-ag="1" type="button">D</button>
+    </div>
+    <button class="ignbtn" id="ignBtn" type="button">ЗАЖИГАНИЕ</button>
   </div>
-  <div class="gears-auto" id="gearsAuto">
-    <button class="agbtn rev" data-ag="-1" type="button">R</button>
-    <button class="agbtn neu" data-ag="0" type="button">N</button>
-    <button class="agbtn on" data-ag="1" type="button">D</button>
-  </div>
-  <button class="ignbtn" id="ignBtn" type="button">ЗАЖИГАНИЕ</button>
-</div>
+</main>
 
 <div class="pedals">
   <div class="pedal clutch" id="pClutch" data-pedal="clutch"><div class="bar"></div><span class="icon">🦶</span><span>СЦЕПЛЕНИЕ</span><span class="sub">держать</span></div>
@@ -106,29 +63,28 @@
 <div id="err"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="physics.js?v=1000020" defer></script>
-<script src="render-base.js?v=1000020" defer></script>
-<script src="re-1.js?v=1000020" defer></script>
-<script src="re-2.js?v=1000020" defer></script>
-<script src="re-3.js?v=1000020" defer></script>
-<script src="re-4.js?v=1000020" defer></script>
-<script src="re-5.js?v=1000020" defer></script>
-<script src="re-6.js?v=1000020" defer></script>
-<script src="re-7.js?v=1000020" defer></script>
-<script src="render.js?v=1000020" defer></script>
-<script src="render-engines.js?v=1000020" defer></script>
-<script src="engine.js?v=1000020" defer></script>
-<script src="sound.js?v=1000020" defer></script>
-<script src="horn.js?v=1000020" defer></script>
-<script src="menu.js?v=1000020" defer></script>
-<script src="settings.js?v=1000020" defer></script>
-<script src="view3d.js?v=1000020" defer></script>
-<script src="view3d-build.js?v=1000020" defer></script>
-<script src="view3d-wankel.js?v=1000020" defer></script>
-<script src="view3d-dci.js?v=1000020" defer></script>
-<script src="pages.js?v=1000020" defer></script>
-<script src="timer.js?v=1000020" defer></script>
-<script src="maint.js?v=1000020" defer></script>
+<script src="physics.js?v=1000030" defer></script>
+<script src="render-base.js?v=1000030" defer></script>
+<script src="re-1.js?v=1000030" defer></script>
+<script src="re-2.js?v=1000030" defer></script>
+<script src="re-3.js?v=1000030" defer></script>
+<script src="re-4.js?v=1000030" defer></script>
+<script src="re-5.js?v=1000030" defer></script>
+<script src="re-6.js?v=1000030" defer></script>
+<script src="re-7.js?v=1000030" defer></script>
+<script src="render.js?v=1000030" defer></script>
+<script src="render-engines.js?v=1000030" defer></script>
+<script src="engine.js?v=1000030" defer></script>
+<script src="sound.js?v=1000030" defer></script>
+<script src="horn.js?v=1000030" defer></script>
+<script src="menu.js?v=1000030" defer></script>
+<script src="settings.js?v=1000030" defer></script>
+<script src="view3d.js?v=1000030" defer></script>
+<script src="view3d-build.js?v=1000030" defer></script>
+<script src="view3d-wankel.js?v=1000030" defer></script>
+<script src="view3d-dci.js?v=1000030" defer></script>
+<script src="timer.js?v=1000030" defer></script>
+<script src="maint.js?v=1000030" defer></script>
 
 <script>
 if ('serviceWorker' in navigator) {
