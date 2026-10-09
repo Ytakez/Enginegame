@@ -1,8 +1,11 @@
 (function(){
+"use strict";
 var S=window.S;if(!S)return;
 var active=false,scene,camera,renderer,container,animId=null;
 var rotX=0.4,rotY=0.7,dist=22,isDown=false,lastX=0,lastY=0,pinch=0;
 var ghost=false;
+var _blockM=[],_headM=[],_coverM=[],_ribM=[],_asm=[],_cams=[];
+var _crank,_fly,_cam,_beltT,_beltB;
 
 function m(c,a,b){return new THREE.MeshStandardMaterial({color:c,metalness:a===undefined?0.85:a,roughness:b===undefined?0.35:b});}
 function cy(r,h,s,c,a,b){return new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,s||20),m(c,a,b));}
@@ -19,17 +22,10 @@ function updCam(){
 
 function setGhost(on){
   ghost=on;
-  var arr=[].concat(window._3dBlock||[],window._3dHead||[],window._3dCover||[]);
-  for(var i=0;i<arr.length;i++){
-    if(!arr[i])continue;
-    arr[i].material.transparent=on;
-    arr[i].material.opacity=on?0.12:1.0;
-  }
-  var ribs=window._3dRib||[];
-  for(var r=0;r<ribs.length;r++){
-    ribs[r].material.transparent=on;
-    ribs[r].material.opacity=on?0.2:1;
-  }
+  var opa=on?0.12:1.0;
+  var L=_blockM.concat(_headM).concat(_coverM);
+  for(var i=0;i<L.length;i++){if(!L[i])continue;L[i].material.transparent=on;L[i].material.opacity=opa;}
+  for(var r=0;r<_ribM.length;r++){_ribM[r].material.transparent=on;_ribM[r].material.opacity=on?0.2:1;}
   var btn=document.getElementById('ghostBtn');
   if(btn)btn.textContent=on?'👁 Скелет':'👁 Скрыто';
   try{if(navigator.vibrate)navigator.vibrate(10);}catch(e){}
@@ -49,15 +45,15 @@ function setup(){
   wrap.appendChild(container);
   scene=new THREE.Scene();
   scene.background=new THREE.Color(0x0a0e13);
+  scene.fog=new THREE.Fog(0x0a0e13,35,80);
   var w=wrap.clientWidth||360,h=wrap.clientHeight||430;
-  camera=new THREE.PerspectiveCamera(45,w/h,0.1,300);
+  camera=new THREE.PerspectiveCamera(45,w/h,0.1,250);
   updCam();
   renderer=new THREE.WebGLRenderer({antialias:true});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
   renderer.setSize(w,h);
   renderer.domElement.style.cssText='display:block;width:100%;height:100%;touch-action:none';
   container.appendChild(renderer.domElement);
-
   scene.add(new THREE.AmbientLight(0xffffff,0.35));
   scene.add(new THREE.HemisphereLight(0xaaccff,0x3a2010,0.6));
   var L1=new THREE.DirectionalLight(0xffffff,1.6);L1.position.set(12,22,14);scene.add(L1);
@@ -66,7 +62,6 @@ function setup(){
   var L4=new THREE.PointLight(0xff8030,2.2,50);L4.position.set(0,10,6);scene.add(L4);
   var L5=new THREE.PointLight(0x3070ff,1.4,50);L5.position.set(-12,5,-10);scene.add(L5);
   var L6=new THREE.PointLight(0xffffff,1.0,45);L6.position.set(14,14,-10);scene.add(L6);
-
   if(window.DVS_3D_REBUILD)window.DVS_3D_REBUILD();
   attachControls();
   return true;
@@ -115,9 +110,8 @@ function animate(){
   if(!active||!scene){animId=null;return;}
   animId=requestAnimationFrame(animate);
   var ang=S.crankAngle||0;
-  var asm=window._3dAsm||[];
-  for(var i=0;i<asm.length;i++){
-    var A=asm[i];
+  for(var i=0;i<_asm.length;i++){
+    var A=_asm[i];
     var ph=ang+A.off;
     var ROD=2.9,CR=0.75;
     var s=Math.sin(ph),co=Math.cos(ph);
@@ -138,13 +132,24 @@ function animate(){
     if(A.vv&&A.vv[0])A.vv[0].position.y=A.h+0.05-vIn;
     if(A.vv&&A.vv[1])A.vv[1].position.y=A.h+0.05-vEx;
   }
-  if(window._3dCrank)window._3dCrank.rotation.x=ang;
-  if(window._3dFly)window._3dFly.rotation.x=ang;
-  if(window._3dBeltB)window._3dBeltB.rotation.x=ang;
-  if(window._3dBeltT)window._3dBeltT.rotation.x=ang*0.5;
-  if(window._3dCam)window._3dCam.rotation.x=ang*0.5;
-  var cams=window._3dCams||[];
-  for(var c=0;c<cams.length;c++)cams[c].grp.rotation.z=(ang*0.5)+cams[c].off;
+  /* ВАНКЕЛЬ — крутим роторы */
+  var wRotors=window._wankelRotors||[];
+  for(var wr=0;wr<wRotors.length;wr++){
+    var W=wRotors[wr];
+    /* Ротор вращается вокруг оси Z (эпитрохоида в плоскости XY) */
+    W.mesh.rotation.z=-ang*0.5 + (W.phase||0);
+    /* Смещение эксцентрика */
+    var eccX=Math.cos(ang)*W.ecc;
+    var eccY=Math.sin(ang)*W.ecc;
+    W.mesh.position.x=eccX;
+    W.mesh.position.y=eccY;
+  }
+  if(_crank)_crank.rotation.x=ang;
+  if(_fly)_fly.rotation.x=ang;
+  if(_beltB)_beltB.rotation.x=ang;
+  if(_beltT)_beltT.rotation.x=ang*0.5;
+  if(_cam)_cam.rotation.x=ang*0.5;
+  for(var c=0;c<_cams.length;c++)_cams[c].grp.rotation.z=(ang*0.5)+_cams[c].off;
   renderer.render(scene,camera);
 }
 
@@ -160,11 +165,7 @@ function toggle(){
   if(active){
     var wrap=document.getElementById('engineCv').parentNode;
     var w=wrap.clientWidth,h=wrap.clientHeight;
-    if(w&&h&&renderer){
-      renderer.setSize(w,h);
-      camera.aspect=w/h;
-      camera.updateProjectionMatrix();
-    }
+    if(w&&h&&renderer){renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
     if(window.DVS_3D_REBUILD)window.DVS_3D_REBUILD();
     if(!animId)animate();
   } else {
@@ -188,25 +189,30 @@ window.DVS_3D_REF={
   getScene:function(){return scene;},
   getRoot:function(){return window._3dRoot||null;},
   setRoot:function(r){window._3dRoot=r;},
-  setCrank:function(g){window._3dCrank=g;},
-  setFly:function(g){window._3dFly=g;},
-  setCam:function(g){window._3dCam=g;},
-  setBeltT:function(g){window._3dBeltT=g;},
-  setBeltB:function(g){window._3dBeltB=g;},
-  setAsm:function(a){window._3dAsm=a||[];},
-  setCams:function(c){window._3dCams=c||[];},
-  pushBlock:function(x){if(!window._3dBlock)window._3dBlock=[];window._3dBlock.push(x);},
-  pushHead:function(x){if(!window._3dHead)window._3dHead=[];window._3dHead.push(x);},
-  pushCover:function(x){if(!window._3dCover)window._3dCover=[];window._3dCover.push(x);},
-  pushRib:function(x){if(!window._3dRib)window._3dRib=[];window._3dRib.push(x);},
-  clearAll:function(){window._3dBlock=[];window._3dHead=[];window._3dCover=[];window._3dRib=[];window._3dAsm=[];window._3dCams=[];},
+  setCrank:function(g){_crank=g;},
+  setFly:function(g){_fly=g;},
+  setCam:function(g){_cam=g;},
+  setBeltT:function(g){_beltT=g;},
+  setBeltB:function(g){_beltB=g;},
+  setAsm:function(a){_asm=a||[];},
+  setCams:function(c){_cams=c||[];},
+  pushBlock:function(x){_blockM.push(x);},
+  pushHead:function(x){_headM.push(x);},
+  pushCover:function(x){_coverM.push(x);},
+  pushRib:function(x){_ribM.push(x);},
+  clearAll:function(){_blockM=[];_headM=[];_coverM=[];_ribM=[];_asm=[];_cams=[];},
   getCfg:function(t){
     var CFG={
-      scooter:{n:1,v:false},tdi:{n:4,v:false,diesel:true,turbo:true},
-      mt82:{n:4,v:false,diesel:true,tractor:true},
-      passatb3:{n:4,v:false},bluebird:{n:4,v:false},
-      galant6:{n:6,v:true},r4:{n:4,v:false},
-      v8:{n:12,v:true},v16:{n:22,v:true}
+      scooter:{n:1,v:false},
+      tdi:{n:4,v:false},
+      mt82:{n:4,v:false},
+      passatb3:{n:4,v:false},
+      bluebird:{n:4,v:false},
+      galant6:{n:6,v:true},
+      wankel:{n:2,v:false},
+      r4:{n:4,v:false},
+      v8:{n:12,v:true},
+      v16:{n:22,v:true}
     };
     return CFG[t]||CFG.r4;
   }
