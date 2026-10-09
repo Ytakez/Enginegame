@@ -8,59 +8,46 @@ body{
   display:flex;
   flex-direction:column;
   position:relative;
-  color:#e8eef7;
-  font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
+  color:#e6ecf5;
+  font-family:-apple-system,'Inter','Segoe UI',system-ui,sans-serif;
   -webkit-user-select:none;user-select:none;
   -webkit-tap-highlight-color:transparent;
   touch-action:manipulation;
-  background:#070b10;
+  background:#05080c;
 }
 
-/* Живой фон с размытыми цветными пятнами */
+/* Нейтральный фон с глубиной */
 body::before{
   content:'';
-  position:fixed;inset:-20%;
+  position:fixed;inset:0;
   background:
-    radial-gradient(circle at 15% 20%, rgba(67,201,138,.22), transparent 45%),
-    radial-gradient(circle at 85% 15%, rgba(80,160,255,.22), transparent 45%),
-    radial-gradient(circle at 50% 90%, rgba(255,140,60,.15), transparent 50%),
-    radial-gradient(circle at 95% 80%, rgba(180,80,255,.15), transparent 45%);
-  filter:blur(60px);
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(60,90,130,.18), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 50% 100%, rgba(40,70,110,.12), transparent 60%),
+    radial-gradient(circle at 20% 40%, rgba(80,110,150,.10), transparent 50%),
+    radial-gradient(circle at 80% 60%, rgba(70,100,140,.10), transparent 50%),
+    linear-gradient(180deg,#080c12 0%,#05080c 100%);
   z-index:-2;
-  animation:bgFloat 20s ease-in-out infinite alternate;
 }
 body::after{
   content:'';
   position:fixed;inset:0;
-  background:radial-gradient(ellipse at 50% 0%, rgba(30,42,58,.4), rgba(7,11,16,.85) 70%);
+  background-image:radial-gradient(rgba(255,255,255,.015) 1px, transparent 1px);
+  background-size:3px 3px;
   z-index:-1;
   pointer-events:none;
-}
-@keyframes bgFloat{
-  0%{transform:translate(0,0) scale(1)}
-  50%{transform:translate(-3%,2%) scale(1.05)}
-  100%{transform:translate(2%,-2%) scale(1.02)}
+  opacity:.6;
 }
 
 /* ==================== ШАПКА ==================== */
 header{
-  padding:10px 6px 6px;
+  padding:12px 6px 8px;
   text-align:center;
   font-size:11px;
-  letter-spacing:4px;
+  letter-spacing:5px;
   text-transform:uppercase;
-  font-weight:700;
-  color:transparent;
-  background:linear-gradient(90deg,#43c98a,#50a0ff,#b450ff,#43c98a);
-  background-size:300% 100%;
-  -webkit-background-clip:text;
-  background-clip:text;
-  animation:headerShift 8s linear infinite;
-  text-shadow:0 0 30px rgba(67,201,138,.15);
-}
-@keyframes headerShift{
-  0%{background-position:0% 50%}
-  100%{background-position:300% 50%}
+  font-weight:600;
+  color:#7d8ea5;
+  text-shadow:0 1px 0 rgba(255,255,255,.04);
 }
 
 /* ==================== МЕНЮ ДВИГАТЕЛЕЙ ==================== */
@@ -70,45 +57,56 @@ header{
 }
 .engbtn{
   flex:0 1 84px;height:38px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(20,28,38,.55);
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
   color:#93a7bf;
-  font:800 14px/1 inherit;
+  font:700 14px/1 inherit;
   letter-spacing:1.5px;
   cursor:pointer;
   touch-action:manipulation;
-  transition:all .25s cubic-bezier(.4,0,.2,1);
+  transition:all .3s cubic-bezier(.4,0,.2,1);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.06),
-    0 4px 14px rgba(0,0,0,.35);
+    inset 0 1px 0 rgba(255,255,255,.10),
+    inset 0 -1px 0 rgba(0,0,0,.20),
+    0 4px 16px rgba(0,0,0,.35);
+  position:relative;
+  overflow:hidden;
+}
+.engbtn::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;height:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.10),transparent);
+  border-radius:14px 14px 50% 50%/14px 14px 20% 20%;
+  pointer-events:none;
 }
 .engbtn:hover{
-  border-color:rgba(80,160,255,.35);
-  color:#c6d6ea;
+  border-color:rgba(255,255,255,.20);
+  color:#cdd9e8;
   transform:translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.15),
+    inset 0 -1px 0 rgba(0,0,0,.25),
+    0 6px 20px rgba(0,0,0,.45);
 }
 .engbtn.on{
-  background:linear-gradient(180deg,rgba(43,122,86,.9),rgba(28,90,61,.85));
-  border-color:rgba(67,201,138,.7);
-  color:#eafff3;
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));
+  border-color:rgba(255,255,255,.28);
+  color:#ffffff;
   box-shadow:
-    0 0 20px rgba(67,201,138,.45),
-    inset 0 1px 0 rgba(255,255,255,.15);
+    inset 0 1px 0 rgba(255,255,255,.25),
+    inset 0 -1px 0 rgba(0,0,0,.25),
+    0 0 0 1px rgba(255,255,255,.05),
+    0 6px 22px rgba(120,180,255,.15);
 }
-.engbtn[data-eng="v6"].on{
-  background:linear-gradient(180deg,rgba(122,90,43,.9),rgba(74,53,28,.85));
-  border-color:rgba(201,169,67,.7);
-  color:#fff6e0;
-  box-shadow:0 0 20px rgba(201,169,67,.45),inset 0 1px 0 rgba(255,255,255,.15);
-}
+.engbtn[data-eng="v6"].on,
 .engbtn[data-eng="v12"].on{
-  background:linear-gradient(180deg,rgba(122,43,43,.9),rgba(74,26,26,.85));
-  border-color:rgba(255,91,91,.7);
-  color:#ffe6e6;
-  box-shadow:0 0 20px rgba(255,91,91,.45),inset 0 1px 0 rgba(255,255,255,.15);
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.06));
+  border-color:rgba(255,255,255,.28);
+  color:#ffffff;
 }
 
 /* ==================== ОСНОВНАЯ СЕТКА ==================== */
@@ -119,22 +117,26 @@ main{
 }
 .panel{
   position:relative;
-  background:rgba(18,26,36,.55);
-  backdrop-filter:blur(18px) saturate(140%);
-  -webkit-backdrop-filter:blur(18px) saturate(140%);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:16px;
+  background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.02));
+  backdrop-filter:blur(28px) saturate(180%);
+  -webkit-backdrop-filter:blur(28px) saturate(180%);
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:20px;
   padding:8px;
   box-shadow:
-    0 12px 40px rgba(0,0,0,.5),
-    inset 0 1px 0 rgba(255,255,255,.06);
+    inset 0 1px 0 rgba(255,255,255,.10),
+    inset 0 -1px 0 rgba(0,0,0,.20),
+    0 20px 60px rgba(0,0,0,.55);
+  overflow:hidden;
 }
 .panel::before{
   content:'';
-  position:absolute;inset:0;
-  border-radius:16px;
-  background:linear-gradient(135deg,rgba(255,255,255,.05),transparent 40%);
+  position:absolute;
+  top:0;left:0;right:0;height:45%;
+  background:linear-gradient(180deg,rgba(255,255,255,.06),transparent);
+  border-radius:20px 20px 60% 60%/20px 20px 30% 30%;
   pointer-events:none;
+  z-index:1;
 }
 
 #engineWrap{
@@ -143,31 +145,36 @@ main{
   overflow:hidden;
   position:relative;
 }
-#engineCv{display:block;max-width:100%;max-height:100%;border-radius:10px}
+#engineCv{display:block;max-width:100%;max-height:100%;border-radius:12px}
 
 #dash{
   flex:0 0 auto;
   width:min(42%,340px);
   display:flex;flex-direction:column;gap:8px;
 }
-#gaugeCv{display:block;width:100%;height:auto;border-radius:10px}
+#gaugeCv{display:block;width:100%;height:auto;border-radius:12px}
 
 /* ==================== СЕЛЕКТОР ПЕРЕДАЧ ==================== */
 .gears-box{
   position:relative;width:100%;height:150px;
-  background:
-    radial-gradient(ellipse at 50% 50%,rgba(30,42,58,.6) 0%,rgba(10,16,24,.6) 100%);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:14px;
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:16px;
   padding:4px;
   overflow:hidden;
   flex:0 0 auto;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 4px 16px rgba(0,0,0,.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -1px 0 rgba(0,0,0,.20);
 }
 .gb-lines{position:absolute;top:4px;left:4px;width:calc(100% - 8px);height:calc(100% - 8px);pointer-events:none}
-.gb-lines line{stroke:rgba(120,150,180,.35);stroke-width:2.5;stroke-linecap:round;filter:drop-shadow(0 0 3px rgba(80,160,255,.3))}
+.gb-lines line{
+  stroke:rgba(200,215,235,.14);
+  stroke-width:2.5;
+  stroke-linecap:round;
+}
 .gb-grid{
   position:relative;display:grid;
   grid-template-columns:1fr 1fr 1fr 1fr;
@@ -177,37 +184,52 @@ main{
 }
 .gb-grid .gbtn{
   width:38px;height:38px;border-radius:50%;
-  border:2px solid rgba(120,140,170,.4);
-  background:rgba(18,26,36,.7);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
   color:#c8d4e0;
-  font:800 14px/1 inherit;
+  font:700 14px/1 inherit;
   cursor:pointer;
   touch-action:manipulation;
   display:flex;align-items:center;justify-content:center;
   align-self:center;justify-self:center;
   padding:0;margin:0;
-  transition:all .2s cubic-bezier(.4,0,.2,1);
-  box-shadow:0 2px 8px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.06);
+  transition:all .25s cubic-bezier(.4,0,.2,1);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.15),
+    inset 0 -1px 0 rgba(0,0,0,.25),
+    0 4px 12px rgba(0,0,0,.35);
 }
-.gb-grid .gbtn:hover{transform:scale(1.06);border-color:rgba(80,160,255,.5)}
+.gb-grid .gbtn:hover{
+  transform:scale(1.06);
+  border-color:rgba(255,255,255,.25);
+}
 .gb-grid .gbtn.on{
-  background:linear-gradient(180deg,#f0f0f0,#c8d0d8);
-  border-color:#fff;color:#000;
-  box-shadow:0 0 20px rgba(255,255,255,.7),0 0 40px rgba(255,255,255,.3);
-  transform:scale(1.12);
+  background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(220,230,240,.85));
+  border-color:rgba(255,255,255,.9);
+  color:#0a0e13;
+  font-weight:800;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 0 24px rgba(255,255,255,.45),
+    0 6px 20px rgba(0,0,0,.4);
+  transform:scale(1.10);
 }
 .gb-grid .gbtn.gb-n.on{
-  background:linear-gradient(180deg,#e8e860,#c9c943);
-  border-color:#fff;color:#000;
-  box-shadow:0 0 20px rgba(201,201,67,.8),0 0 40px rgba(201,201,67,.4);
+  background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(220,230,240,.85));
+  border-color:rgba(255,255,255,.9);
+  color:#0a0e13;
 }
-.gb-grid .gbtn.gb-r{border-color:rgba(255,91,91,.5);color:#ff9090}
+.gb-grid .gbtn.gb-r{color:#ff9090}
 .gb-grid .gbtn.gb-r.on{
-  background:linear-gradient(180deg,#e03030,#a01818);
-  border-color:#ff5b5b;color:#fff;
-  box-shadow:0 0 20px rgba(255,91,91,.85),0 0 40px rgba(255,91,91,.4);
+  background:linear-gradient(180deg,rgba(255,120,120,.95),rgba(200,60,60,.85));
+  border-color:rgba(255,150,150,.9);
+  color:#ffffff;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.4),
+    0 0 24px rgba(255,90,90,.5),
+    0 6px 20px rgba(0,0,0,.4);
 }
 .gb-r{grid-area:r}.gb-n{grid-area:n}
 .gbtn[data-g="1"]{grid-area:g1}.gbtn[data-g="2"]{grid-area:g2}
@@ -217,116 +239,181 @@ main{
 /* ==================== АВТО-КПП ==================== */
 .gears-auto{
   display:none;gap:6px;
-  background:rgba(13,19,25,.6);
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:12px;padding:6px;
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;padding:6px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
 }
 body.auto-mode .gears-auto{display:grid;grid-template-columns:repeat(3,1fr)}
 body.auto-mode #gearsManual{display:none}
 .agbtn{
-  height:46px;border-radius:10px;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(20,28,38,.7);
-  backdrop-filter:blur(8px);
-  -webkit-backdrop-filter:blur(8px);
-  color:#8ea4bd;font:800 16px/1 inherit;
+  height:46px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  color:#93a7bf;font:700 16px/1 inherit;
   cursor:pointer;touch-action:manipulation;
-  transition:all .2s;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+  transition:all .25s;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -1px 0 rgba(0,0,0,.22);
 }
-.agbtn:hover{transform:translateY(-1px)}
+.agbtn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.22)}
 .agbtn.on{
-  background:linear-gradient(180deg,rgba(43,122,86,.9),rgba(28,90,61,.85));
-  border-color:rgba(67,201,138,.7);color:#e6fff3;
-  box-shadow:0 0 16px rgba(67,201,138,.5);
+  background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(220,230,240,.85));
+  border-color:rgba(255,255,255,.9);
+  color:#0a0e13;font-weight:800;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 0 20px rgba(255,255,255,.35);
 }
 .agbtn.neu.on{
-  background:linear-gradient(180deg,rgba(90,95,43,.9),rgba(61,66,28,.85));
-  border-color:rgba(201,201,67,.7);color:#fbffe6;
-  box-shadow:0 0 16px rgba(201,201,67,.5);
+  background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(220,230,240,.85));
+  border-color:rgba(255,255,255,.9);
+  color:#0a0e13;
 }
 .agbtn.rev.on{
-  background:linear-gradient(180deg,rgba(122,43,43,.9),rgba(74,26,26,.85));
-  border-color:rgba(255,91,91,.7);color:#ffe6e6;
-  box-shadow:0 0 16px rgba(255,91,91,.5);
+  background:linear-gradient(180deg,rgba(255,120,120,.95),rgba(200,60,60,.85));
+  border-color:rgba(255,150,150,.9);
+  color:#ffffff;
+  box-shadow:0 0 20px rgba(255,90,90,.4);
 }
 
 /* ==================== КНОПКА ЗАЖИГАНИЯ/ПУСК ==================== */
 .ignbtn{
   width:100%;height:46px;
-  border-radius:12px;
-  border:1px solid rgba(80,160,255,.35);
-  background:rgba(20,32,44,.7);
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
-  color:#8fd8ff;
-  font:800 13px/1 inherit;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  color:#b8cade;
+  font:700 13px/1 inherit;
   letter-spacing:2px;
   text-transform:uppercase;
   cursor:pointer;
   touch-action:manipulation;
   user-select:none;-webkit-user-select:none;
   -webkit-tap-highlight-color:transparent;
-  transition:all .25s cubic-bezier(.4,0,.2,1);
+  transition:all .3s cubic-bezier(.4,0,.2,1);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.08),
-    0 4px 16px rgba(0,0,0,.4);
+    inset 0 1px 0 rgba(255,255,255,.14),
+    inset 0 -1px 0 rgba(0,0,0,.25),
+    0 6px 18px rgba(0,0,0,.4);
+  position:relative;
+  overflow:hidden;
+}
+.ignbtn::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;height:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.10),transparent);
+  border-radius:14px 14px 50% 50%/14px 14px 20% 20%;
+  pointer-events:none;
 }
 .ignbtn:hover{
-  border-color:rgba(80,160,255,.6);
-  color:#b8e6ff;
+  border-color:rgba(255,255,255,.25);
+  color:#e0e8f2;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.12),
-    0 6px 22px rgba(80,160,255,.25);
+    inset 0 1px 0 rgba(255,255,255,.20),
+    inset 0 -1px 0 rgba(0,0,0,.25),
+    0 8px 24px rgba(0,0,0,.5);
 }
 .ignbtn.on{
-  background:linear-gradient(180deg,rgba(43,122,86,.9),rgba(28,90,61,.85));
-  border-color:rgba(67,201,138,.7);
-  color:#eafff3;
-  box-shadow:0 0 22px rgba(67,201,138,.5),inset 0 1px 0 rgba(255,255,255,.12);
+  background:linear-gradient(180deg,rgba(255,255,255,.95),rgba(220,230,240,.85));
+  border-color:rgba(255,255,255,.9);
+  color:#0a0e13;
+  font-weight:800;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 0 28px rgba(255,255,255,.4),
+    0 8px 24px rgba(0,0,0,.5);
 }
 #ignBtn.start{
-  background:linear-gradient(180deg,rgba(201,138,43,.95),rgba(122,90,26,.9));
-  border-color:rgba(255,201,60,.8);
-  color:#fff;
-  font-weight:900;
+  background:linear-gradient(180deg,rgba(255,180,60,.95),rgba(200,120,20,.85));
+  border-color:rgba(255,210,120,.9);
+  color:#1a0e00;
+  font-weight:800;
   letter-spacing:4px;
   box-shadow:
-    0 0 28px rgba(255,201,60,.6),
-    inset 0 1px 0 rgba(255,255,255,.2);
-  animation:startPulse 1.6s ease-in-out infinite;
+    inset 0 1px 0 rgba(255,255,255,.5),
+    0 0 40px rgba(255,180,60,.55),
+    0 8px 24px rgba(0,0,0,.5);
+  animation:startPulse 2s ease-in-out infinite;
 }
 @keyframes startPulse{
-  0%,100%{box-shadow:0 0 22px rgba(255,201,60,.5),inset 0 1px 0 rgba(255,255,255,.2)}
-  50%{box-shadow:0 0 40px rgba(255,201,60,.9),inset 0 1px 0 rgba(255,255,255,.3)}
+  0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 0 30px rgba(255,180,60,.45),0 8px 24px rgba(0,0,0,.5)}
+  50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 0 55px rgba(255,180,60,.85),0 8px 24px rgba(0,0,0,.5)}
 }
 
-/* ==================== 3D/СКРЫТО КНОПКИ ==================== */
+/* Кнопка зажигания поверх 3D-сцены — компактная, жидкое стекло */
+#engineWrap #ignBtn{
+  position:absolute;
+  bottom:14px;
+  left:50%;
+  transform:translateX(-50%);
+  width:auto;
+  min-width:130px;
+  height:38px;
+  padding:0 20px;
+  font-size:11px;
+  letter-spacing:2.5px;
+  border-radius:20px;
+  z-index:20;
+  background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
+  backdrop-filter:blur(24px) saturate(180%);
+  -webkit-backdrop-filter:blur(24px) saturate(180%);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.18),
+    inset 0 -1px 0 rgba(0,0,0,.22),
+    0 8px 28px rgba(0,0,0,.55);
+}
+
+/* Пульсация в режиме ПУСК (без изменения размера) */
+#engineWrap #ignBtn.start{
+  background:linear-gradient(180deg,rgba(255,200,90,.85),rgba(190,120,25,.75));
+  border-color:rgba(255,220,140,.85);
+  color:#1a0e00;
+  font-weight:800;
+  backdrop-filter:blur(24px) saturate(200%);
+  -webkit-backdrop-filter:blur(24px) saturate(200%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 -1px 0 rgba(0,0,0,.20),
+    0 0 30px rgba(255,180,60,.55),
+    0 8px 28px rgba(0,0,0,.55);
+  animation:startPulse 2s ease-in-out infinite;
+}
+
+/* ==================== КНОПКИ 3D / СКРЫТО ==================== */
 #view3dBtn,#ghostBtn{
   position:absolute;top:10px;
   z-index:20;
   padding:8px 16px;
-  border-radius:24px;
-  border:1px solid rgba(80,160,255,.4);
-  background:rgba(15,22,30,.75);
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
-  color:#8fd8ff;
-  font:800 11px/1 inherit;
+  border-radius:22px;
+  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  color:#b8cade;
+  font:700 11px/1 inherit;
   letter-spacing:1.2px;
   cursor:pointer;
   touch-action:manipulation;
-  transition:all .2s;
-  box-shadow:0 4px 16px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.08);
+  transition:all .25s;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.14),
+    0 6px 18px rgba(0,0,0,.5);
 }
 #view3dBtn{right:10px}
-#ghostBtn{right:118px;display:none}
+#ghostBtn{right:120px;display:none}
 #view3dBtn:hover,#ghostBtn:hover{
-  border-color:rgba(80,160,255,.8);
-  color:#c8e8ff;
-  box-shadow:0 0 20px rgba(80,160,255,.4);
+  border-color:rgba(255,255,255,.28);
+  color:#ffffff;
 }
 
 /* ==================== ПЕДАЛИ ==================== */
@@ -339,67 +426,89 @@ body.auto-mode #gearsManual{display:none}
 }
 .pedal{
   position:relative;height:108px;
-  border-radius:18px;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(20,28,38,.55);
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
+  border-radius:20px;
+  border:1px solid rgba(255,255,255,.10);
+  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  backdrop-filter:blur(24px) saturate(160%);
+  -webkit-backdrop-filter:blur(24px) saturate(160%);
   color:#a9bdd4;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:5px;
-  font:800 12px/1 inherit;letter-spacing:1.2px;
+  font:700 12px/1 inherit;letter-spacing:1.2px;
   overflow:hidden;touch-action:none;
-  transition:all .2s;
+  transition:all .25s cubic-bezier(.4,0,.2,1);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.06),
-    0 6px 20px rgba(0,0,0,.4);
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 -1px 0 rgba(0,0,0,.22),
+    0 10px 30px rgba(0,0,0,.5);
+}
+.pedal::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;height:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.08),transparent);
+  border-radius:20px 20px 50% 50%/20px 20px 25% 25%;
+  pointer-events:none;
 }
 .pedal .bar{
   position:absolute;left:0;bottom:0;
   height:100%;width:0%;
-  background:linear-gradient(90deg,rgba(67,201,138,.45),rgba(67,201,138,.05));
+  background:linear-gradient(90deg,rgba(255,255,255,.18),rgba(255,255,255,.03));
   pointer-events:none;
   transition:width .04s linear;
 }
-.pedal.brake .bar{background:linear-gradient(90deg,rgba(255,80,80,.45),rgba(255,80,80,.05))}
-.pedal.clutch .bar{background:linear-gradient(90deg,rgba(255,200,60,.42),rgba(255,200,60,.05))}
-.pedal .icon{font-size:26px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
-.pedal .sub{font-size:9px;color:#5d7189;font-weight:600;letter-spacing:1px}
+.pedal.brake .bar{background:linear-gradient(90deg,rgba(255,90,90,.22),rgba(255,90,90,.04))}
+.pedal.clutch .bar{background:linear-gradient(90deg,rgba(255,190,80,.22),rgba(255,190,80,.04))}
+.pedal .icon{font-size:26px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));z-index:1}
+.pedal .sub{font-size:9px;color:#647790;font-weight:600;letter-spacing:1px;z-index:1}
+.pedal span{position:relative;z-index:1}
 .pedal.active{
-  border-color:rgba(67,201,138,.7);
-  color:#eafff5;
-  box-shadow:0 0 28px rgba(67,201,138,.45),inset 0 1px 0 rgba(255,255,255,.12);
+  border-color:rgba(255,255,255,.35);
+  color:#ffffff;
   transform:translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.25),
+    inset 0 -1px 0 rgba(0,0,0,.22),
+    0 0 32px rgba(255,255,255,.20),
+    0 12px 36px rgba(0,0,0,.55);
 }
 .pedal.brake.active{
-  border-color:rgba(255,91,91,.7);
-  box-shadow:0 0 28px rgba(255,91,91,.45),inset 0 1px 0 rgba(255,255,255,.12);
-  color:#ffecec;
+  border-color:rgba(255,120,120,.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.25),
+    0 0 32px rgba(255,90,90,.35),
+    0 12px 36px rgba(0,0,0,.55);
+  color:#ffe8e8;
 }
 .pedal.clutch.active{
-  border-color:rgba(255,201,60,.7);
-  box-shadow:0 0 28px rgba(255,201,60,.45),inset 0 1px 0 rgba(255,255,255,.12);
-  color:#fff8e0;
+  border-color:rgba(255,200,90,.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.25),
+    0 0 32px rgba(255,190,80,.35),
+    0 12px 36px rgba(0,0,0,.55);
+  color:#fff6e0;
 }
 
 /* ==================== БЕЙДЖ ДВИГАТЕЛЯ ==================== */
 .eng-badge{
-  position:fixed;top:10px;right:12px;z-index:30;
-  padding:5px 12px;
+  position:fixed;top:12px;right:14px;z-index:30;
+  padding:6px 14px;
   border-radius:20px;
-  border:1px solid rgba(80,160,255,.4);
-  background:rgba(15,22,30,.7);
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
-  color:#8fd8ff;
-  font:800 12px/1 inherit;letter-spacing:2px;
-  box-shadow:0 4px 16px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.12);
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
+  color:#c8d6e6;
+  font:700 12px/1 inherit;letter-spacing:2px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.14),
+    0 6px 18px rgba(0,0,0,.5);
 }
 
 /* ==================== АДАПТАЦИЯ ==================== */
 @media (orientation:portrait) and (max-width:820px){
   main{flex-direction:column;gap:8px;padding:6px 8px}
-  #engineWrap{flex:0 0 auto;height:32vh;min-height:160px}
+  #engineWrap{flex:0 0 auto;height:34vh;min-height:180px}
   #dash{
     width:auto;
     flex-direction:row;flex-wrap:wrap;justify-content:center;gap:8px;
@@ -421,44 +530,48 @@ body.auto-mode #gearsManual{display:none}
 /* ==================== ОШИБКИ / ПОЛОМКА ==================== */
 #err{
   position:fixed;left:0;right:0;bottom:0;
-  background:linear-gradient(180deg,rgba(180,20,20,.95),rgba(120,10,10,.95));
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
+  background:linear-gradient(180deg,rgba(180,30,30,.92),rgba(120,15,15,.92));
+  backdrop-filter:blur(24px) saturate(160%);
+  -webkit-backdrop-filter:blur(24px) saturate(160%);
   color:#fff;
   font:12px/1.4 'JetBrains Mono',monospace;
   padding:10px;
   z-index:9999;
   display:none;
   white-space:pre-wrap;
-  border-top:1px solid rgba(255,100,100,.5);
-  box-shadow:0 -8px 30px rgba(180,20,20,.5);
+  border-top:1px solid rgba(255,150,150,.35);
+  box-shadow:0 -12px 40px rgba(180,30,30,.45);
 }
 #repairBtn{
-  position:fixed;top:64px;left:10px;z-index:1001;
-  width:48px;height:48px;border-radius:50%;
-  border:2px solid rgba(255,91,91,.8);
-  background:linear-gradient(180deg,rgba(138,10,10,.95),rgba(90,5,5,.95));
-  backdrop-filter:blur(10px);
-  -webkit-backdrop-filter:blur(10px);
+  position:fixed;top:66px;left:12px;z-index:1001;
+  width:50px;height:50px;border-radius:50%;
+  border:1px solid rgba(255,150,150,.5);
+  background:linear-gradient(180deg,rgba(255,80,80,.35),rgba(140,20,20,.35));
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
   color:#fff;font-size:22px;
   cursor:pointer;
   display:none;align-items:center;justify-content:center;
-  box-shadow:0 0 24px rgba(255,91,91,.6),inset 0 1px 0 rgba(255,255,255,.15);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.25),
+    0 0 24px rgba(255,90,90,.5),
+    0 8px 24px rgba(0,0,0,.5);
   transition:transform .2s;
 }
 #repairBtn:hover{transform:scale(1.08)}
 body.broken #repairBtn{display:flex}
 #breakBanner{
   position:fixed;top:0;left:0;right:0;z-index:999;
-  background:linear-gradient(180deg,rgba(201,17,17,.95),rgba(138,10,10,.95));
-  backdrop-filter:blur(14px);
-  -webkit-backdrop-filter:blur(14px);
+  background:linear-gradient(180deg,rgba(200,30,30,.92),rgba(140,15,15,.92));
+  backdrop-filter:blur(24px) saturate(160%);
+  -webkit-backdrop-filter:blur(24px) saturate(160%);
   color:#fff;text-align:center;
-  font-weight:800;
+  font-weight:700;
   padding:12px;
   font-size:13px;
   letter-spacing:1.5px;
   display:none;
-  box-shadow:0 4px 24px rgba(201,17,17,.5);
+  border-bottom:1px solid rgba(255,150,150,.4);
+  box-shadow:0 8px 32px rgba(200,30,30,.5);
 }
 body.broken #breakBanner{display:block}
