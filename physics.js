@@ -5,6 +5,7 @@ var WKEY='dvs_weather';
 var ENGINES={
 scooter:{name:'S1',cyls:1,maxTorque:60,idle:700,redline:3200,breakRpm:3800,stallRpm:250,fireDiv:30,lpBase:1400,lpRpm:0.35,subGain:0.5,sawGain:0.9,sqGain:0.4,noiseBase:0.08,cvt:true,auto:true,mass:200,gears:5},
 tdi:{name:'1.9 TDI',cyls:4,maxTorque:310,idle:850,redline:4800,breakRpm:5500,stallRpm:300,fireDiv:30,lpBase:380,lpRpm:0.10,subGain:1.8,sawGain:0.35,sqGain:0.08,noiseBase:0.10,mass:1350,diesel:true,gears:5},
+dci:{name:'2.0 dCi',cyls:4,maxTorque:360,idle:800,redline:5000,breakRpm:5500,stallRpm:300,fireDiv:28,lpBase:280,lpRpm:0.06,subGain:3.2,sawGain:0.65,sqGain:0.05,noiseBase:0.16,mass:1400,diesel:true,gears:6},
 mt82:{name:'Д-240',cyls:4,maxTorque:298,idle:600,redline:2200,breakRpm:2400,stallRpm:250,fireDiv:15,lpBase:220,lpRpm:0.06,subGain:3.5,sawGain:0.5,sqGain:0.04,noiseBase:0.18,mass:3200,diesel:true,tractor:true,gears:5},
 passatb3:{name:'1.8 B3',cyls:4,maxTorque:160,idle:900,redline:6200,breakRpm:7000,stallRpm:350,fireDiv:30,lpBase:750,lpRpm:0.14,subGain:0.85,sawGain:0.45,sqGain:0.12,noiseBase:0.012,mass:1300,gears:5},
 bluebird:{name:'2.0 CA20',cyls:4,maxTorque:178,idle:850,redline:7000,breakRpm:7800,stallRpm:350,fireDiv:30,lpBase:780,lpRpm:0.16,subGain:0.8,sawGain:0.55,sqGain:0.14,noiseBase:0.018,mass:1280,gears:5},
@@ -17,7 +18,7 @@ v16:{name:'V22',cyls:22,maxTorque:900,idle:900,redline:8200,breakRpm:9600,stallR
 var AMB={summer:25,autumn:8,winter:-15};
 var OVERHEAT_LIMIT=145;
 
-/* Передаточные числа. 6-я — короче, чтобы не глохнуть на низких оборотах */
+/* Передаточные числа */
 var RATIOS_5=[0, 3.40, 2.00, 1.40, 1.00, 0.80];
 var RATIOS_6=[0, 3.40, 2.10, 1.55, 1.20, 0.95, 0.78];
 function ratiosFor(E){return (E&&E.gears===6)?RATIOS_6:RATIOS_5;}
@@ -165,7 +166,6 @@ S.physics=function(dt){
   var mass=safeNum(E.mass,1250);
   var Iwheel=mass*wheelRadius*wheelRadius;
 
-  /* ===== КЛИН ===== */
   if(S.seized){
     S.rpm=0;S.throttle=0;
     S.speed*=Math.max(0,1-2.5*dt);
@@ -182,7 +182,7 @@ S.physics=function(dt){
   S.rpm=safeNum(S.rpm,0);
   S.speed=safeNum(S.speed,0);
 
-  /* ===== АВТО-СЦЕПЛЕНИЕ ПРИ СМЕНЕ ПЕРЕДАЧИ (как в DCT) ===== */
+  /* Авто-сцепление при смене передачи */
   if(S._prevGear!==S.gear){
     S._shiftTimer=0.35;
     S._prevGear=S.gear;
@@ -194,7 +194,7 @@ S.physics=function(dt){
   var shiftSlip=1;
   if(S._shiftTimer>0)shiftSlip=0.15;
 
-  /* ===== ТЕМПЕРАТУРА ===== */
+  /* ТЕМПЕРАТУРА */
   if(S.running&&!S.stalled){
     if(S.engineTemp<85)S.engineTemp+=dt*0.8;
     else if(S.engineTemp<95)S.engineTemp+=dt*0.3;
@@ -208,7 +208,7 @@ S.physics=function(dt){
     }
   }
 
-  /* ===== ПЕРЕГРЕВ = КЛИН ===== */
+  /* ПЕРЕГРЕВ = КЛИН */
   if(S.engineTemp >= OVERHEAT_LIMIT && S.running){
     S.seized = true;
     S.throttle = 0;
@@ -217,7 +217,6 @@ S.physics=function(dt){
     return;
   }
 
-  /* ===== ПЕРЕДАТОЧНОЕ ЧИСЛО ===== */
   var ratio=0;
   if(E.cvt){
     var vv=Math.abs(S.speed);
@@ -237,7 +236,6 @@ S.physics=function(dt){
   }
   ratio=safeNum(ratio,0);
 
-  /* ===== СЦЕПЛЕНИЕ ===== */
   var eng;
   if(E.auto){
     if(S.gear===0||S.stalled||!S.running){eng=0;}
@@ -254,7 +252,6 @@ S.physics=function(dt){
   var omegaDirect=omegaWheel*ratio;
   var omegaEngine=S.rpm*Math.PI/30;
 
-  /* ===== КРУТЯЩИЙ МОМЕНТ ДВИГАТЕЛЯ ===== */
   var Te=0;
   if(S.running&&!S.stalled){
     var thr=safeNum(S.throttle,0);
@@ -290,9 +287,7 @@ S.physics=function(dt){
       if(S.rpm<E.idle*0.7)Te+=(E.idle*0.7-S.rpm)*0.5;
     }
 
-    /* ===== АНТИ-СТОЛЛ ЗАЩИТА =====
-       Если обороты падают ниже idle с включённым сцеплением —
-       добавляем крутящий момент, как современный ЭБУ. */
+    /* АНТИ-СТОЛЛ */
     if(eng > 0.3 && S.rpm < E.idle*0.85){
       var guard = (E.idle*0.85 - S.rpm) * 0.5;
       if(guard > 150) guard = 150;
@@ -300,7 +295,6 @@ S.physics=function(dt){
     }
   }
 
-  /* ===== СЦЕПЛЕНИЕ / ПЕРЕДАЧА МОМЕНТА ===== */
   var slip=omegaEngine-omegaDirect;
   var Tc;
   if(E.cvt){
@@ -349,7 +343,6 @@ S.physics=function(dt){
     if(Math.abs(nW)<0.6)S.speed=0;
   }
 
-  /* ===== ЗАГЛОХ: только если сцепление включено И обороты совсем низкие ===== */
   if(!S.stalled && S.running && S.rpm<E.stallRpm){
     if(eng > 0.25 && S._shiftTimer<=0){
       S.stalled=true;S.running=false;S.rpm=0;
