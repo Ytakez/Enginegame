@@ -19,7 +19,6 @@ body{
   background:#000;
 }
 
-/* Мягкий серый фон */
 body::before{
   content:'';
   position:fixed;inset:-10%;
@@ -53,8 +52,8 @@ header{
   border-radius:14px;
   border:1px solid rgba(255,255,255,.06);
   background:rgba(20,20,20,.5);
-  backdrop-filter:blur(30px) saturate(140%);
-  -webkit-backdrop-filter:blur(30px) saturate(140%);
+  backdrop-filter:blur(30px) saturate(100%);
+  -webkit-backdrop-filter:blur(30px) saturate(100%);
   color:#8a8a8a;
   font:600 13px/1 inherit;
   letter-spacing:1.5px;
@@ -63,10 +62,7 @@ header{
   transition:background .2s,border-color .2s,color .2s;
   box-shadow:0 8px 24px rgba(0,0,0,.5);
 }
-.engbtn:hover{
-  border-color:rgba(255,255,255,.12);
-  color:#c0c0c0;
-}
+.engbtn:hover{border-color:rgba(255,255,255,.12);color:#c0c0c0}
 .engbtn.on{
   background:rgba(255,255,255,.12);
   border-color:rgba(255,255,255,.22);
@@ -88,8 +84,8 @@ main{
 .panel{
   position:relative;
   background:rgba(15,15,15,.5);
-  backdrop-filter:blur(50px) saturate(140%);
-  -webkit-backdrop-filter:blur(50px) saturate(140%);
+  backdrop-filter:blur(50px) saturate(100%);
+  -webkit-backdrop-filter:blur(50px) saturate(100%);
   border:1px solid rgba(255,255,255,.06);
   border-radius:20px;
   padding:8px;
@@ -112,25 +108,21 @@ main{
 }
 #gaugeCv{display:block;width:100%;height:auto;border-radius:14px}
 
-/* ==================== СЕЛЕКТОР ПЕРЕДАЧ ==================== */
+/* ==================== СЕЛЕКТОР ПЕРЕДАЧ — ЧЁРНЫЙ ==================== */
 .gears-box{
   position:relative;width:100%;height:150px;
-  background:rgba(15,15,15,.5);
-  backdrop-filter:blur(40px) saturate(140%);
-  -webkit-backdrop-filter:blur(40px) saturate(140%);
-  border:1px solid rgba(255,255,255,.06);
+  background:rgba(6,6,6,.85);
+  backdrop-filter:blur(40px) saturate(100%);
+  -webkit-backdrop-filter:blur(40px) saturate(100%);
+  border:1px solid rgba(255,255,255,.05);
   border-radius:16px;
   padding:4px;
   overflow:hidden;
   flex:0 0 auto;
-  box-shadow:0 12px 36px rgba(0,0,0,.5);
+  box-shadow:0 12px 36px rgba(0,0,0,.7);
 }
 .gb-lines{position:absolute;top:4px;left:4px;width:calc(100% - 8px);height:calc(100% - 8px);pointer-events:none}
-.gb-lines line{
-  stroke:rgba(255,255,255,.08);
-  stroke-width:2.5;
-  stroke-linecap:round;
-}
+.gb-lines line{stroke:rgba(255,255,255,.08);stroke-width:2.5;stroke-linecap:round}
 .gb-grid{
   position:relative;display:grid;
   grid-template-columns:1fr 1fr 1fr 1fr;
@@ -140,23 +132,23 @@ main{
 }
 .gb-grid .gbtn{
   width:40px;height:40px;border-radius:50%;
-  border:1px solid rgba(255,255,255,.06);
-  background:rgba(25,25,25,.6);
-  backdrop-filter:blur(20px) saturate(140%);
-  -webkit-backdrop-filter:blur(20px) saturate(140%);
-  color:#b8b8b8;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(12,12,12,.9);
+  backdrop-filter:blur(20px) saturate(100%);
+  -webkit-backdrop-filter:blur(20px) saturate(100%);
+  color:#b0b0b0;
   font:600 14px/1 inherit;
   cursor:pointer;
   touch-action:manipulation;
   display:flex;align-items:center;justify-content:center;
   align-self:center;justify-self:center;
   padding:0;margin:0;
-  transition:background .2s,border-color .2s,color .2s,transform .2s;
-  box-shadow:0 6px 16px rgba(0,0,0,.45);
+  transition:background .2s,border-color .2s,color .2s,transform .2s,box-shadow .2s;
+  box-shadow:0 6px 16px rgba(0,0,0,.6);
 }
 .gb-grid .gbtn:hover{
   transform:scale(1.05);
-  border-color:rgba(255,255,255,.14);
+  border-color:rgba(255,255,255,.18);
   color:#e0e0e0;
 }
 .gb-grid .gbtn.on{
@@ -164,20 +156,21 @@ main{
   border-color:#f0f0f0;
   color:#000;
   font-weight:700;
-  box-shadow:0 0 20px rgba(255,255,255,.25),0 8px 22px rgba(0,0,0,.5);
+  box-shadow:0 0 24px rgba(255,255,255,.35),0 8px 22px rgba(0,0,0,.6);
   transform:scale(1.08);
 }
 .gb-grid .gbtn.gb-n.on{
-  background:#f0f0f0;
-  border-color:#f0f0f0;
+  background:#e8e85a;
+  border-color:#f0f090;
   color:#000;
+  box-shadow:0 0 28px rgba(230,230,90,.6),0 8px 22px rgba(0,0,0,.6);
 }
-.gb-grid .gbtn.gb-r{color:#c08080}
+.gb-grid .gbtn.gb-r{color:#c08080;border-color:rgba(180,80,80,.35)}
 .gb-grid .gbtn.gb-r.on{
   background:#c05050;
-  border-color:#c05050;
+  border-color:#d07070;
   color:#ffffff;
-  box-shadow:0 0 20px rgba(200,80,80,.35),0 8px 22px rgba(0,0,0,.5);
+  box-shadow:0 0 24px rgba(200,80,80,.5),0 8px 22px rgba(0,0,0,.6);
 }
 .gb-r{grid-area:r}.gb-n{grid-area:n}
 .gbtn[data-g="1"]{grid-area:g1}.gbtn[data-g="2"]{grid-area:g2}
@@ -187,43 +180,38 @@ main{
 /* ==================== АВТО-КПП ==================== */
 .gears-auto{
   display:none;gap:6px;
-  background:rgba(15,15,15,.5);
-  backdrop-filter:blur(40px) saturate(140%);
-  -webkit-backdrop-filter:blur(40px) saturate(140%);
-  border:1px solid rgba(255,255,255,.06);
+  background:rgba(6,6,6,.85);
+  backdrop-filter:blur(40px) saturate(100%);
+  -webkit-backdrop-filter:blur(40px) saturate(100%);
+  border:1px solid rgba(255,255,255,.05);
   border-radius:14px;padding:6px;
-  box-shadow:0 10px 30px rgba(0,0,0,.45);
+  box-shadow:0 10px 30px rgba(0,0,0,.5);
 }
 body.auto-mode .gears-auto{display:grid;grid-template-columns:repeat(3,1fr)}
 body.auto-mode #gearsManual{display:none}
 .agbtn{
   height:48px;border-radius:12px;
-  border:1px solid rgba(255,255,255,.06);
-  background:rgba(25,25,25,.6);
-  backdrop-filter:blur(20px) saturate(140%);
-  -webkit-backdrop-filter:blur(20px) saturate(140%);
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(12,12,12,.9);
+  backdrop-filter:blur(20px) saturate(100%);
+  -webkit-backdrop-filter:blur(20px) saturate(100%);
   color:#8a8a8a;font:600 16px/1 inherit;
   cursor:pointer;touch-action:manipulation;
   transition:background .2s,border-color .2s,color .2s;
-  box-shadow:0 6px 18px rgba(0,0,0,.45);
+  box-shadow:0 6px 18px rgba(0,0,0,.5);
 }
-.agbtn:hover{border-color:rgba(255,255,255,.12);color:#c0c0c0}
+.agbtn:hover{border-color:rgba(255,255,255,.18);color:#c0c0c0}
 .agbtn.on{
-  background:#f0f0f0;
-  border-color:#f0f0f0;
-  color:#000;font-weight:700;
-  box-shadow:0 0 20px rgba(255,255,255,.25),0 6px 18px rgba(0,0,0,.45);
+  background:#f0f0f0;border-color:#f0f0f0;color:#000;font-weight:700;
+  box-shadow:0 0 24px rgba(255,255,255,.35),0 6px 18px rgba(0,0,0,.5);
 }
 .agbtn.neu.on{
-  background:#f0f0f0;
-  border-color:#f0f0f0;
-  color:#000;
+  background:#e8e85a;border-color:#f0f090;color:#000;
+  box-shadow:0 0 24px rgba(230,230,90,.5),0 6px 18px rgba(0,0,0,.5);
 }
 .agbtn.rev.on{
-  background:#c05050;
-  border-color:#c05050;
-  color:#ffffff;
-  box-shadow:0 0 20px rgba(200,80,80,.35),0 6px 18px rgba(0,0,0,.45);
+  background:#c05050;border-color:#d07070;color:#ffffff;
+  box-shadow:0 0 24px rgba(200,80,80,.5),0 6px 18px rgba(0,0,0,.5);
 }
 
 /* ==================== КНОПКА ЗАЖИГАНИЯ / ПУСК ==================== */
@@ -232,8 +220,8 @@ body.auto-mode #gearsManual{display:none}
   border-radius:12px;
   border:1px solid rgba(255,255,255,.06);
   background:rgba(20,20,20,.55);
-  backdrop-filter:blur(40px) saturate(140%);
-  -webkit-backdrop-filter:blur(40px) saturate(140%);
+  backdrop-filter:blur(40px) saturate(100%);
+  -webkit-backdrop-filter:blur(40px) saturate(100%);
   color:#c0c0c0;
   font:600 12px/1 inherit;
   letter-spacing:2.5px;
@@ -247,17 +235,12 @@ body.auto-mode #gearsManual{display:none}
 }
 .ignbtn:hover{border-color:rgba(255,255,255,.12);color:#e0e0e0}
 .ignbtn.on{
-  background:#f0f0f0;
-  border-color:#f0f0f0;
-  color:#000;font-weight:700;
+  background:#f0f0f0;border-color:#f0f0f0;color:#000;font-weight:700;
   box-shadow:0 0 24px rgba(255,255,255,.25),0 10px 30px rgba(0,0,0,.5);
 }
 #ignBtn.start{
-  background:#e0a030;
-  border-color:#e0a030;
-  color:#1a0e00;
-  font-weight:700;
-  letter-spacing:5px;
+  background:#e0a030;border-color:#e0a030;color:#1a0e00;
+  font-weight:700;letter-spacing:5px;
   box-shadow:0 0 40px rgba(255,180,60,.5),0 10px 30px rgba(0,0,0,.5);
   animation:startPulse 2s ease-in-out infinite;
 }
@@ -266,7 +249,6 @@ body.auto-mode #gearsManual{display:none}
   50%{box-shadow:0 0 55px rgba(255,180,60,.85),0 10px 30px rgba(0,0,0,.5)}
 }
 
-/* Кнопка зажигания поверх 3D-сцены */
 #engineWrap #ignBtn{
   position:absolute;
   bottom:14px;
@@ -281,15 +263,13 @@ body.auto-mode #gearsManual{display:none}
   border-radius:20px;
   z-index:20;
   background:rgba(20,20,20,.55);
-  backdrop-filter:blur(40px) saturate(140%);
-  -webkit-backdrop-filter:blur(40px) saturate(140%);
+  backdrop-filter:blur(40px) saturate(100%);
+  -webkit-backdrop-filter:blur(40px) saturate(100%);
   border:1px solid rgba(255,255,255,.08);
   box-shadow:0 12px 36px rgba(0,0,0,.6);
 }
 #engineWrap #ignBtn.start{
-  background:#e0a030;
-  border-color:#e0a030;
-  color:#1a0e00;
+  background:#e0a030;border-color:#e0a030;color:#1a0e00;
   box-shadow:0 0 40px rgba(255,180,60,.5),0 12px 36px rgba(0,0,0,.6);
 }
 
@@ -301,8 +281,8 @@ body.auto-mode #gearsManual{display:none}
   border-radius:22px;
   border:1px solid rgba(255,255,255,.06);
   background:rgba(20,20,20,.55);
-  backdrop-filter:blur(40px) saturate(140%);
-  -webkit-backdrop-filter:blur(40px) saturate(140%);
+  backdrop-filter:blur(40px) saturate(100%);
+  -webkit-backdrop-filter:blur(40px) saturate(100%);
   color:#c0c0c0;
   font:600 11px/1 inherit;
   letter-spacing:1.2px;
@@ -313,10 +293,7 @@ body.auto-mode #gearsManual{display:none}
 }
 #view3dBtn{right:10px}
 #ghostBtn{right:120px;display:none}
-#view3dBtn:hover,#ghostBtn:hover{
-  border-color:rgba(255,255,255,.14);
-  color:#ffffff;
-}
+#view3dBtn:hover,#ghostBtn:hover{border-color:rgba(255,255,255,.14);color:#ffffff}
 
 /* ==================== ПЕДАЛИ ==================== */
 .pedals{
@@ -331,8 +308,8 @@ body.auto-mode #gearsManual{display:none}
   border-radius:20px;
   border:1px solid rgba(255,255,255,.06);
   background:rgba(15,15,15,.5);
-  backdrop-filter:blur(40px) saturate(140%);
-  -webkit-backdrop-filter:blur(40px) saturate(140%);
+  backdrop-filter:blur(40px) saturate(100%);
+  -webkit-backdrop-filter:blur(40px) saturate(100%);
   color:#a8a8a8;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:5px;
@@ -354,9 +331,7 @@ body.auto-mode #gearsManual{display:none}
 .pedal .sub{font-size:9px;color:#6a6a6a;font-weight:500;letter-spacing:1px;z-index:1}
 .pedal span{position:relative;z-index:1}
 .pedal.active{
-  border-color:rgba(255,255,255,.22);
-  color:#ffffff;
-  transform:translateY(-3px);
+  border-color:rgba(255,255,255,.22);color:#ffffff;transform:translateY(-3px);
   box-shadow:0 0 32px rgba(255,255,255,.12),0 16px 44px rgba(0,0,0,.6);
 }
 .pedal.brake.active{
@@ -377,8 +352,8 @@ body.auto-mode #gearsManual{display:none}
   border-radius:12px;
   border:1px solid rgba(255,255,255,.06);
   background:rgba(20,20,20,.55);
-  backdrop-filter:blur(40px) saturate(140%);
-  -webkit-backdrop-filter:blur(40px) saturate(140%);
+  backdrop-filter:blur(40px) saturate(100%);
+  -webkit-backdrop-filter:blur(40px) saturate(100%);
   color:#b8b8b8;
   font:600 10px/1 inherit;
   letter-spacing:1.2px;
@@ -389,10 +364,7 @@ body.auto-mode #gearsManual{display:none}
 @media (orientation:portrait) and (max-width:820px){
   main{flex-direction:column;gap:8px;padding:6px 8px}
   #engineWrap{flex:0 0 auto;height:34vh;min-height:180px}
-  #dash{
-    width:auto;
-    flex-direction:row;flex-wrap:wrap;justify-content:center;gap:8px;
-  }
+  #dash{width:auto;flex-direction:row;flex-wrap:wrap;justify-content:center;gap:8px}
   #gaugeCv{width:min(40%,150px)}
   .readouts{flex:1 1 130px;min-width:120px}
   .gears{flex:1 1 100%}
@@ -420,13 +392,11 @@ body.broken #repairBtn{display:flex !important}
 #err{
   position:fixed;left:0;right:0;bottom:0;
   background:rgba(160,30,30,.9);
-  backdrop-filter:blur(40px) saturate(140%);
-  -webkit-backdrop-filter:blur(40px) saturate(140%);
+  backdrop-filter:blur(40px) saturate(100%);
+  -webkit-backdrop-filter:blur(40px) saturate(100%);
   color:#fff;
   font:12px/1.4 'JetBrains Mono',monospace;
-  padding:10px;
-  z-index:9999;
-  white-space:pre-wrap;
+  padding:10px;z-index:9999;white-space:pre-wrap;
   border-top:1px solid rgba(255,140,140,.3);
 }
 #repairBtn{
@@ -434,11 +404,10 @@ body.broken #repairBtn{display:flex !important}
   width:52px;height:52px;border-radius:50%;
   border:1px solid rgba(230,130,130,.4);
   background:rgba(140,30,30,.5);
-  backdrop-filter:blur(40px) saturate(140%);
-  -webkit-backdrop-filter:blur(40px) saturate(140%);
+  backdrop-filter:blur(40px) saturate(100%);
+  -webkit-backdrop-filter:blur(40px) saturate(100%);
   color:#fff;font-size:22px;
-  cursor:pointer;
-  align-items:center;justify-content:center;
+  cursor:pointer;align-items:center;justify-content:center;
   box-shadow:0 0 24px rgba(200,80,80,.35),0 10px 28px rgba(0,0,0,.55);
   transition:transform .2s;
 }
@@ -446,12 +415,9 @@ body.broken #repairBtn{display:flex !important}
 #breakBanner{
   position:fixed;top:0;left:0;right:0;z-index:999;
   background:rgba(180,30,30,.9);
-  backdrop-filter:blur(40px) saturate(140%);
-  -webkit-backdrop-filter:blur(40px) saturate(140%);
+  backdrop-filter:blur(40px) saturate(100%);
+  -webkit-backdrop-filter:blur(40px) saturate(100%);
   color:#fff;text-align:center;
-  font-weight:600;
-  padding:12px;
-  font-size:13px;
-  letter-spacing:1.5px;
+  font-weight:600;padding:12px;font-size:13px;letter-spacing:1.5px;
   border-bottom:1px solid rgba(255,140,140,.35);
 }
