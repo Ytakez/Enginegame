@@ -2,9 +2,9 @@
 "use strict";
 var LANG_KEY='dvs_lang';
 var LANGS={
-  ru:{label:'🇷🇺 Русский',title:'Двигатель внутреннего сгорания',clutch:'СЦЕПЛЕНИЕ',brake:'ТОРМОЗ',gas:'ГАЗ',hold:'держать',ignition:'Зажигание',speed:'Скорость',gear:'Передача',settingsTitle:'Настройки',language:'Язык',languageSelect:'Выбрать язык',engine:'Двигатель',engineSelect:'Выбрать двигатель',weather:'Погода',weatherSelect:'Выбрать погоду',sound:'Звук',soundOn:'Включён',soundOff:'Выключен',back:'Назад',close:'Закрыть'},
-  uk:{label:'🇺🇦 Українська',title:'Двигун внутрішнього згоряння',clutch:'ЗЧЕПЛЕННЯ',brake:'ГАЛЬМО',gas:'ГАЗ',hold:'тримати',ignition:'Запалювання',speed:'Швидкість',gear:'Передача',settingsTitle:'Налаштування',language:'Мова',languageSelect:'Вибрати мову',engine:'Двигун',engineSelect:'Вибрати двигун',weather:'Погода',weatherSelect:'Вибрати погоду',sound:'Звук',soundOn:'Увімкнено',soundOff:'Вимкнено',back:'Назад',close:'Закрити'},
-  en:{label:'🇬🇧 English',title:'Internal Combustion Engine',clutch:'CLUTCH',brake:'BRAKE',gas:'THROTTLE',hold:'hold',ignition:'Ignition',speed:'Speed',gear:'Gear',settingsTitle:'Settings',language:'Language',languageSelect:'Choose language',engine:'Engine',engineSelect:'Choose engine',weather:'Weather',weatherSelect:'Choose weather',sound:'Sound',soundOn:'On',soundOff:'Off',back:'Back',close:'Close'}
+  ru:{label:'🇷🇺 Русский',title:'Двигатель внутреннего сгорания',clutch:'СЦЕПЛЕНИЕ',brake:'ТОРМОЗ',gas:'ГАЗ',hold:'держать',ignition:'Зажигание',speed:'Скорость',gear:'Передача',settingsTitle:'Настройки',language:'Язык',languageSelect:'Выбрать язык',engine:'Двигатель',engineSelect:'Выбрать двигатель',weather:'Погода',weatherSelect:'Выбрать погоду',sound:'Звук',soundOn:'Включён',soundOff:'Выключен',back:'Назад',close:'Закрыть',other:'Другое',timer:'Секундомер 0-100',timerStart:'Начать замер',timerBest:'Лучшее время',timerReset:'Сбросить лучшее',otherEmpty:'Скоро тут будет больше функций'},
+  uk:{label:'🇺🇦 Українська',title:'Двигун внутрішнього згоряння',clutch:'ЗЧЕПЛЕННЯ',brake:'ГАЛЬМО',gas:'ГАЗ',hold:'тримати',ignition:'Запалювання',speed:'Швидкість',gear:'Передача',settingsTitle:'Налаштування',language:'Мова',languageSelect:'Вибрати мову',engine:'Двигун',engineSelect:'Вибрати двигун',weather:'Погода',weatherSelect:'Вибрати погоду',sound:'Звук',soundOn:'Увімкнено',soundOff:'Вимкнено',back:'Назад',close:'Закрити',other:'Інше',timer:'Секундомір 0-100',timerStart:'Почати замір',timerBest:'Кращий час',timerReset:'Скинути кращий',otherEmpty:'Скоро тут буде більше функцій'},
+  en:{label:'🇬🇧 English',title:'Internal Combustion Engine',clutch:'CLUTCH',brake:'BRAKE',gas:'THROTTLE',hold:'hold',ignition:'Ignition',speed:'Speed',gear:'Gear',settingsTitle:'Settings',language:'Language',languageSelect:'Choose language',engine:'Engine',engineSelect:'Choose engine',weather:'Weather',weatherSelect:'Choose weather',sound:'Sound',soundOn:'On',soundOff:'Off',back:'Back',close:'Close',other:'Other',timer:'0-100 Timer',timerStart:'Start run',timerBest:'Best time',timerReset:'Reset best',otherEmpty:'More features coming soon'}
 };
 var ENGINES_INFO=[
   {id:'scooter',label:'🛵 Скутер (S1)',sub:'1 цилиндр · 4-тактный · АКПП'},
@@ -71,6 +71,12 @@ function injectStyles(){
   '.settings-item.on{border-color:rgba(255,255,255,.22);color:#ffffff;background:rgba(255,255,255,.10)}'+
   '.settings-item.on .check{opacity:1}.settings-item.on .sub{color:#a0a0a0}'+
 
+  '.settings-item.primary{background:rgba(232,232,90,.12);border-color:rgba(232,232,90,.35);color:#fff}'+
+  '.settings-item.primary:hover{background:rgba(232,232,90,.2)}'+
+
+  '.settings-item.danger{color:#e0a0a0}'+
+  '.settings-item.danger:hover{border-color:rgba(220,80,80,.4);color:#ffb8b8}'+
+
   '.sound-toggle{flex:0 0 auto;width:64px;height:32px;border-radius:16px;position:relative;'+
   'border:1px solid rgba(255,255,255,.08);background:rgba(40,40,40,.8);cursor:pointer;'+
   'transition:background .2s,border-color .2s}'+
@@ -93,6 +99,28 @@ function injectStyles(){
 
   '.settings-modal::-webkit-scrollbar{width:0;display:none}'+
   '.settings-modal{scrollbar-width:none;-ms-overflow-style:none}';
+
+  document.head.appendChild(st);
+}
+
+/* Стили оверлея таймера — отдельно, чтобы работали всегда */
+function injectTimerStyles(){
+  if(document.getElementById('timerStyle'))return;
+  var st=document.createElement('style');
+  st.id='timerStyle';
+  st.textContent=
+  '#timerOverlay{position:fixed;top:60px;right:10px;z-index:9998;display:none;'+
+  'min-width:130px;padding:10px 14px;border-radius:14px;'+
+  'border:1px solid rgba(255,255,255,.10);background:rgba(15,15,15,.75);'+
+  'backdrop-filter:blur(40px) saturate(100%);-webkit-backdrop-filter:blur(40px) saturate(100%);'+
+  'color:#e8e8e8;font:600 12px/1.4 -apple-system,Inter,sans-serif;'+
+  'box-shadow:0 12px 36px rgba(0,0,0,.6);text-align:left}'+
+  '#timerOverlay .tm-lbl{font-size:9px;letter-spacing:2px;color:#8a8a8a;text-transform:uppercase;margin-bottom:4px}'+
+  '#timerOverlay .tm-val{font-size:24px;font-weight:700;color:#f0f0f0;transition:color .3s}'+
+  '#timerOverlay .tm-val.done{color:#43c98a}'+
+  '#timerOverlay .tm-best{font-size:9px;color:#8a8a8a;margin-top:4px;transition:color .3s}'+
+  '#timerOverlay .tm-best.record{color:#e8e85a;font-weight:700}'+
+  '#timerOverlay .tm-hint{font-size:9px;color:#6a6a6a;margin-top:2px;font-weight:500}';
   document.head.appendChild(st);
 }
 
@@ -119,12 +147,18 @@ function applyLang(){
   var ro=document.querySelectorAll('.ro .lbl');if(ro.length>=2){ro[0].textContent=t('speed');ro[1].textContent=t('gear');}
 }
 
+function fmtTime(ms){
+  if(ms === null || ms === undefined || !isFinite(ms)) return '--.--';
+  return (ms/1000).toFixed(2) + ' с';
+}
+
 function openMain(){
   closeAll();
   var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
   var h=document.createElement('h2');h.textContent='⚙ '+t('settingsTitle');m.appendChild(h);
   var S=window.S;
 
+  /* Двигатель */
   var curName=S?(S.engines[S.engineType]||{}).name||'R4':'R4';
   var eb=document.createElement('button');
   eb.type='button';eb.className='settings-item';
@@ -132,6 +166,7 @@ function openMain(){
   eb.addEventListener('click',function(){closeAll();openPicker();});
   m.appendChild(eb);
 
+  /* Погода */
   var curW=S?S.weather:'summer';
   var wObj=WEATHERS.filter(function(x){return x.id===curW;})[0]||WEATHERS[0];
   var wb=document.createElement('button');
@@ -140,6 +175,7 @@ function openMain(){
   wb.addEventListener('click',function(){closeAll();openWeatherPicker();});
   m.appendChild(wb);
 
+  /* Язык */
   var ln=(LANGS[curLang]||LANGS.ru).label;
   var lb=document.createElement('button');
   lb.type='button';lb.className='settings-item';
@@ -147,6 +183,7 @@ function openMain(){
   lb.addEventListener('click',function(){closeAll();openLangPicker();});
   m.appendChild(lb);
 
+  /* Звук */
   var soundOn=false;
   if(window.DVS_SOUND&&window.DVS_SOUND.isMuted){soundOn=!window.DVS_SOUND.isMuted();}
   var sb=document.createElement('button');
@@ -164,6 +201,13 @@ function openMain(){
   });
   m.appendChild(sb);
 
+  /* 🆕 Другое */
+  var ob=document.createElement('button');
+  ob.type='button';ob.className='settings-item';
+  ob.innerHTML='<div class="txt"><span class="lbl">🔧 '+t('other')+'</span><span class="sub">'+t('timer')+'</span></div><span class="arrow">›</span>';
+  ob.addEventListener('click',function(){closeAll();openOther();});
+  m.appendChild(ob);
+
   var cb=document.createElement('button');
   cb.type='button';cb.className='settings-close';cb.textContent=t('close');
   cb.addEventListener('click',closeAll);m.appendChild(cb);
@@ -171,6 +215,53 @@ function openMain(){
   document.body.appendChild(ov);
 }
 
+/* ==================== ДРУГОЕ ==================== */
+function openOther(){
+  closeAll();
+  var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
+  var h=document.createElement('h2');h.textContent='🔧 '+t('other');m.appendChild(h);
+
+  var back=document.createElement('button');
+  back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
+  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
+
+  /* Секундомер 0-100 */
+  var best = (window.DVS_TIMER && window.DVS_TIMER.getBest) ? window.DVS_TIMER.getBest() : null;
+  var tb=document.createElement('button');
+  tb.type='button';tb.className='settings-item primary';
+  tb.innerHTML='<div class="txt"><span class="lbl">⏱ '+t('timer')+'</span><span class="sub" id="timerBestSub">'+t('timerBest')+': '+fmtTime(best)+'</span></div><span class="arrow">›</span>';
+  tb.addEventListener('click',function(){
+    closeAll();
+    if(window.DVS_TIMER) window.DVS_TIMER.start();
+  });
+  m.appendChild(tb);
+
+  /* Сбросить лучшее время */
+  if(best !== null){
+    var rb=document.createElement('button');
+    rb.type='button';rb.className='settings-item danger';
+    rb.innerHTML='<div class="txt"><span class="lbl">🗑 '+t('timerReset')+'</span></div>';
+    rb.addEventListener('click',function(){
+      if(window.DVS_TIMER) window.DVS_TIMER.resetBest();
+      closeAll();openOther();
+    });
+    m.appendChild(rb);
+  }
+
+  /* Заглушка — «скоро тут будет больше» */
+  var hint=document.createElement('div');
+  hint.style.cssText='text-align:center;font-size:10px;color:#6a6a6a;letter-spacing:1px;margin-top:10px';
+  hint.textContent=t('otherEmpty');
+  m.appendChild(hint);
+
+  var cb=document.createElement('button');
+  cb.type='button';cb.className='settings-close';cb.textContent=t('close');
+  cb.addEventListener('click',closeAll);m.appendChild(cb);
+
+  document.body.appendChild(ov);
+}
+
+/* ==================== ВЫБОР ДВИГАТЕЛЯ ==================== */
 function openPicker(){
   closeAll();
   var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
@@ -257,6 +348,7 @@ function openLangPicker(){
 
 function init(){
   injectStyles();
+  injectTimerStyles();
   addSettingsButton();
   try{applyLang();}catch(e){}
   var b=document.getElementById('engBadge');
@@ -267,4 +359,5 @@ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded'
 else{init();}
 setTimeout(init,500);
 setTimeout(init,1500);
+
 })();
