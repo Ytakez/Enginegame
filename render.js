@@ -28,6 +28,7 @@ function drawEngine(){
     else if(t==='passatb3'&&typeof RE.drawPassatB3==='function'){RE.drawPassatB3(c,S);drawn=true;}
     else if(t==='bluebird'&&typeof RE.drawBluebird==='function'){RE.drawBluebird(c,S);drawn=true;}
     else if(t==='galant6'&&typeof RE.drawGalant6==='function'){RE.drawGalant6(c,S);drawn=true;}
+    else if(t==='wankel'&&typeof RE.drawWankel==='function'){RE.drawWankel(c,S);drawn=true;}
     else if(t==='v8'&&typeof RE.drawV==='function'){RE.drawV(c,S,12);drawn=true;}
     else if(t==='v16'&&typeof RE.drawV==='function'){RE.drawV(c,S,22);drawn=true;}
   }catch(err){console.log('draw error:',err);}
@@ -216,7 +217,6 @@ function drawDash(){
   c.textAlign='left';c.textBaseline='top';
   c.fillText('ДВС • ПРИБОРНАЯ ПАНЕЛЬ',6,6);
 
-  /* значок погоды сверху справа */
   var wIcon=S.weather==='winter'?'❄':(S.weather==='autumn'?'🍂':'☀');
   var wTxt=S.weather==='winter'?'ЗИМА':(S.weather==='autumn'?'ОСЕНЬ':'ЛЕТО');
   c.fillStyle='#6d8299';
@@ -224,7 +224,9 @@ function drawDash(){
   c.textAlign='right';c.textBaseline='top';
   c.fillText(wIcon+' '+wTxt,W-6,6);
 
-  drawGauge(c,78,90,56,rpm,MAXR,E.redline,'об/мин ×1000',(rpm/1000).toFixed(1));
+  var gaugeMax=10500;
+  if(S.engineType==='wankel')gaugeMax=11000;
+  drawGauge(c,78,90,56,rpm,gaugeMax,E.redline,'об/мин ×1000',(rpm/1000).toFixed(1));
   drawGauge(c,262,90,56,spd,MAXS,220,'км/ч',String(Math.round(spd)));
 
   var gv=S.gear;
@@ -251,7 +253,6 @@ function drawDash(){
   var oilColor=S.broken?'red':'dim';
   var engColor=S.broken?'yellow':'dim';
 
-  /* Температура двигателя из physics.js */
   var engTemp=safe(S.engineTemp);
   var ambTemp=safe(S.ambientTemp);
 
@@ -280,7 +281,6 @@ function drawDash(){
   c.fillText('НАСОС',208,iy+16);
   c.fillText('ТЕМП',286,iy+16);
 
-  /* Температура цифрами внизу */
   var tempTxtColor='#3d4a58';
   if(engTemp>105)tempTxtColor=blinkOn?'#ff5b5b':'#4a1010';
   else if(engTemp>95)tempTxtColor=blinkOn?'#ffc93c':'#4a3a10';
@@ -292,7 +292,6 @@ function drawDash(){
   c.textAlign='center';c.textBaseline='top';
   c.fillText('ДВИГ: '+Math.round(engTemp)+'°C   ВОЗДУХ: '+Math.round(ambTemp)+'°C',170,H-12);
 
-  /* Предупреждения */
   if(S.weather==='winter'&&engTemp<5&&S.running&&blinkOn){
     c.fillStyle='#8fd8ff';
     c.font='bold 9px Segoe UI, sans-serif';
