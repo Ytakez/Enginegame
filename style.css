@@ -32,20 +32,23 @@ header{
 .eng-badge{
   position:fixed;top:6px;right:8px;z-index:30;
   padding:3px 8px;border-radius:10px;
-  border:1px solid rgba(255,255,255,.10);
-  background:rgba(12,12,12,.55);
-  backdrop-filter:blur(40px) saturate(160%);
-  -webkit-backdrop-filter:blur(40px) saturate(160%);
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(12,12,12,.5);
+  backdrop-filter:blur(90px) saturate(200%);
+  -webkit-backdrop-filter:blur(90px) saturate(200%);
   color:#b8b8b8;font:600 9px/1 inherit;letter-spacing:1px;
-  box-shadow:0 4px 14px rgba(0,0,0,.5);
+  box-shadow:0 6px 18px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.10);
 }
 #repairBtn{
   position:fixed;top:56px;left:10px;z-index:1001;
   width:46px;height:46px;border-radius:50%;
   border:1px solid rgba(230,130,130,.4);
-  background:rgba(140,30,30,.55);
+  background:rgba(140,30,30,.5);
+  backdrop-filter:blur(80px) saturate(200%);
+  -webkit-backdrop-filter:blur(80px) saturate(200%);
   color:#fff;font-size:20px;cursor:pointer;
   align-items:center;justify-content:center;
+  box-shadow:0 0 20px rgba(200,80,80,.35), inset 0 1px 0 rgba(255,255,255,.12);
   display:none;
 }
 body.broken #repairBtn{display:flex}
@@ -59,13 +62,16 @@ main{
 }
 .panel{
   position:relative;
-  background:rgba(12,12,12,.55);
-  backdrop-filter:blur(50px) saturate(160%);
-  -webkit-backdrop-filter:blur(50px) saturate(160%);
-  border:1px solid rgba(255,255,255,.08);
+  background:rgba(10,10,10,.5);
+  backdrop-filter:blur(100px) saturate(200%);
+  -webkit-backdrop-filter:blur(100px) saturate(200%);
+  border:1px solid rgba(255,255,255,.12);
   border-radius:16px;
   padding:6px;
-  box-shadow:0 12px 40px rgba(0,0,0,.6);
+  box-shadow:
+    0 16px 44px rgba(0,0,0,.7),
+    inset 0 1px 0 rgba(255,255,255,.08),
+    inset 0 -1px 0 rgba(0,0,0,.3);
   overflow:hidden;
 }
 
@@ -87,31 +93,39 @@ main{
 #view3dBtn{
   position:absolute;top:8px;right:8px;z-index:20;
   padding:7px 14px;border-radius:20px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(12,12,12,.6);
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(12,12,12,.5);
+  backdrop-filter:blur(100px) saturate(200%);
+  -webkit-backdrop-filter:blur(100px) saturate(200%);
   color:#c0c0c0;font:600 10px/1 inherit;letter-spacing:1px;
   cursor:pointer;
+  box-shadow:0 10px 28px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.14);
 }
-#view3dBtn:hover{border-color:rgba(255,255,255,.22);color:#fff}
+#view3dBtn:hover{border-color:rgba(255,255,255,.24);color:#fff}
 
 #ghostBtn{
   position:absolute;top:8px;right:96px;z-index:20;
   padding:7px 14px;border-radius:20px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(12,12,12,.6);
+  border:1px solid rgba(255,255,255,.16);
+  background:rgba(12,12,12,.5);
+  backdrop-filter:blur(100px) saturate(200%);
+  -webkit-backdrop-filter:blur(100px) saturate(200%);
   color:#c0c0c0;font:600 10px/1 inherit;letter-spacing:1px;
   cursor:pointer;
+  box-shadow:0 10px 28px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.14);
   display:none;
 }
-#ghostBtn:hover{border-color:rgba(255,255,255,.22);color:#fff}
+#ghostBtn:hover{border-color:rgba(255,255,255,.24);color:#fff}
 
-/* ==================== КНОПКА ЗАЖИГАНИЯ ==================== */
+/* ==================== КНОПКА ЗАЖИГАНИЯ — МАКСИМАЛЬНЫЙ БЛЮР ==================== */
 .ignbtn{
   width:100%;
   height:48px;
   border-radius:12px;
-  border:1px solid rgba(255,255,255,.10);
-  background:rgba(12,12,12,.6);
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(15,15,15,.55);
+  backdrop-filter:blur(120px) saturate(220%);
+  -webkit-backdrop-filter:blur(120px) saturate(220%);
   color:#c0c0c0;
   font:600 12px/1 inherit;
   letter-spacing:2.5px;
@@ -119,18 +133,36 @@ main{
   cursor:pointer;
   touch-action:manipulation;
   transition:background .25s,border-color .25s,color .25s;
+  box-shadow:
+    0 14px 40px rgba(0,0,0,.75),
+    0 0 0 1px rgba(255,255,255,.05),
+    inset 0 1px 0 rgba(255,255,255,.16),
+    inset 0 -1px 0 rgba(0,0,0,.3);
 }
-.ignbtn:hover{border-color:rgba(255,255,255,.18);color:#e0e0e0}
-.ignbtn.on{background:#f0f0f0;border-color:#f0f0f0;color:#000;font-weight:700}
+.ignbtn:hover{border-color:rgba(255,255,255,.28);color:#e0e0e0}
+.ignbtn.on{
+  background:rgba(240,240,240,.95);
+  border-color:rgba(255,255,255,.9);
+  color:#000;font-weight:700;
+  backdrop-filter:blur(120px) saturate(220%);
+  -webkit-backdrop-filter:blur(120px) saturate(220%);
+}
 #ignBtn.start{
-  background:#e0a030;border-color:#e0a030;color:#1a0e00;
+  background:linear-gradient(180deg,rgba(232,168,48,.95),rgba(200,120,20,.9));
+  border-color:rgba(255,210,120,.85);
+  color:#1a0e00;
   font-weight:700;letter-spacing:5px;
-  box-shadow:0 0 30px rgba(255,180,60,.5);
+  backdrop-filter:blur(120px) saturate(220%);
+  -webkit-backdrop-filter:blur(120px) saturate(220%);
+  box-shadow:
+    0 0 44px rgba(255,180,60,.65),
+    0 14px 40px rgba(0,0,0,.75),
+    inset 0 1px 0 rgba(255,255,255,.5);
   animation:startPulse 2s ease-in-out infinite;
 }
 @keyframes startPulse{
-  0%,100%{box-shadow:0 0 22px rgba(255,180,60,.4)}
-  50%{box-shadow:0 0 45px rgba(255,180,60,.85)}
+  0%,100%{box-shadow:0 0 30px rgba(255,180,60,.5),0 14px 40px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.5)}
+  50%{box-shadow:0 0 60px rgba(255,180,60,.9),0 14px 40px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.6)}
 }
 
 #engineWrap #ignBtn{
@@ -146,13 +178,12 @@ main{
   letter-spacing:3px;
   border-radius:22px;
   z-index:30;
-  background:rgba(12,12,12,.65);
-  border:1px solid rgba(255,255,255,.14);
 }
 #engineWrap #ignBtn.start{
-  background:#e0a030;
-  border-color:#e0a030;
+  background:linear-gradient(180deg,rgba(232,168,48,.95),rgba(200,120,20,.9));
+  border-color:rgba(255,210,120,.85);
   color:#1a0e00;
+  animation:startPulse 2s ease-in-out infinite;
 }
 
 /* ==================== ПРИБОРКА + ПЕРЕДАЧИ ==================== */
@@ -166,10 +197,13 @@ main{
   position:relative;
   width:100%;
   height:140px;
-  background:rgba(6,6,6,.6);
-  border:1px solid rgba(255,255,255,.08);
+  background:rgba(8,8,8,.5);
+  backdrop-filter:blur(100px) saturate(200%);
+  -webkit-backdrop-filter:blur(100px) saturate(200%);
+  border:1px solid rgba(255,255,255,.11);
   border-radius:12px;
   padding:4px;overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.08);
 }
 .gb-lines{position:absolute;top:4px;left:4px;width:calc(100% - 8px);height:calc(100% - 8px);pointer-events:none}
 .gb-lines line{stroke:rgba(255,255,255,.10);stroke-width:2.5;stroke-linecap:round}
@@ -182,30 +216,39 @@ main{
 }
 .gb-grid .gbtn{
   width:36px;height:36px;border-radius:50%;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(12,12,12,.6);
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(12,12,12,.5);
+  backdrop-filter:blur(80px) saturate(200%);
+  -webkit-backdrop-filter:blur(80px) saturate(200%);
   color:#c0c0c0;font:600 13px/1 inherit;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   align-self:center;justify-self:center;
   padding:0;margin:0;
   transition:background .2s,border-color .2s,color .2s,transform .2s;
+  box-shadow:0 8px 22px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.10);
   opacity:.55;
 }
-.gb-grid .gbtn:hover{opacity:.8;border-color:rgba(255,255,255,.24);color:#e0e0e0}
+.gb-grid .gbtn:hover{opacity:.85;border-color:rgba(255,255,255,.26);color:#e0e0e0}
 .gb-grid .gbtn.on{
   opacity:1;
-  background:#f0f0f0;border-color:#f0f0f0;color:#000;font-weight:700;
-  box-shadow:0 0 18px rgba(255,255,255,.4);
+  background:rgba(240,240,240,.95);
+  border-color:rgba(255,255,255,.9);
+  color:#000;font-weight:700;
+  box-shadow:0 0 22px rgba(255,255,255,.45), inset 0 1px 0 rgba(255,255,255,.5);
   transform:scale(1.06);
 }
 .gb-grid .gbtn.gb-n.on{
-  background:#e8e85a;border-color:#f0f090;color:#000;
-  box-shadow:0 0 22px rgba(230,230,90,.6);
+  background:linear-gradient(180deg,rgba(232,232,90,.95),rgba(200,200,60,.85));
+  border-color:rgba(240,240,144,.9);
+  color:#000;
+  box-shadow:0 0 26px rgba(230,230,90,.7), inset 0 1px 0 rgba(255,255,255,.5);
 }
 .gb-grid .gbtn.gb-r{color:#c08080;border-color:rgba(180,80,80,.4)}
 .gb-grid .gbtn.gb-r.on{
-  background:#c05050;border-color:#d07070;color:#fff;
-  box-shadow:0 0 18px rgba(200,80,80,.5);
+  background:linear-gradient(180deg,rgba(200,80,80,.95),rgba(160,50,50,.85));
+  border-color:rgba(220,112,112,.9);
+  color:#fff;
+  box-shadow:0 0 22px rgba(200,80,80,.6), inset 0 1px 0 rgba(255,255,255,.3);
 }
 .gb-r{grid-area:r}.gb-n{grid-area:n}
 .gbtn[data-g="1"]{grid-area:g1}.gbtn[data-g="2"]{grid-area:g2}
@@ -257,21 +300,25 @@ main{
 
 .gears-auto{
   display:none;gap:5px;
-  background:rgba(6,6,6,.6);
-  border:1px solid rgba(255,255,255,.08);
+  background:rgba(8,8,8,.5);
+  backdrop-filter:blur(80px) saturate(200%);
+  -webkit-backdrop-filter:blur(80px) saturate(200%);
+  border:1px solid rgba(255,255,255,.10);
   border-radius:12px;padding:5px;
 }
 body.auto-mode .gears-auto{display:grid;grid-template-columns:repeat(3,1fr)}
 body.auto-mode #gearsManual{display:none}
 .agbtn{
   height:44px;border-radius:10px;
-  border:1px solid rgba(255,255,255,.10);
-  background:rgba(12,12,12,.6);
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(12,12,12,.5);
+  backdrop-filter:blur(80px) saturate(200%);
+  -webkit-backdrop-filter:blur(80px) saturate(200%);
   color:#8a8a8a;font:600 14px/1 inherit;cursor:pointer;
 }
-.agbtn.on{background:#f0f0f0;color:#000;font-weight:700}
-.agbtn.neu.on{background:#e8e85a;color:#000}
-.agbtn.rev.on{background:#c05050;color:#fff}
+.agbtn.on{background:rgba(240,240,240,.95);color:#000;font-weight:700}
+.agbtn.neu.on{background:linear-gradient(180deg,rgba(232,232,90,.95),rgba(200,200,60,.85));color:#000}
+.agbtn.rev.on{background:linear-gradient(180deg,rgba(200,80,80,.95),rgba(160,50,50,.85));color:#fff}
 
 /* ==================== ПЕДАЛИ ==================== */
 .pedals{
@@ -282,12 +329,15 @@ body.auto-mode #gearsManual{display:none}
 }
 .pedal{
   position:relative;height:82px;border-radius:16px;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(12,12,12,.55);
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(10,10,10,.5);
+  backdrop-filter:blur(100px) saturate(200%);
+  -webkit-backdrop-filter:blur(100px) saturate(200%);
   color:#a8a8a8;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:3px;font:600 11px/1 inherit;letter-spacing:1px;
   overflow:hidden;touch-action:none;
+  box-shadow:0 14px 40px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.10);
 }
 .pedal .bar{
   position:absolute;left:0;bottom:0;height:100%;width:0%;
@@ -296,14 +346,15 @@ body.auto-mode #gearsManual{display:none}
 }
 .pedal.brake .bar{background:rgba(220,80,80,.18)}
 .pedal.clutch .bar{background:rgba(220,180,80,.18)}
-.pedal .icon{font-size:24px;line-height:1;z-index:1}
+.pedal .icon{font-size:24px;line-height:1;z-index:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
 .pedal .sub{font-size:8px;color:#6a6a6a;font-weight:500;z-index:1}
 .pedal span{position:relative;z-index:1}
 .pedal.active{
-  border-color:rgba(255,255,255,.25);color:#fff;transform:translateY(-2px);
+  border-color:rgba(255,255,255,.28);color:#fff;transform:translateY(-2px);
+  box-shadow:0 0 26px rgba(255,255,255,.18), inset 0 1px 0 rgba(255,255,255,.14);
 }
-.pedal.brake.active{border-color:rgba(230,100,100,.5);color:#ffe8e8}
-.pedal.clutch.active{border-color:rgba(230,200,100,.5);color:#fff6e0}
+.pedal.brake.active{border-color:rgba(230,100,100,.55);color:#ffe8e8;box-shadow:0 0 26px rgba(220,80,80,.35)}
+.pedal.clutch.active{border-color:rgba(230,200,100,.55);color:#fff6e0;box-shadow:0 0 26px rgba(220,180,80,.35)}
 
 /* ==================== ОШИБКИ ==================== */
 #err{display:none !important}
