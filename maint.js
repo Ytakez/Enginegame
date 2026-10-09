@@ -45,7 +45,7 @@ function showMaint(cfg){
       if(taps>=5){
         taps=0;
         clearTimeout(tmr);
-        tryAdmin();
+        openPinModal();
       }
     }
     el.addEventListener('click',onTap);
@@ -56,24 +56,46 @@ function showMaint(cfg){
   attachTap(document.getElementById('maintFooter'));
 }
 
-function tryAdmin(){
-  var p=prompt('PIN админа:');
-  if(p===null)return;
-  var clean=String(p).trim();
-  var cleanLower=clean.toLowerCase();
-  var pinLower=String(PIN).toLowerCase();
-  if(clean===PIN||cleanLower===pinLower){
-    try{localStorage.setItem('dvs_admin_skip','1');}catch(e){}
-    location.reload();
-  } else {
-    /* Показать оба пароля для сравнения */
-    var msg='❌ Неверный PIN\n\n';
-    msg+='Ты ввёл:\n"'+clean+'"\n\n';
-    msg+='Ожидается:\n"'+PIN+'"\n\n';
-    msg+='Длина введённого: '+clean.length+'\n';
-    msg+='Длина ожидаемого: '+PIN.length;
-    alert(msg);
+/* МОДАЛЬНОЕ ОКНО ВВОДА PIN — своё, без автозаполнения */
+function openPinModal(){
+  if(document.getElementById('pinModal'))return;
+  var ov=document.createElement('div');
+  ov.id='pinModal';
+  ov.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,10,15,.9);z-index:1000000;display:flex;align-items:center;justify-content:center;padding:20px;font-family:"Segoe UI",system-ui,sans-serif';
+  var m=document.createElement('div');
+  m.style.cssText='width:100%;max-width:340px;background:linear-gradient(180deg,#151d27,#0d131a);border:1px solid #22303f;border-radius:16px;padding:22px;color:#dbe4ee;box-shadow:0 20px 60px rgba(0,0,0,.8)';
+  m.innerHTML=
+    '<div style="font-size:14px;letter-spacing:3px;color:#8fd8ff;text-align:center;font-weight:800;margin-bottom:6px">🔐 ВХОД АДМИНА</div>'+
+    '<div style="font-size:11px;color:#5d7189;text-align:center;margin-bottom:18px">Введите PIN-код</div>'+
+    '<input id="pinInput" type="password" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="PIN" style="width:100%;height:50px;border-radius:10px;border:1px solid #2c3e52;background:#0a0e13;color:#e6fff3;font:700 18px/1 inherit;text-align:center;letter-spacing:3px;padding:0 14px;outline:none;margin-bottom:14px">'+
+    '<div id="pinError" style="color:#ff5b5b;font-size:12px;text-align:center;min-height:16px;margin-bottom:10px"></div>'+
+    '<button id="pinOk" style="width:100%;height:46px;border-radius:10px;border:1px solid #43c98a;background:linear-gradient(180deg,#2b7a56,#1c5a3d);color:#e6fff3;font:800 13px/1 inherit;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;margin-bottom:8px">Войти</button>'+
+    '<button id="pinCancel" style="width:100%;height:40px;border-radius:10px;border:1px solid #2c3e52;background:transparent;color:#8ea4bd;font:700 12px/1 inherit;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase">Отмена</button>';
+  ov.appendChild(m);
+  document.body.appendChild(ov);
+
+  var input=document.getElementById('pinInput');
+  var err=document.getElementById('pinError');
+  setTimeout(function(){input.focus();},100);
+
+  function close(){ov.remove();}
+  function submit(){
+    var v=String(input.value||'').trim();
+    var pinClean=String(PIN).trim();
+    /* Сравнение без регистра — защита от автозамены */
+    if(v===pinClean||v.toLowerCase()===pinClean.toLowerCase()){
+      try{localStorage.setItem('dvs_admin_skip','1');}catch(e){}
+      location.reload();
+    } else {
+      err.textContent='❌ Неверно (введено '+v.length+' симв.)';
+      input.value='';
+      input.focus();
+      try{if(navigator.vibrate)navigator.vibrate([50,50]);}catch(e){}
+    }
   }
+  document.getElementById('pinOk').addEventListener('click',submit);
+  document.getElementById('pinCancel').addEventListener('click',close);
+  input.addEventListener('keydown',function(e){if(e.key==='Enter')submit();});
 }
 
 /* Проверка ТО */
