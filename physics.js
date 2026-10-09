@@ -3,19 +3,24 @@
 var STORAGE_KEY='dvs_engine_v3';
 var WKEY='dvs_weather';
 var ENGINES={
-scooter:{name:'S1',cyls:1,maxTorque:60,idle:700,redline:3200,breakRpm:3800,stallRpm:250,fireDiv:30,lpBase:1400,lpRpm:0.35,subGain:0.5,sawGain:0.9,sqGain:0.4,noiseBase:0.08,cvt:true,auto:true,mass:200},
-tdi:{name:'1.9 TDI',cyls:4,maxTorque:310,idle:850,redline:4800,breakRpm:5500,stallRpm:300,fireDiv:30,lpBase:380,lpRpm:0.10,subGain:1.8,sawGain:0.35,sqGain:0.08,noiseBase:0.10,mass:1350,diesel:true},
-mt82:{name:'Д-240',cyls:4,maxTorque:298,idle:600,redline:2200,breakRpm:2400,stallRpm:250,fireDiv:15,lpBase:220,lpRpm:0.06,subGain:3.5,sawGain:0.5,sqGain:0.04,noiseBase:0.18,mass:3200,diesel:true,tractor:true},
-passatb3:{name:'1.8 B3',cyls:4,maxTorque:160,idle:900,redline:6200,breakRpm:7000,stallRpm:350,fireDiv:30,lpBase:750,lpRpm:0.14,subGain:0.85,sawGain:0.45,sqGain:0.12,noiseBase:0.012,mass:1300},
-bluebird:{name:'2.0 CA20',cyls:4,maxTorque:178,idle:850,redline:7000,breakRpm:7800,stallRpm:350,fireDiv:30,lpBase:780,lpRpm:0.16,subGain:0.8,sawGain:0.55,sqGain:0.14,noiseBase:0.018,mass:1280},
-galant6:{name:'2.0 V6',cyls:6,maxTorque:179,idle:850,redline:7000,breakRpm:7800,stallRpm:350,fireDiv:20,lpBase:520,lpRpm:0.13,subGain:1.3,sawGain:0.58,sqGain:0.10,noiseBase:0.025,mass:1350},
-wankel:{name:'13B Renesis',cyls:2,maxTorque:211,idle:900,redline:9000,breakRpm:10000,stallRpm:400,fireDiv:20,lpBase:800,lpRpm:0.10,subGain:0.4,sawGain:1.2,sqGain:0.15,noiseBase:0.008,mass:1400},
-r4:{name:'R4',cyls:4,maxTorque:250,idle:900,redline:6800,breakRpm:8000,stallRpm:350,fireDiv:30,lpBase:700,lpRpm:0.15,subGain:0.9,sawGain:0.5,sqGain:0.15,noiseBase:0.015,mass:1250},
-v8:{name:'V12',cyls:12,maxTorque:560,idle:900,redline:7600,breakRpm:9000,stallRpm:350,fireDiv:10,lpBase:400,lpRpm:0.11,subGain:1.8,sawGain:0.65,sqGain:0.07,noiseBase:0.038,mass:1500},
-v16:{name:'V22',cyls:22,maxTorque:900,idle:900,redline:8200,breakRpm:9600,stallRpm:350,fireDiv:5.5,lpBase:230,lpRpm:0.07,subGain:2.6,sawGain:0.75,sqGain:0.04,noiseBase:0.065,mass:1800}
+scooter:{name:'S1',cyls:1,maxTorque:60,idle:700,redline:3200,breakRpm:3800,stallRpm:250,fireDiv:30,lpBase:1400,lpRpm:0.35,subGain:0.5,sawGain:0.9,sqGain:0.4,noiseBase:0.08,cvt:true,auto:true,mass:200,gears:5},
+tdi:{name:'1.9 TDI',cyls:4,maxTorque:310,idle:850,redline:4800,breakRpm:5500,stallRpm:300,fireDiv:30,lpBase:380,lpRpm:0.10,subGain:1.8,sawGain:0.35,sqGain:0.08,noiseBase:0.10,mass:1350,diesel:true,gears:5},
+mt82:{name:'Д-240',cyls:4,maxTorque:298,idle:600,redline:2200,breakRpm:2400,stallRpm:250,fireDiv:15,lpBase:220,lpRpm:0.06,subGain:3.5,sawGain:0.5,sqGain:0.04,noiseBase:0.18,mass:3200,diesel:true,tractor:true,gears:5},
+passatb3:{name:'1.8 B3',cyls:4,maxTorque:160,idle:900,redline:6200,breakRpm:7000,stallRpm:350,fireDiv:30,lpBase:750,lpRpm:0.14,subGain:0.85,sawGain:0.45,sqGain:0.12,noiseBase:0.012,mass:1300,gears:5},
+bluebird:{name:'2.0 CA20',cyls:4,maxTorque:178,idle:850,redline:7000,breakRpm:7800,stallRpm:350,fireDiv:30,lpBase:780,lpRpm:0.16,subGain:0.8,sawGain:0.55,sqGain:0.14,noiseBase:0.018,mass:1280,gears:5},
+galant6:{name:'2.0 V6',cyls:6,maxTorque:179,idle:850,redline:7000,breakRpm:7800,stallRpm:350,fireDiv:20,lpBase:520,lpRpm:0.13,subGain:1.3,sawGain:0.58,sqGain:0.10,noiseBase:0.025,mass:1350,gears:5},
+wankel:{name:'13B Renesis',cyls:2,maxTorque:211,idle:900,redline:9000,breakRpm:10000,stallRpm:400,fireDiv:20,lpBase:800,lpRpm:0.10,subGain:0.4,sawGain:1.2,sqGain:0.15,noiseBase:0.008,mass:1400,gears:6},
+r4:{name:'R4',cyls:4,maxTorque:250,idle:900,redline:6800,breakRpm:8000,stallRpm:350,fireDiv:30,lpBase:700,lpRpm:0.15,subGain:0.9,sawGain:0.5,sqGain:0.15,noiseBase:0.015,mass:1250,gears:6},
+v8:{name:'V12',cyls:12,maxTorque:560,idle:900,redline:7600,breakRpm:9000,stallRpm:350,fireDiv:10,lpBase:400,lpRpm:0.11,subGain:1.8,sawGain:0.65,sqGain:0.07,noiseBase:0.038,mass:1500,gears:6},
+v16:{name:'V22',cyls:22,maxTorque:900,idle:900,redline:8200,breakRpm:9600,stallRpm:350,fireDiv:5.5,lpBase:230,lpRpm:0.07,subGain:2.6,sawGain:0.75,sqGain:0.04,noiseBase:0.065,mass:1800,gears:6}
 };
 var AMB={summer:25,autumn:8,winter:-15};
-var OVERHEAT_LIMIT=145; /* °C — при этой температуре мотор клинит */
+var OVERHEAT_LIMIT=145;
+
+/* Наборы передаточных чисел */
+var RATIOS_5=[0,3.40,2.00,1.35,1.00,0.78];
+var RATIOS_6=[0,3.40,2.00,1.35,1.00,0.78,0.62];
+function ratiosFor(E){return (E&&E.gears===6)?RATIOS_6:RATIOS_5;}
 
 var savedEng='r4';
 try{savedEng=localStorage.getItem(STORAGE_KEY)||'r4';}catch(e){}
@@ -42,7 +47,6 @@ primingDuration:1500
 };
 if(S.engines[savedEng].auto)S.gear=1;
 
-var gearRatios=[0,3.40,2.00,1.35,1.00,0.78,0.62];
 var reverseRatio=-3.17;
 var finalDrive=3.90;
 var wheelRadius=0.31;
@@ -63,8 +67,7 @@ function torqueCurve(r,E){
 
 S.setWeather=function(w){
   if(!AMB[w])return;
-  S.weather=w;
-  S.ambientTemp=AMB[w];
+  S.weather=w;S.ambientTemp=AMB[w];
   try{localStorage.setItem(WKEY,w);}catch(e){}
   if(!S.running)S.engineTemp=S.ambientTemp;
   S.startAttempts=0;
@@ -82,7 +85,7 @@ S.breakEngine=function(reason){
 };
 
 S.repair=function(){
-  S.seized=false; /* снимаем клин */
+  S.seized=false;
   S.broken=false;S.stalled=false;S.running=false;S.rpm=0;S.speed=0;
   S.gear=curE().auto?1:0;
   S.ignitionState='off';
@@ -99,6 +102,18 @@ S.repair=function(){
   if(ig){ig.textContent='ЗАЖИГАНИЕ';ig.className='ignbtn';}
   S.pressed.gas=false;S.pressed.brake=false;S.pressed.clutch=false;
 };
+
+/* Показать/скрыть кнопку передачи в UI */
+function updateGearUI(){
+  var E=curE();
+  var maxG=(E.auto?6:(E.gears||6));
+  var btns=document.querySelectorAll('.gbtn[data-g]');
+  for(var i=0;i<btns.length;i++){
+    var g=Number(btns[i].dataset.g);
+    if(g>0 && g>maxG) btns[i].style.display='none';
+    else btns[i].style.display='';
+  }
+}
 
 S.setEngine=function(type){
   if(!ENGINES[type])return;
@@ -122,8 +137,25 @@ S.setEngine=function(type){
   if(ig){ig.textContent='ЗАЖИГАНИЕ';ig.className='ignbtn';}
   var badge=document.getElementById('engBadge');
   if(badge)badge.textContent=ENGINES[type].name;
+  updateGearUI();
   if(window.DVS_RENDER&&window.DVS_RENDER.draw)window.DVS_RENDER.draw();
   try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
+};
+
+/* Переключение передачи (проверка на 5-ст. КПП) */
+S.setGear=function(g){
+  var E=curE();
+  if(E.auto)return;
+  if(S.broken||S.seized)return;
+  /* Если выбрана передача выше допустимой — игнорируем */
+  if(g>0 && g>(E.gears||6))return;
+  if(g===S.gear)return;
+  S.gear=g;
+  var gearBtns=document.querySelectorAll('.gbtn');
+  for(var i=0;i<gearBtns.length;i++)gearBtns[i].classList.toggle('on',Number(gearBtns[i].dataset.g)===g);
+  var gv=document.getElementById('gearVal');
+  if(gv)gv.textContent=(g===0?'N':(g===-1?'R':String(g)));
+  try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}
 };
 
 S.physics=function(dt){
@@ -131,15 +163,12 @@ S.physics=function(dt){
   var mass=safeNum(E.mass,1250);
   var Iwheel=mass*wheelRadius*wheelRadius;
 
-  /* ===== КЛИН — мотор мёртв, машина катится и останавливается ===== */
   if(S.seized){
-    S.rpm=0;
-    S.throttle=0;
+    S.rpm=0;S.throttle=0;
     S.speed*=Math.max(0,1-2.5*dt);
     if(Math.abs(S.speed)<0.1)S.speed=0;
     return;
   }
-
   if(S.broken){
     S.rpm=0;
     S.speed*=Math.max(0,1-2.5*dt);
@@ -164,7 +193,7 @@ S.physics=function(dt){
     }
   }
 
-  /* ===== ПЕРЕГРЕВ = КЛИН ===== */
+  /* ПЕРЕГРЕВ = КЛИН */
   if(S.engineTemp >= OVERHEAT_LIMIT && S.running){
     S.seized = true;
     S.throttle = 0;
@@ -181,12 +210,13 @@ S.physics=function(dt){
     else if(S.gear===-1)ratio=-r;
     else ratio=r;
   } else {
+    var RATIOS=ratiosFor(E);
     if(S.gear===0)ratio=0;
     else if(S.gear===-1)ratio=reverseRatio*finalDrive;
     else {
       var gi=S.gear;
-      if(gi<0||gi>=gearRatios.length||typeof gearRatios[gi]!=='number')gi=0;
-      ratio=gearRatios[gi]*finalDrive;
+      if(gi<0||gi>=RATIOS.length||typeof RATIOS[gi]!=='number')gi=0;
+      ratio=RATIOS[gi]*finalDrive;
     }
   }
   ratio=safeNum(ratio,0);
@@ -223,7 +253,6 @@ S.physics=function(dt){
       }
     }
 
-    /* Перегрев > 130°C — теряем мощность */
     if(S.engineTemp > 130){
       var overheat = (S.engineTemp - 130) / (OVERHEAT_LIMIT - 130);
       if(overheat > 1) overheat = 1;
