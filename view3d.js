@@ -84,7 +84,12 @@ function setup(){
 
 function attachControls(){
   var el=renderer.domElement;
+  function isLocked(){
+    var w=document.getElementById('engineWrap');
+    return !!(w && w.classList.contains('locked'));
+  }
   function down(e){
+    if(isLocked())return;
     if(e.touches&&e.touches.length===1){
       isDown=true;lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;
     }else if(e.touches&&e.touches.length===2){
@@ -96,14 +101,17 @@ function attachControls(){
     }
   }
   function move(e){
+    if(isLocked()){isDown=false;pinch=0;return;}
     if(e.touches){
       if(e.touches.length===1&&isDown){
+        e.preventDefault();
         rotY+=(e.touches[0].clientX-lastX)*0.012;
         rotX+=(e.touches[0].clientY-lastY)*0.012;
         rotX=Math.max(-1.3,Math.min(1.3,rotX));
         lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;
         updCam();
       }else if(e.touches.length===2&&pinch){
+        e.preventDefault();
         var dx=e.touches[0].clientX-e.touches[1].clientX;
         var dy=e.touches[0].clientY-e.touches[1].clientY;
         var nd=Math.hypot(dx,dy);
@@ -121,11 +129,13 @@ function attachControls(){
   }
   function up(){isDown=false;pinch=0;}
   el.addEventListener('touchstart',down,{passive:false});
-  el.addEventListener('touchmove',function(e){e.preventDefault();move(e);},{passive:false});
+  el.addEventListener('touchmove',move,{passive:false});
   el.addEventListener('touchend',up);
+  el.addEventListener('touchcancel',up);
   el.addEventListener('mousedown',down);
   el.addEventListener('mousemove',move);
   el.addEventListener('mouseup',up);
+  el.addEventListener('mouseleave',up);
 }
 
 function animate(){
@@ -194,6 +204,8 @@ function toggle(){
   container.style.display=active?'block':'none';
   var gb=document.getElementById('ghostBtn');
   if(gb)gb.style.display=active?'inline-block':'none';
+  var lb=document.getElementById('lockBtn');
+  if(lb)lb.style.display=active?'flex':'none';
   if(active){
     var wrap=document.getElementById('engine3dCv').parentNode;
     var w=wrap.clientWidth,h=wrap.clientHeight;
@@ -226,11 +238,31 @@ function resize(){
 
 function toggleGhost(){setGhost(!ghost);}
 
+function toggleLock(){
+  var wrap=document.getElementById('engineWrap');
+  var lb=document.getElementById('lockBtn');
+  if(!wrap||!lb)return;
+  var locked=wrap.classList.toggle('locked');
+  lb.textContent=locked?'🔒':'🔓';
+  lb.classList.toggle('on',locked);
+  isDown=false;pinch=0;
+  try{if(navigator.vibrate)navigator.vibrate(locked?[20,30]:10);}catch(e){}
+}
+
 function attachBtn(){
   var gb=document.getElementById('ghostBtn');
   if(gb){
     gb.style.display='none';
     gb.addEventListener('click',function(e){e.preventDefault();toggleGhost();});
+  }
+  var lb=document.getElementById('lockBtn');
+  if(lb){
+    lb.style.display='none';
+    lb.addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      toggleLock();
+    });
   }
 }
 
@@ -238,6 +270,7 @@ function attachBtn(){
 window.DVS_3D={
   toggle:toggle,
   toggleGhost:toggleGhost,
+  toggleLock:toggleLock,
   resize:resize,
   isActive:function(){return active;}
 };
@@ -279,7 +312,7 @@ window.DVS_3D_REF={
   }
 };
 
-/* При загрузке — навешиваем только кнопку ghost */
+/* При загрузке — навешиваем кнопки */
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',attachBtn);}
 else{attachBtn();}
 })();
