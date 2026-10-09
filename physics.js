@@ -46,7 +46,9 @@ startAttempts:0,
 primingStart:0,
 primingDuration:1500,
 _prevGear:0,
-_shiftTimer:0
+_shiftTimer:0,
+_lastGearTime:0,
+_lastGearValue:0
 };
 if(S.engines[savedEng].auto)S.gear=1;
 
@@ -105,6 +107,7 @@ S.repair=function(){
   var ig=document.getElementById('ignBtn');
   if(ig){ig.textContent='ЗАЖИГАНИЕ';ig.className='ignbtn';}
   S.pressed.gas=false;S.pressed.brake=false;S.pressed.clutch=false;
+  if(window.DVS_GEARSTICK)try{window.DVS_GEARSTICK.moveTo(S.gear,true);}catch(e){}
 };
 
 function updateGearUI(){
@@ -132,7 +135,6 @@ S.setEngine=function(type){
   S._prevGear=S.gear;
   S._shiftTimer=0;
   document.body.classList.remove('broken');
-
   var gb=document.querySelectorAll('.gbtn');
   for(var i=0;i<gb.length;i++)gb[i].classList.toggle('on',Number(gb[i].dataset.g)===S.gear);
   var ab=document.querySelectorAll('.agbtn');
@@ -143,51 +145,108 @@ S.setEngine=function(type){
   if(ig){ig.textContent='ЗАЖИГАНИЕ';ig.className='ignbtn';}
   var badge=document.getElementById('engBadge');
   if(badge)badge.textContent=ENGINES[type].name;
-
   updateGearUI();
-
   if(window.DVS_RENDER&&window.DVS_RENDER.draw)window.DVS_RENDER.draw();
-
-  /* ===== ПЕРЕСТРОИТЬ 3D-МОДЕЛЬ ПОД НОВЫЙ ДВИГАТЕЛЬ ===== */
-  try{
-    if(window.DVS_3D_REF && typeof window.DVS_3D_REF.clearAll === 'function'){
-      window.DVS_3D_REF.clearAll();
-    }
-    /* Обнулить ссылки на старые детали новых моделей */
-    window._wankelRotors = [];
-    window._wankelFlashes = [];
-    window._dciParts = null;
-    /* Перестроить сцену после короткой паузы (чтобы UI успел обновиться) */
-    if(window.DVS_3D_REBUILD){
-      setTimeout(function(){
-        try{ window.DVS_3D_REBUILD(); }catch(err){ console.warn('3D rebuild:',err); }
-      }, 80);
-    }
-  }catch(e){ console.warn('3D rebuild outer:',e); }
-
+  if(window.DVS_3D_REBUILD){
+    setTimeout(function(){
+      try{ window.DVS_3D_REBUILD(); }catch(err){ console.warn('3D rebuild:',err); }
+    }, 80);
+  }
+  if(window.DVS_GEARSTICK)try{window.DVS_GEARSTICK.moveTo(S.gear,true);}catch(e){}
   try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
 };
 
+/* ==================== ПЕРЕКЛЮЧЕНИЕ ПЕРЕДАЧ + ХРУСТ ==================== */
 S.setGear=function(g){
   var E=curE();
   if(E.auto)return;
   if(S.broken||S.seized)return;
   if(g>0 && g>(E.gears||6))return;
   if(g===S.gear)return;
+
+  var now=Date.now();
+  var delta=now - S._lastGearTime;
+  S._lastGearTime=now;
+
+  var clutchIn=(S.clutchPedal||0)>0.35;
+  var rpm=S.rpm||0;
+  var running=S.running&&!S.stalled;
+
+  /* УСЛОВИЕ ХРУСТА: быстро + без сцепления + мотор работает */
+  var isFast=delta<250;
+  var willGrind=false;
+
+  if(running && rpm>700){
+    /* Резко втыкаешь передачу без сцепления */
+    if(!clutchIn && isFast && g>0 && rpm>800){
+      willGrind=true;
+    }
+    /* Прыжок через 2+ передачи без сцепления */
+    if(!clutchIn && Math.abs(g - S._lastGearValue) >= 2 && rpm>800){
+      willGrind=true;
+    }
+    /* Очень быстрое двойное нажатие */
+    if(!clutchIn && delta<150){
+      willGrind=true;
+    }
+  }
+
+  S._lastGearValue=g;
+
+  /* === ХРУСТ === */
+  if(willGrind){
+    if(window.DVS_SOUND && window.DVS_SOUND.gearCrunch){
+      try{ window.DVS_SOUND.gearCrunch(); }catch(e){}
+    }
+    try{ if(navigator.vibrate) navigator.vibrate([40,30,40,30,80]); }catch(e){}
+
+    var targetBtn=document.querySelector('.gbtn[data-g="'+g+'"]');
+    if(targetBtn){
+      targetBtn.classList.add('grind');
+      setTimeout(function(){targetBtn.classList.remove('grind');}, 450);
+    }
+    var activeBtn=document.querySelector('.gbtn.on');
+    if(activeBtn){
+      activeBtn.classList.add('grind');
+      setTimeout(function(){activeBtn.classList.remove('grind');}, 450);
+    }
+
+    /* На очень высоких — мотор глохнет */
+    if(rpm>3000 && running){
+      S.stalled=true;
+      S.running=false;
+    }
+
+    /* Рычаг возвращается на текущую передачу */
+    if(window.DVS_GEARSTICK)try{window.DVS_GEARSTICK.moveTo(S.gear,true);}catch(e){}
+    return; /* передача НЕ включается */
+  }
+
+  /* === ОБЫЧНОЕ ПЕРЕКЛЮЧЕНИЕ === */
   S.gear=g;
+
+  if(clutchIn && window.DVS_SOUND && window.DVS_SOUND.gearClick){
+    try{ window.DVS_SOUND.gearClick(); }catch(e){}
+  }
+
   var gearBtns=document.querySelectorAll('.gbtn');
-  for(var i=0;i<gearBtns.length;i++)gearBtns[i].classList.toggle('on',Number(gearBtns[i].dataset.g)===g);
+  for(var i=0;i<gearBtns.length;i++){
+    gearBtns[i].classList.toggle('on',Number(gearBtns[i].dataset.g)===g);
+  }
   var gv=document.getElementById('gearVal');
   if(gv)gv.textContent=(g===0?'N':(g===-1?'R':String(g)));
+
+  if(window.DVS_GEARSTICK)try{window.DVS_GEARSTICK.moveTo(g,true);}catch(e){}
   try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}
 };
 
+/* ==================== ФИЗИКА ==================== */
 S.physics=function(dt){
   var E=curE();
   var mass=safeNum(E.mass,1250);
   var Iwheel=mass*wheelRadius*wheelRadius;
 
-  /* ===== КЛИН ===== */
+  /* КЛИН */
   if(S.seized){
     S.rpm=0;S.throttle=0;
     S.speed*=Math.max(0,1-2.5*dt);
@@ -232,13 +291,14 @@ S.physics=function(dt){
 
   /* ПЕРЕГРЕВ = КЛИН */
   if(S.engineTemp >= OVERHEAT_LIMIT && S.running){
-    S.seized = true;
-    S.throttle = 0;
-    S.breakEngine('ПЕРЕГРЕВ! Клин при ' + OVERHEAT_LIMIT + '°C');
+    S.seized=true;
+    S.throttle=0;
+    S.breakEngine('ПЕРЕГРЕВ! Клин при '+OVERHEAT_LIMIT+'°C');
     try{if(navigator.vibrate)navigator.vibrate([80,100,80,100,200]);}catch(e){}
     return;
   }
 
+  /* ПЕРЕДАТОЧНОЕ ЧИСЛО */
   var ratio=0;
   if(E.cvt){
     var vv=Math.abs(S.speed);
@@ -258,6 +318,7 @@ S.physics=function(dt){
   }
   ratio=safeNum(ratio,0);
 
+  /* СЦЕПЛЕНИЕ */
   var eng;
   if(E.auto){
     if(S.gear===0||S.stalled||!S.running){eng=0;}
@@ -274,6 +335,7 @@ S.physics=function(dt){
   var omegaDirect=omegaWheel*ratio;
   var omegaEngine=S.rpm*Math.PI/30;
 
+  /* КРУТЯЩИЙ МОМЕНТ ДВИГАТЕЛЯ */
   var Te=0;
   if(S.running&&!S.stalled){
     var thr=safeNum(S.throttle,0);
@@ -291,10 +353,10 @@ S.physics=function(dt){
       }
     }
 
-    if(S.engineTemp > 130){
-      var overheat = (S.engineTemp - 130) / (OVERHEAT_LIMIT - 130);
-      if(overheat > 1) overheat = 1;
-      Te *= (1 - overheat * 0.7);
+    if(S.engineTemp>130){
+      var overheat=(S.engineTemp-130)/(OVERHEAT_LIMIT-130);
+      if(overheat>1)overheat=1;
+      Te*=(1-overheat*0.7);
     }
 
     var friction=5+S.rpm*0.003;
@@ -310,13 +372,14 @@ S.physics=function(dt){
     }
 
     /* АНТИ-СТОЛЛ */
-    if(eng > 0.3 && S.rpm < E.idle*0.85){
-      var guard = (E.idle*0.85 - S.rpm) * 0.5;
-      if(guard > 150) guard = 150;
-      if(guard > 0) Te += guard;
+    if(eng>0.3 && S.rpm<E.idle*0.85){
+      var guard=(E.idle*0.85-S.rpm)*0.5;
+      if(guard>150)guard=150;
+      if(guard>0)Te+=guard;
     }
   }
 
+  /* СЦЕПЛЕНИЕ / ПЕРЕДАЧА МОМЕНТА */
   var slip=omegaEngine-omegaDirect;
   var Tc;
   if(E.cvt){
@@ -354,7 +417,7 @@ S.physics=function(dt){
   if(!isFinite(S.speed))S.speed=0;
 
   if(S.running&&!S.stalled&&S.engineTemp<20&&S.rpm<E.idle*0.5&&S.throttle<0.1){
-    if(Math.random()<0.02){S.stalled=true;S.running=false;S.rpm=0;}
+    if(Math.random()<0.02){S.stalled=true;S.running=false;}
   }
 
   if(S.rpm>E.breakRpm){
@@ -365,14 +428,22 @@ S.physics=function(dt){
     if(Math.abs(nW)<0.6)S.speed=0;
   }
 
+  /* Заглох: только если сцепление включено И обороты низкие */
   if(!S.stalled && S.running && S.rpm<E.stallRpm){
-    if(eng > 0.25 && S._shiftTimer<=0){
-      S.stalled=true;S.running=false;S.rpm=0;
-    } else if(S.rpm < E.stallRpm*0.4){
-      S.stalled=true;S.running=false;S.rpm=0;
+    if(eng>0.25 && S._shiftTimer<=0){
+      S.stalled=true;S.running=false;
+    } else if(S.rpm<E.stallRpm*0.4){
+      S.stalled=true;S.running=false;
     }
   }
-  if(S.stalled)S.rpm=Math.max(0,S.rpm-E.idle*3*dt);
+
+  /* ПЛАВНОЕ ЗАТУХАНИЕ — поршни/звук замедляются */
+  if(S.stalled){
+    var decayRate=E.idle*2.5;
+    if(S.rpm>3000)decayRate=E.idle*4.5;
+    else if(S.rpm>1500)decayRate=E.idle*3.5;
+    S.rpm=Math.max(0,S.rpm-decayRate*dt);
+  }
 
   S.crankAngle+=(S.rpm*Math.PI/30)*dt*0.55;
   var TAU=Math.PI*4;
