@@ -15,7 +15,7 @@ function cy(r,h,s,c,a,b){return new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,
 function bx(w,h,d,c,a,b){return new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m(c,a,b));}
 function bl(r){return cy(0.12,r||0.2,10,0xc8d4e0,0.95,0.2);}
 
-/* ========== ГЛАВНЫЕ ОБЪЕКТЫ — СОЗДАЁМ В ПЕРВУЮ ОЧЕРЕДЬ ========== */
+/* ========== ГЛАВНЫЕ ОБЪЕКТЫ ========== */
 window.DVS_3D_BUILD={m:m,cy:cy,bx:bx,bl:bl};
 
 window.DVS_3D_REF={
@@ -52,6 +52,86 @@ window.DVS_3D_REF={
   }
 };
 
+/* ========== ЗАПАСНОЙ REBUILD — простая четвёрка ========== */
+function fallbackRebuild(){
+  var R=window.DVS_3D_REF;
+  var sc=R.getScene();
+  if(!sc){console.warn('fallback: нет сцены');return;}
+
+  var old=R.getRoot();
+  if(old){
+    while(old.children.length){
+      var c=old.children.pop();
+      if(c.geometry)try{c.geometry.dispose();}catch(e){}
+      if(c.material)try{c.material.dispose();}catch(e){}
+    }
+    sc.remove(old);
+  }
+  R.clearAll();
+  window._dvsWankelRotors=[];window._dvsWankelPins=[];window._dvsWankelFlashes=[];
+  window._dciParts=null;
+
+  var root=new THREE.Group();
+  sc.add(root);
+  R.setRoot(root);
+
+  /* Блок */
+  var block=bx(4.2,1.5,1.6,0x2a2d33,0.75,0.55);
+  root.add(block);R.pushBlock(block);
+
+  /* Рёбра */
+  for(var i=0;i<5;i++){
+    var rib=bx(0.06,1.4,1.66,0x1e2126,0.85,0.55);
+    rib.position.x=-1.7+i*0.85;
+    root.add(rib);R.pushRib(rib);
+  }
+
+  /* Головка */
+  var head=bx(4.2,0.6,1.5,0x3a3d44,0.7,0.5);
+  head.position.y=1.05;
+  root.add(head);R.pushHead(head);
+
+  /* Крышка */
+  var cover=bx(4.0,0.35,1.35,0x1a1d22,0.6,0.6);
+  cover.position.y=1.5;
+  root.add(cover);R.pushCover(cover);
+
+  /* Поддон */
+  var pan=bx(4.0,0.5,1.4,0x3a3d44,0.7,0.5);
+  pan.position.y=-1.0;root.add(pan);
+
+  /* Поршни + свечи */
+  var asm=[];
+  for(var c2=0;c2<4;c2++){
+    var cx=-1.55+c2*1.03;
+    var plug=cy(0.11,0.4,10,0x8a8f96,0.9,0.3);
+    plug.position.set(cx,1.6,0);root.add(plug);
+    var cyl=cy(0.42,1.1,16,0x4a4d54,0.85,0.4);
+    cyl.position.set(cx,0.2,0);root.add(cyl);
+    var piston=cy(0.38,0.5,16,0xdde5ee,0.95,0.15);
+    piston.position.set(cx,0.2,0);root.add(piston);
+    var rod=bx(0.14,1.1,0.14,0xc8d4e0,0.95,0.2);
+    rod.position.set(cx,-0.6,0);root.add(rod);
+    asm.push({p:piston,rod:rod,off:c2*Math.PI,h:0.7,vv:[]});
+  }
+  R.setAsm(asm);
+
+  /* Коленвал */
+  var crank=cy(0.28,4.4,16,0x8a95a3,0.95,0.25);
+  crank.rotation.z=Math.PI/2;crank.position.y=-1.0;
+  root.add(crank);R.setCrank(crank);
+
+  /* Маховик */
+  var fly=cy(1.5,0.3,28,0x6a6f78,0.9,0.3);
+  fly.rotation.z=Math.PI/2;fly.position.set(2.5,-1.0,0);
+  root.add(fly);R.setFly(fly);
+}
+
+/* Ставим fallback сразу */
+window.DVS_3D_REBUILD=fallbackRebuild;
+window._dvsFallbackRebuild=true;
+
+/* ========== ПУБЛИЧНЫЙ API ========== */
 window.DVS_3D={
   show3D:function(){try{show3D();}catch(e){console.warn(e);}},
   hide3D:function(){try{hide3D();}catch(e){}},
@@ -276,7 +356,6 @@ function toggleLock(){
   isDown=false;pinch=0;
 }
 
-/* Кнопки */
 function attachBtn(){
   var gb=document.getElementById('ghostBtn');
   if(gb){
