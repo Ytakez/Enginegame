@@ -1,220 +1,271 @@
 (function(){
 "use strict";
-var S=window.S;
-var errBox=document.getElementById('err');
-function showErr(m){if(errBox){errBox.style.display='block';errBox.textContent='Ошибка: '+m;}}
-window.addEventListener('error',function(ev){if(!ev.filename||ev.filename.indexOf('github.io')===-1)return;showErr(ev.message+' | '+ev.filename+':'+ev.lineno);});
-if(!S){showErr('physics.js не загрузился');return;}
+var STORAGE_KEY='dvs_engine_v3';
+var WKEY='dvs_weather';
+var ENGINES={
+  scooter:{name:'S1',cyls:1,maxTorque:60,idle:700,redline:3200,breakRpm:3800,stallRpm:250,fireDiv:30,lpBase:1400,lpRpm:0.35,subGain:0.5,sawGain:0.9,sqGain:0.4,noiseBase:0.08,cvt:true,auto:true,mass:200},
+  tdi:{name:'1.9 TDI',cyls:4,maxTorque:310,idle:850,redline:4800,breakRpm:5500,stallRpm:300,fireDiv:30,lpBase:380,lpRpm:0.10,subGain:1.8,sawGain:0.35,sqGain:0.08,noiseBase:0.10,mass:1350,diesel:true},
+  mt82:{name:'Д-240',cyls:4,maxTorque:298,idle:600,redline:2200,breakRpm:2400,stallRpm:250,fireDiv:15,lpBase:220,lpRpm:0.06,subGain:3.5,sawGain:0.5,sqGain:0.04,noiseBase:0.18,mass:3200,diesel:true,tractor:true},
+  passatb3:{name:'1.8 B3',cyls:4,maxTorque:160,idle:900,redline:6200,breakRpm:7000,stallRpm:350,fireDiv:30,lpBase:750,lpRpm:0.14,subGain:0.85,sawGain:0.45,sqGain:0.12,noiseBase:0.012,mass:1300},
+  bluebird:{name:'2.0 CA20',cyls:4,maxTorque:178,idle:850,redline:7000,breakRpm:7800,stallRpm:350,fireDiv:30,lpBase:780,lpRpm:0.16,subGain:0.8,sawGain:0.55,sqGain:0.14,noiseBase:0.018,mass:1280},
+  galant6:{name:'2.0 V6',cyls:6,maxTorque:179,idle:850,redline:7000,breakRpm:7800,stallRpm:350,fireDiv:20,lpBase:520,lpRpm:0.13,subGain:1.3,sawGain:0.58,sqGain:0.10,noiseBase:0.025,mass:1350},
+  r4:{name:'R4',cyls:4,maxTorque:250,idle:900,redline:6800,breakRpm:8000,stallRpm:350,fireDiv:30,lpBase:700,lpRpm:0.15,subGain:0.9,sawGain:0.5,sqGain:0.15,noiseBase:0.015,mass:1250},
+  v8:{name:'V12',cyls:12,maxTorque:560,idle:900,redline:7600,breakRpm:9000,stallRpm:350,fireDiv:10,lpBase:400,lpRpm:0.11,subGain:1.8,sawGain:0.65,sqGain:0.07,noiseBase:0.038,mass:1500},
+  v16:{name:'V22',cyls:22,maxTorque:900,idle:900,redline:8200,breakRpm:9600,stallRpm:350,fireDiv:5.5,lpBase:230,lpRpm:0.07,subGain:2.6,sawGain:0.75,sqGain:0.04,noiseBase:0.065,mass:1800}
+};
+var AMB={summer:25,autumn:8,winter:-15};
 
-if(S.ignitionState===undefined)S.ignitionState='off';
-if(S.startAttempts===undefined)S.startAttempts=0;
-if(S.primingStart===undefined)S.primingStart=0;
-if(S.primingDuration===undefined)S.primingDuration=1500;
-if(S.weather===undefined)S.weather='summer';
-if(S.ambientTemp===undefined)S.ambientTemp=25;
-if(S.engineTemp===undefined)S.engineTemp=S.ambientTemp;
-if(S.setWeather===undefined)S.setWeather=function(w){
-  var AMB={summer:25,autumn:8,winter:-15};
-  S.weather=w;S.ambientTemp=AMB[w]||25;
+var savedEng='r4';
+try{savedEng=localStorage.getItem(STORAGE_KEY)||'r4';}catch(e){}
+if(!ENGINES[savedEng])savedEng='r4';
+
+var savedWeather='summer';
+try{savedWeather=localStorage.getItem(WKEY)||'summer';}catch(e){}
+if(!AMB[savedWeather])savedWeather='summer';
+
+var S=window.S={
+  rpm:0,speed:0,gear:0,crankAngle:0,
+  running:false,stalled:false,broken:false,
+  throttle:0,brakePedal:0,clutchPedal:0,
+  pressed:{gas:false,brake:false,clutch:false},
+  engines:ENGINES,
+  engineType:savedEng,
+  ignitionState:'off',
+  weather:savedWeather,
+  ambientTemp:AMB[savedWeather]||25,
+  engineTemp:AMB[savedWeather]||25,
+  startAttempts:0,
+  primingStart:0,
+  primingDuration:1500
+};
+if(S.engines[savedEng].auto)S.gear=1;
+
+var gearRatios=[0,3.40,2.00,1.35,1.00,0.78,0.62];
+var reverseRatio=-3.17;
+var finalDrive=3.90;
+var wheelRadius=0.31;
+var clutchK=40;
+var clutchMax=350;
+
+function curE(){return ENGINES[S.engineType]||ENGINES.r4;}
+function safeNum(n,fb){return (typeof n==='number'&&isFinite(n))?n:fb;}
+
+function torqueCurve(r,E){
+  var lo=E.idle*0.8;
+  var hi=E.redline-(E.redline-E.idle)*0.15;
+  if(hi<=lo)hi=lo+1;
+  var x=Math.max(lo,Math.min(hi,r));
+  if(E.diesel)return 0.9+0.1*Math.sin(Math.PI*(x-lo)/(hi-lo));
+  return 0.55+0.45*Math.sin(Math.PI*(x-lo)/(hi-lo));
+}
+
+S.setWeather=function(w){
+  if(!AMB[w])return;
+  S.weather=w;
+  S.ambientTemp=AMB[w];
+  try{localStorage.setItem(WKEY,w);}catch(e){}
   if(!S.running)S.engineTemp=S.ambientTemp;
-  try{localStorage.setItem('dvs_weather',w);}catch(e){}
+  S.startAttempts=0;
 };
 
-var pedalEls={clutch:document.getElementById('pClutch'),brake:document.getElementById('pBrake'),gas:document.getElementById('pGas')};
-var activeTouches={};
-function pedalPress(n){if(S.pressed[n])return;S.pressed[n]=true;if(pedalEls[n])pedalEls[n].classList.add('active');}
-function pedalRelease(n){if(!S.pressed[n])return;S.pressed[n]=false;if(pedalEls[n])pedalEls[n].classList.remove('active');}
-function pedalReleaseAll(){pedalRelease('gas');pedalRelease('brake');pedalRelease('clutch');activeTouches={};}
-function onTouchStart(e){for(var i=0;i<e.changedTouches.length;i++){var t=e.changedTouches[i];var el=document.elementFromPoint(t.clientX,t.clientY);if(!el)continue;var pedal=el.closest?el.closest('.pedal'):null;if(pedal){e.preventDefault();var n=pedal.dataset.pedal;activeTouches[t.identifier]=n;pedalPress(n);}}}
-function onTouchEnd(e){for(var i=0;i<e.changedTouches.length;i++){var t=e.changedTouches[i];var n=activeTouches[t.identifier];if(n){delete activeTouches[t.identifier];var still=false;for(var k in activeTouches){if(activeTouches[k]===n)still=true;}if(!still)pedalRelease(n);}}}
-document.addEventListener('touchstart',onTouchStart,{passive:false});
-document.addEventListener('touchend',onTouchEnd,{passive:false});
-document.addEventListener('touchcancel',onTouchEnd,{passive:false});
-Object.keys(pedalEls).forEach(function(n){var el=pedalEls[n];if(!el)return;el.addEventListener('mousedown',function(e){e.preventDefault();pedalPress(n);});el.addEventListener('mouseup',function(){pedalRelease(n);});el.addEventListener('mouseleave',function(){pedalRelease(n);});el.addEventListener('contextmenu',function(e){e.preventDefault();});});
-window.addEventListener('blur',pedalReleaseAll);
-document.addEventListener('visibilitychange',function(){if(document.hidden)pedalReleaseAll();});
+S.breakEngine=function(reason){
+  if(S.broken)return;
+  S.broken=true;S.running=false;S.stalled=true;S.rpm=0;
+  document.body.classList.add('broken');
+  var b=document.getElementById('breakBanner');
+  if(b)b.textContent='ДВИГАТЕЛЬ СЛОМАН: '+(reason||'поломка');
+  var ig=document.getElementById('ignBtn');
+  if(ig)ig.classList.remove('on');
+  try{if(navigator.vibrate)navigator.vibrate([100,60,100,60,200]);}catch(e){}
+};
 
-var gearBtns=Array.prototype.slice.call(document.querySelectorAll('.gbtn'));
-S.setGear=function(g){var E=S.engines[S.engineType];if(E&&E.auto)return;if(S.broken)return;if(g===S.gear)return;S.gear=g;gearBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.g)===g);});var gv=document.getElementById('gearVal');if(gv)gv.textContent=(g===0?'N':(g===-1?'R':String(g)));try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}};
-gearBtns.forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();S.setGear(Number(b.dataset.g));});});
-
-var autoBtns=Array.prototype.slice.call(document.querySelectorAll('.agbtn'));
-S.setAutoGear=function(g){var E=S.engines[S.engineType];if(!E||!E.auto)return;if(S.broken)return;if(g===S.gear)return;S.gear=g;autoBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.ag)===g);});var gv=document.getElementById('gearVal');if(gv)gv.textContent=(g===0?'N':(g===-1?'R':'D'));try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}};
-autoBtns.forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();S.setAutoGear(Number(b.dataset.ag));});});
-
-var ignBtn=document.getElementById('ignBtn');
-var ignLock=false;
-var cranking=false;
-var crankStartTime=0;
-var crankNeeded=0;
-var primingStartTime=0;
-
-function setIgnBtn(txt,cls,active){if(!ignBtn)return;ignBtn.textContent=txt;ignBtn.className='ignbtn'+(cls?' '+cls:'')+(active?' on':'');}
-
-function keyOn(){
-  S.ignitionState='priming';
-  S.primingStart=Date.now();
-  S.primingDuration=1500;
-  primingStartTime=Date.now();
-  S.running=false;S.stalled=true;S.rpm=0;S.startAttempts=0;
-  setIgnBtn('КАЧАЕТ...','',true);
-  try{if(navigator.vibrate)navigator.vibrate(20);}catch(e){}
-  if(window.DVS_SOUND&&window.DVS_SOUND.fuelPump)window.DVS_SOUND.fuelPump();
-}
-function readyToStart(){S.ignitionState='ready';setIgnBtn('▶ ПУСК','start',false);try{if(navigator.vibrate)navigator.vibrate([30,30]);}catch(e){}}
-
-function getCrankDuration(){
-  var t=S.engineTemp||25;
-  var base;
-  if(t>40)base=0.7;
-  else if(t>20)base=1.2;
-  else if(t>5)base=2.2;
-  else if(t>-5)base=3.5;
-  else base=5.0;
-  return base*(0.85+Math.random()*0.3);
-}
-
-function startCranking(){
-  if(cranking)return;
-  if(S.ignitionState!=='ready')return;
-  cranking=true;
-  crankStartTime=Date.now();
-  crankNeeded=getCrankDuration();
-  setIgnBtn('🌀 ТАРАХ...','',true);
-  try{if(navigator.vibrate)navigator.vibrate([20,30,20]);}catch(e){}
-  if(window.DVS_SOUND&&window.DVS_SOUND.startCrank)window.DVS_SOUND.startCrank();
-}
-
-function stopCranking(){
-  if(!cranking)return;
-  cranking=false;
-  if(window.DVS_SOUND&&window.DVS_SOUND.stopCrank)window.DVS_SOUND.stopCrank();
-}
-
-function actualStart(){
-  var E=S.engines[S.engineType];
-  var t=S.engineTemp||25;
-  var dieChance=0;
-  if(t<0)dieChance=0.35;
-  else if(t<15)dieChance=0.2;
-  else if(t<30)dieChance=0.1;
-
-  S.ignitionState='running';
-  S.stalled=false;S.running=true;
-  S.rpm=E.idle;
-  if(t<40)S.rpm=E.idle-200;
-  if(S.rpm<400)S.rpm=400;
-  setIgnBtn('СТОП','',true);
-  try{if(navigator.vibrate)navigator.vibrate([30,40,30]);}catch(e){}
-  if(window.DVS_SOUND&&window.DVS_SOUND.starter)window.DVS_SOUND.starter();
-
-  if(Math.random()<dieChance){
-    setTimeout(function(){
-      if(S.running&&S.engineTemp<40){
-        S.stalled=true;S.running=false;S.rpm=0;
-        S.ignitionState='ready';
-        setIgnBtn('ЗАГЛОХ...','',false);
-        setTimeout(function(){if(S.ignitionState==='ready')setIgnBtn('▶ ПУСК','start',false);},1000);
-      }
-    },700);
-  }
-}
-
-function stopEngine(){
-  stopCranking();
-  S.running=false;S.stalled=true;S.rpm=0;
-  S.ignitionState='off';S.startAttempts=0;
-  setIgnBtn('ЗАЖИГАНИЕ','',false);
-  try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
-}
-
-function onIgnDown(e){
-  e.preventDefault();
-  if(ignLock)return;
-  var st=S.ignitionState;
-  if(st==='off'){ignLock=true;keyOn();setTimeout(function(){ignLock=false;},500);return;}
-  if(st==='priming'){return;}
-  if(st==='ready'){startCranking();return;}
-  if(st==='running'){ignLock=true;stopEngine();setTimeout(function(){ignLock=false;},500);return;}
-}
-function onIgnUp(){
-  ignLock=false;
-  if(cranking)stopCranking();
-}
-if(ignBtn){
-  ignBtn.addEventListener('pointerdown',onIgnDown);
-  ignBtn.addEventListener('pointerup',onIgnUp);
-  ignBtn.addEventListener('pointercancel',onIgnUp);
-  ignBtn.addEventListener('pointerleave',function(){if(cranking)stopCranking();});
-  ignBtn.addEventListener('touchstart',function(e){if(window.PointerEvent)return;e.preventDefault();onIgnDown(e);},{passive:false});
-  ignBtn.addEventListener('touchend',function(e){if(window.PointerEvent)return;e.preventDefault();onIgnUp();},{passive:false});
-  ignBtn.addEventListener('mousedown',function(e){if(window.PointerEvent)return;e.preventDefault();onIgnDown(e);});
-  ignBtn.addEventListener('mouseup',function(){if(window.PointerEvent)return;onIgnUp();});
-}
-
-var repairBtn=document.getElementById('repairBtn');
-if(repairBtn)repairBtn.addEventListener('click',function(e){e.preventDefault();S.repair();});
-
-var acc=0,last=performance.now(),FIXED=1/240;
-var tSm=0,bSm=0,cSm=0;
-var spdEl=document.getElementById('spdVal');
-function smoothStep(cur,target,up,down,dt){var rate=target>cur?up:down;var d=target-cur;var step=rate*dt;return Math.abs(d)<=step?target:cur+Math.sign(d)*step;}
-
-var lastEngine=null;
-function updateEngineUI(){
-  var E=S.engines[S.engineType];if(!E)return;
-  var badge=document.getElementById('engBadge');
-  if(badge&&E.name&&badge.textContent!==E.name)badge.textContent=E.name;
-  if(lastEngine===S.engineType)return;
-  lastEngine=S.engineType;
-  var clutch=document.getElementById('pClutch');
-  var pedals=document.querySelector('.pedals');
-  if(E.auto){document.body.classList.add('auto-mode');if(clutch)clutch.style.display='none';if(pedals)pedals.style.gridTemplateColumns='1fr 1fr';}
-  else{document.body.classList.remove('auto-mode');if(clutch)clutch.style.display='';if(pedals)pedals.style.gridTemplateColumns='';}
-  if(E.auto){autoBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.ag)===S.gear);});}
-  else{gearBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.g)===S.gear);});}
+S.repair=function(){
+  S.broken=false;S.stalled=false;S.running=false;S.rpm=0;S.speed=0;
+  S.gear=curE().auto?1:0;
+  S.ignitionState='off';
+  S.engineTemp=S.ambientTemp;
+  S.startAttempts=0;
+  document.body.classList.remove('broken');
+  var gb=document.querySelectorAll('.gbtn');
+  for(var i=0;i<gb.length;i++)gb[i].classList.toggle('on',Number(gb[i].dataset.g)===S.gear);
+  var ab=document.querySelectorAll('.agbtn');
+  for(var j=0;j<ab.length;j++)ab[j].classList.toggle('on',Number(ab[j].dataset.ag)===S.gear);
   var gv=document.getElementById('gearVal');
-  if(gv){if(E.auto)gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':'D'));else gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':String(S.gear)));}
-}
+  if(gv)gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':(curE().auto?'D':String(S.gear))));
+  var ig=document.getElementById('ignBtn');
+  if(ig){ig.textContent='ЗАЖИГАНИЕ';ig.className='ignbtn';}
+  S.pressed.gas=false;S.pressed.brake=false;S.pressed.clutch=false;
+};
 
-function loop(now){
-  var frame=(now-last)/1000;last=now;
-  if(frame>0.25)frame=0.25;
-  if(frame<0)frame=0;
-  updateEngineUI();
+S.setEngine=function(type){
+  if(!ENGINES[type])return;
+  S.engineType=type;
+  try{localStorage.setItem(STORAGE_KEY,type);}catch(e){}
+  S.broken=false;S.stalled=false;S.running=false;
+  S.rpm=0;S.speed=0;S.crankAngle=0;
+  S.ignitionState='off';
+  S.engineTemp=S.ambientTemp;
+  S.startAttempts=0;
+  S.gear=ENGINES[type].auto?1:0;
+  document.body.classList.remove('broken');
+  var gb=document.querySelectorAll('.gbtn');
+  for(var i=0;i<gb.length;i++)gb[i].classList.toggle('on',Number(gb[i].dataset.g)===S.gear);
+  var ab=document.querySelectorAll('.agbtn');
+  for(var j=0;j<ab.length;j++)ab[j].classList.toggle('on',Number(ab[j].dataset.ag)===S.gear);
+  var gv=document.getElementById('gearVal');
+  if(gv)gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':(ENGINES[type].auto?'D':String(S.gear))));
+  var ig=document.getElementById('ignBtn');
+  if(ig){ig.textContent='ЗАЖИГАНИЕ';ig.className='ignbtn';}
+  var badge=document.getElementById('engBadge');
+  if(badge)badge.textContent=ENGINES[type].name;
+  if(window.DVS_RENDER&&window.DVS_RENDER.draw)window.DVS_RENDER.draw();
+  try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
+};
 
-  if(S.ignitionState==='priming'){
-    if(primingStartTime===0)primingStartTime=Date.now();
-    if(Date.now()-primingStartTime>=(S.primingDuration||1500)){
-      primingStartTime=0;
-      readyToStart();
+S.physics=function(dt){
+  var E=curE();
+  var mass=safeNum(E.mass,1250);
+  var Iwheel=mass*wheelRadius*wheelRadius;
+
+  if(S.broken){
+    S.rpm=0;
+    S.speed*=Math.max(0,1-2.5*dt);
+    if(Math.abs(S.speed)<0.1)S.speed=0;
+    return;
+  }
+
+  S.rpm=safeNum(S.rpm,0);
+  S.speed=safeNum(S.speed,0);
+
+  if(S.running&&!S.stalled){
+    if(S.engineTemp<85)S.engineTemp+=dt*4;
+    else if(S.engineTemp<95)S.engineTemp+=dt*1;
+    if(S.rpm>E.redline*0.9&&S.throttle>0.7)S.engineTemp+=dt*2;
+  } else {
+    if(S.engineTemp>S.ambientTemp){
+      var coolRate=(S.engineTemp-S.ambientTemp)*0.15;
+      if(coolRate<0.5)coolRate=0.5;
+      S.engineTemp-=dt*coolRate;
+      if(S.engineTemp<S.ambientTemp)S.engineTemp=S.ambientTemp;
     }
   }
 
-  if(cranking&&S.ignitionState==='ready'){
-    var crankTime=(Date.now()-crankStartTime)/1000;
-    if(crankTime>=crankNeeded){
-      stopCranking();
-      actualStart();
+  var ratio=0;
+  if(E.cvt){
+    var vv=Math.abs(S.speed);
+    var r=10/(1+vv*0.06);
+    if(S.gear===0)ratio=0;
+    else if(S.gear===-1)ratio=-r;
+    else ratio=r;
+  } else {
+    if(S.gear===0)ratio=0;
+    else if(S.gear===-1)ratio=reverseRatio*finalDrive;
+    else {
+      var gi=S.gear;
+      if(gi<0||gi>=gearRatios.length||typeof gearRatios[gi]!=='number')gi=0;
+      ratio=gearRatios[gi]*finalDrive;
+    }
+  }
+  ratio=safeNum(ratio,0);
+
+  var eng;
+  if(E.auto){
+    if(S.gear===0||S.stalled||!S.running){eng=0;}
+    else if(E.cvt){
+      var range=E.idle*0.5;
+      eng=Math.max(0,Math.min(1,(S.rpm-E.idle*1.05)/range));
+    } else {eng=1;}
+  } else {
+    eng=(S.gear===0||S.stalled||!S.running)?0:(1-S.clutchPedal);
+  }
+
+  var omegaWheel=S.speed/3.6/wheelRadius;
+  var omegaDirect=omegaWheel*ratio;
+  var omegaEngine=S.rpm*Math.PI/30;
+
+  var Te=0;
+  if(S.running&&!S.stalled){
+    var thr=safeNum(S.throttle,0);
+    if(S.rpm>E.redline)thr=0;
+    Te=thr*E.maxTorque*torqueCurve(S.rpm,E);
+
+    if(S.engineTemp<40){
+      var cold=(40-S.engineTemp)/55;
+      if(cold>0.9)cold=0.9;
+      Te*=(1-cold*0.5);
+      Te+=(Math.random()-0.5)*40*cold;
+      if(Math.random()<cold*0.02){
+        S.rpm-=150;
+        if(S.rpm<0)S.rpm=0;
+      }
+    }
+
+    var friction=5+S.rpm*0.003;
+    Te-=friction;
+    if(thr<0.05){
+      var err=E.idle-S.rpm;
+      if(err>0)Te+=Math.min(err*0.8,40);
+      else Te+=Math.max(err*0.05,-15);
+      Te+=friction*0.3;
+    } else {
+      if(S.rpm<E.idle*0.7)Te+=(E.idle*0.7-S.rpm)*0.5;
     }
   }
 
-  tSm=smoothStep(tSm,S.pressed.gas?1:0,4.5,7.0,frame);
-  bSm=smoothStep(bSm,S.pressed.brake?1:0,5.0,7.0,frame);
-  cSm=smoothStep(cSm,S.pressed.clutch?1:0,7.0,1.6,frame);
-  S.throttle=tSm;S.brakePedal=bSm;S.clutchPedal=cSm;
-  var pg=document.getElementById('pGas');var pb=document.getElementById('pBrake');var pc=document.getElementById('pClutch');
-  if(pg)pg.querySelector('.bar').style.width=(tSm*100)+'%';
-  if(pb)pb.querySelector('.bar').style.width=(bSm*100)+'%';
-  if(pc)pc.querySelector('.bar').style.width=(cSm*100)+'%';
-  acc+=frame;
-  var steps=0;
-  while(acc>=FIXED&&steps<12){S.physics(FIXED);acc-=FIXED;steps++;}
-  if(steps>=12)acc=0;
-  if(window.DVS_RENDER)window.DVS_RENDER.draw();
-  if(spdEl)spdEl.textContent=String(Math.round(S.speed));
-  requestAnimationFrame(loop);
-}
-if(S.engines[S.engineType].auto)S.gear=1;
-requestAnimationFrame(loop);
+  var slip=omegaEngine-omegaDirect;
+  var Tc;
+  if(E.cvt){
+    var target=Te*eng;
+    var damp=slip*0.15;
+    Tc=target+damp;
+    var maxT=Math.max(3,Math.abs(Te)+8);
+    if(Tc>maxT)Tc=maxT;
+    if(Tc<-maxT)Tc=-maxT;
+    if(eng<0.01)Tc=0;
+  } else {
+    Tc=eng*clutchK*slip;
+    Tc=Math.max(-clutchMax,Math.min(clutchMax,Tc));
+    if(eng<0.001)Tc=0;
+  }
+  Tc=safeNum(Tc,0);
+
+  var Iengine=E.cvt?1.4:0.55;
+  var dE=(Te-Tc)/Iengine;
+  var v=Math.abs(S.speed)/3.6;
+  var dragF=0.42*v*v+(E.cvt?60:150);
+  var dragT=dragF*wheelRadius*(omegaWheel>=0?1:-1);
+  var brakeT=safeNum(S.brakePedal,0)*2600*(omegaWheel>=0?1:-1);
+  var wheelTorque=Tc*ratio-brakeT-dragT;
+  var dW=wheelTorque/Iwheel;
+  var nE=omegaEngine+dE*dt;
+  var nW=omegaWheel+dW*dt;
+  if(!isFinite(nE))nE=omegaEngine;
+  if(!isFinite(nW))nW=0;
+  if(nE<0)nE=0;
+
+  S.rpm=nE*30/Math.PI;
+  S.speed=nW*wheelRadius*3.6;
+  if(!isFinite(S.rpm))S.rpm=0;
+  if(!isFinite(S.speed))S.speed=0;
+
+  if(S.running&&!S.stalled&&S.engineTemp<20&&S.rpm<E.idle*0.5&&S.throttle<0.1){
+    if(Math.random()<0.02){S.stalled=true;S.running=false;S.rpm=0;}
+  }
+
+  if(S.rpm>E.breakRpm){
+    S.breakEngine('перекрут '+Math.round(S.rpm)+' об/мин');
+    return;
+  }
+  if(Math.abs(S.speed)<0.12&&(S.brakePedal>0.05||(!E.cvt&&S.gear===0))){
+    if(Math.abs(nW)<0.6)S.speed=0;
+  }
+  if(!S.stalled&&S.running&&S.rpm<E.stallRpm&&(eng>0.25||S.rpm<E.stallRpm*0.4)){
+    S.stalled=true;S.running=false;S.rpm=0;
+  }
+  if(S.stalled)S.rpm=Math.max(0,S.rpm-E.idle*3*dt);
+
+  S.crankAngle+=(S.rpm*Math.PI/30)*dt*0.55;
+  var TAU=Math.PI*4;
+  S.crankAngle=((S.crankAngle%TAU)+TAU)%TAU;
+};
 })();
