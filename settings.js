@@ -9,6 +9,7 @@ var LANGS={
 var ENGINES_INFO=[
   {id:'scooter',label:'🛵 Скутер (S1)',sub:'1 цилиндр · 4-тактный · АКПП'},
   {id:'tdi',label:'🚐 1.9 TDI',sub:'4 цилиндра · турбодизель · Passat B5'},
+  {id:'dci',label:'🚐 2.0 dCi',sub:'4 цилиндра · турбодизель · Renault/Nissan · 6МКПП'},
   {id:'mt82',label:'🚜 МТЗ-82 (Д-240)',sub:'4 цилиндра · тракторный дизель'},
   {id:'passatb3',label:'🚙 1.8 B3',sub:'4 цилиндра · бензин · Passat B3'},
   {id:'bluebird',label:'🚗 2.0 CA20',sub:'4 цилиндра · бензин · Bluebird'},
@@ -34,32 +35,27 @@ function injectStyles(){
   var st=document.createElement('style');
   st.id='settingsStyle';
   st.textContent=
-  /* Кнопка настроек — стеклянная, матовая */
   '.settings-btn{position:fixed;top:8px;left:8px;z-index:99998;width:44px;height:44px;border-radius:50%;'+
   'border:1px solid rgba(255,255,255,.08);background:rgba(20,20,20,.55);'+
-  'backdrop-filter:blur(40px) saturate(140%);-webkit-backdrop-filter:blur(40px) saturate(140%);'+
+  'backdrop-filter:blur(40px) saturate(100%);-webkit-backdrop-filter:blur(40px) saturate(100%);'+
   'color:#c0c0c0;font-size:20px;cursor:pointer;touch-action:manipulation;'+
   'display:flex;align-items:center;justify-content:center;padding:0;'+
   'box-shadow:0 8px 24px rgba(0,0,0,.5);transition:background .2s,border-color .2s,color .2s}'+
   '.settings-btn:hover{border-color:rgba(255,255,255,.16);color:#ffffff}'+
 
-  /* Затемнение фона — с блюром */
   '.settings-overlay{position:fixed;top:0;left:0;right:0;bottom:0;'+
   'background:rgba(0,0,0,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);'+
   'z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit}'+
 
-  /* Модальное окно — матовое стекло */
   '.settings-modal{width:100%;max-width:400px;max-height:92vh;overflow-y:auto;'+
-  'background:rgba(15,15,15,.6);backdrop-filter:blur(50px) saturate(140%);'+
-  '-webkit-backdrop-filter:blur(50px) saturate(140%);'+
+  'background:rgba(15,15,15,.6);backdrop-filter:blur(50px) saturate(100%);'+
+  '-webkit-backdrop-filter:blur(50px) saturate(100%);'+
   'border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:18px;'+
   'color:#e8e8e8;box-shadow:0 24px 70px rgba(0,0,0,.7)}'+
 
-  /* Заголовок */
   '.settings-modal h2{font-size:12px;letter-spacing:5px;color:#f0f0f0;'+
   'text-transform:uppercase;margin:0 0 16px;font-weight:600;text-align:center}'+
 
-  /* Пункт меню */
   '.settings-item{width:100%;min-height:54px;margin-bottom:8px;border-radius:14px;'+
   'border:1px solid rgba(255,255,255,.06);background:rgba(25,25,25,.55);'+
   'color:#c0c0c0;font:600 13px/1.3 inherit;cursor:pointer;padding:10px 14px;text-align:left;'+
@@ -72,11 +68,9 @@ function injectStyles(){
   '.settings-item .arrow{color:#6a6a6a;font-size:18px;flex:0 0 auto}'+
   '.settings-item .check{color:#f0f0f0;font-size:18px;opacity:0;flex:0 0 auto}'+
 
-  /* Активный пункт — белый */
   '.settings-item.on{border-color:rgba(255,255,255,.22);color:#ffffff;background:rgba(255,255,255,.10)}'+
   '.settings-item.on .check{opacity:1}.settings-item.on .sub{color:#a0a0a0}'+
 
-  /* Переключатель звука */
   '.sound-toggle{flex:0 0 auto;width:64px;height:32px;border-radius:16px;position:relative;'+
   'border:1px solid rgba(255,255,255,.08);background:rgba(40,40,40,.8);cursor:pointer;'+
   'transition:background .2s,border-color .2s}'+
@@ -85,21 +79,18 @@ function injectStyles(){
   'background:#6a6a6a;transition:left .15s,background .15s}'+
   '.sound-toggle.on .knob{left:34px;background:#0a0a0a}'+
 
-  /* Кнопка Закрыть */
   '.settings-close{width:100%;height:46px;border-radius:14px;border:1px solid rgba(255,255,255,.06);'+
   'background:rgba(25,25,25,.55);color:#c0c0c0;font:600 12px/1 inherit;letter-spacing:2.5px;'+
   'cursor:pointer;text-transform:uppercase;touch-action:manipulation;margin-top:12px;'+
   'transition:background .2s,border-color .2s,color .2s}'+
   '.settings-close:hover{border-color:rgba(255,255,255,.16);color:#ffffff}'+
 
-  /* Кнопка Назад */
   '.settings-back{width:100%;height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.06);'+
   'background:rgba(20,20,20,.5);color:#c0c0c0;font:600 12px/1 inherit;letter-spacing:2px;'+
   'cursor:pointer;text-transform:uppercase;touch-action:manipulation;margin-bottom:14px;'+
   'transition:background .2s,border-color .2s,color .2s}'+
   '.settings-back:hover{border-color:rgba(255,255,255,.16);color:#ffffff}'+
 
-  /* Скрыть скроллбар внутри модалки */
   '.settings-modal::-webkit-scrollbar{width:0;display:none}'+
   '.settings-modal{scrollbar-width:none;-ms-overflow-style:none}';
   document.head.appendChild(st);
