@@ -48,16 +48,16 @@ header{
   -webkit-backdrop-filter:blur(40px) saturate(100%);
   color:#fff;font-size:20px;cursor:pointer;
   align-items:center;justify-content:center;
-  box-shadow:0 0 20px rgba(200,80,80,.35);
-  display:none;
+  box-shadow:0 0 20px rgba(200,80,80,.35);display:none;
 }
 body.broken #repairBtn{display:flex}
 
 /* ==================== MAIN ==================== */
 main{
   flex:1 1 0;min-height:0;
-  display:flex;flex-direction:column;gap:6px;
-  padding:4px 8px;
+  display:flex;flex-direction:column;
+  gap:26px; /* место для кнопки, которая вылезает за 3D-панель */
+  padding:4px 8px 0;
   overflow:hidden;
 }
 .panel{
@@ -72,15 +72,21 @@ main{
   overflow:hidden;
 }
 
+/* 3D-сцена — фиксированная высота, overflow виден для кнопки */
 #engineWrap{
-  flex:1 1 0;min-height:0;
+  flex:0 0 auto;
+  height:30vh;
+  min-height:150px;
+  max-height:280px;
   display:flex;align-items:center;justify-content:center;
-  overflow:hidden;
+  overflow:visible; /* кнопка вылезает наружу */
   position:relative;
-  min-height:120px;
 }
 #engineCv{
-  display:block;max-width:100%;max-height:100%;
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
   border-radius:12px;
 }
 
@@ -89,7 +95,7 @@ main{
   position:absolute;top:8px;right:8px;z-index:20;
   padding:7px 14px;border-radius:20px;
   border:1px solid rgba(255,255,255,.06);
-  background:rgba(20,20,20,.6);
+  background:rgba(20,20,20,.65);
   backdrop-filter:blur(40px) saturate(100%);
   -webkit-backdrop-filter:blur(40px) saturate(100%);
   color:#c0c0c0;font:600 10px/1 inherit;letter-spacing:1px;
@@ -99,7 +105,7 @@ main{
   position:absolute;top:8px;right:96px;z-index:20;
   padding:7px 14px;border-radius:20px;
   border:1px solid rgba(255,255,255,.06);
-  background:rgba(20,20,20,.6);
+  background:rgba(20,20,20,.65);
   backdrop-filter:blur(40px) saturate(100%);
   -webkit-backdrop-filter:blur(40px) saturate(100%);
   color:#c0c0c0;font:600 10px/1 inherit;letter-spacing:1px;
@@ -128,19 +134,19 @@ main{
 #engineWrap.locked #ghostBtn,
 #engineWrap.locked #view3dBtn{pointer-events:auto !important;z-index:30 !important}
 
-/* ==================== КНОПКА ЗАЖИГАНИЯ — под 3D-сценой ==================== */
+/* ==================== КНОПКА ЗАЖИГАНИЯ — ВНИЗУ 3D-ПАНЕЛИ ==================== */
 .ignbtn{
   flex:0 0 auto;
   width:100%;
-  height:42px;
+  height:48px;
   border-radius:12px;
   border:1px solid rgba(255,255,255,.06);
   background:rgba(20,20,20,.6);
   backdrop-filter:blur(40px) saturate(100%);
   -webkit-backdrop-filter:blur(40px) saturate(100%);
   color:#c0c0c0;
-  font:600 11px/1 inherit;
-  letter-spacing:3px;
+  font:600 12px/1 inherit;
+  letter-spacing:2.5px;
   text-transform:uppercase;
   cursor:pointer;
   touch-action:manipulation;
@@ -150,7 +156,6 @@ main{
 .ignbtn:hover{border-color:rgba(255,255,255,.12);color:#e0e0e0}
 .ignbtn.on{
   background:#f0f0f0;border-color:#f0f0f0;color:#000;font-weight:700;
-  box-shadow:0 0 20px rgba(255,255,255,.25);
 }
 #ignBtn.start{
   background:#e0a030;border-color:#e0a030;color:#1a0e00;
@@ -163,21 +168,67 @@ main{
   50%{box-shadow:0 0 45px rgba(255,180,60,.85)}
 }
 
+/* Кнопка ВНУТРИ #engineWrap — приклеена к низу, свисает на 22px */
+#engineWrap #ignBtn{
+  position:absolute;
+  bottom:-22px;
+  left:50%;
+  transform:translateX(-50%);
+  width:auto;
+  min-width:190px;
+  height:44px;
+  padding:0 32px;
+  font-size:12px;
+  letter-spacing:3px;
+  border-radius:22px;
+  z-index:30;
+  background:rgba(20,20,20,.7);
+  backdrop-filter:blur(40px) saturate(100%);
+  -webkit-backdrop-filter:blur(40px) saturate(100%);
+  border:1px solid rgba(255,255,255,.10);
+  box-shadow:0 10px 30px rgba(0,0,0,.7);
+}
+#engineWrap #ignBtn:hover{
+  border-color:rgba(255,255,255,.20);
+  color:#e0e0e0;
+}
+#engineWrap #ignBtn.start{
+  background:#e0a030;
+  border-color:#e0a030;
+  color:#1a0e00;
+  box-shadow:0 0 40px rgba(255,180,60,.6),0 10px 30px rgba(0,0,0,.7);
+  animation:startPulse 2s ease-in-out infinite;
+}
+
 /* ==================== ПРИБОРКА + ПЕРЕДАЧИ ==================== */
 #dash{
-  flex:0 0 auto;
+  flex:1 1 0;
+  min-height:0;
   display:flex;flex-direction:column;gap:5px;
+  overflow:hidden;
 }
-#gaugeCv{display:block;width:100%;height:auto;border-radius:12px;max-height:170px}
+#gaugeCv{
+  display:block;
+  width:100%;
+  height:auto;
+  flex:0 1 auto;
+  min-height:0;
+  max-height:170px;
+  border-radius:12px;
+}
 
 .gears-box{
-  position:relative;width:100%;height:120px;
+  position:relative;
+  width:100%;
+  flex:1 1 0;
+  min-height:90px;
+  max-height:130px;
   background:rgba(6,6,6,.85);
   backdrop-filter:blur(40px) saturate(100%);
   -webkit-backdrop-filter:blur(40px) saturate(100%);
   border:1px solid rgba(255,255,255,.05);
   border-radius:12px;
-  padding:4px;overflow:hidden;flex:0 0 auto;
+  padding:4px;overflow:hidden;
   box-shadow:0 8px 24px rgba(0,0,0,.6);
 }
 .gb-lines{position:absolute;top:4px;left:4px;width:calc(100% - 8px);height:calc(100% - 8px);pointer-events:none}
@@ -190,7 +241,7 @@ main{
   gap:2px;width:100%;height:100%;z-index:1;
 }
 .gb-grid .gbtn{
-  width:36px;height:36px;border-radius:50%;
+  width:34px;height:34px;border-radius:50%;
   border:1px solid rgba(255,255,255,.10);
   background:rgba(12,12,12,.9);
   backdrop-filter:blur(20px) saturate(100%);
@@ -224,8 +275,6 @@ main{
 .gears-auto{
   display:none;gap:5px;
   background:rgba(6,6,6,.85);
-  backdrop-filter:blur(40px) saturate(100%);
-  -webkit-backdrop-filter:blur(40px) saturate(100%);
   border:1px solid rgba(255,255,255,.05);
   border-radius:12px;padding:5px;
 }
@@ -235,13 +284,11 @@ body.auto-mode #gearsManual{display:none}
   height:40px;border-radius:10px;
   border:1px solid rgba(255,255,255,.10);
   background:rgba(12,12,12,.9);
-  backdrop-filter:blur(20px) saturate(100%);
-  -webkit-backdrop-filter:blur(20px) saturate(100%);
   color:#8a8a8a;font:600 14px/1 inherit;cursor:pointer;
 }
-.agbtn.on{background:#f0f0f0;border-color:#f0f0f0;color:#000;font-weight:700}
-.agbtn.neu.on{background:#e8e85a;border-color:#f0f090;color:#000}
-.agbtn.rev.on{background:#c05050;border-color:#d07070;color:#fff}
+.agbtn.on{background:#f0f0f0;color:#000;font-weight:700}
+.agbtn.neu.on{background:#e8e85a;color:#000}
+.agbtn.rev.on{background:#c05050;color:#fff}
 
 /* ==================== ПЕДАЛИ ==================== */
 .pedals{
@@ -251,7 +298,7 @@ body.auto-mode #gearsManual{display:none}
   padding-bottom:calc(6px + env(safe-area-inset-bottom,0px));
 }
 .pedal{
-  position:relative;height:78px;border-radius:16px;
+  position:relative;height:74px;border-radius:16px;
   border:1px solid rgba(255,255,255,.06);
   background:rgba(15,15,15,.5);
   backdrop-filter:blur(40px) saturate(100%);
@@ -269,15 +316,15 @@ body.auto-mode #gearsManual{display:none}
 }
 .pedal.brake .bar{background:rgba(220,80,80,.18)}
 .pedal.clutch .bar{background:rgba(220,180,80,.18)}
-.pedal .icon{font-size:22px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.7));z-index:1}
+.pedal .icon{font-size:22px;line-height:1;z-index:1}
 .pedal .sub{font-size:8px;color:#6a6a6a;font-weight:500;z-index:1}
 .pedal span{position:relative;z-index:1}
 .pedal.active{
   border-color:rgba(255,255,255,.22);color:#fff;transform:translateY(-2px);
-  box-shadow:0 0 24px rgba(255,255,255,.12);
+  box-shadow:0 0 20px rgba(255,255,255,.12);
 }
-.pedal.brake.active{border-color:rgba(230,100,100,.4);color:#ffe8e8;box-shadow:0 0 24px rgba(220,80,80,.25)}
-.pedal.clutch.active{border-color:rgba(230,200,100,.4);color:#fff6e0;box-shadow:0 0 24px rgba(220,180,80,.25)}
+.pedal.brake.active{border-color:rgba(230,100,100,.4);color:#ffe8e8}
+.pedal.clutch.active{border-color:rgba(230,200,100,.4);color:#fff6e0}
 
 /* ==================== ОШИБКИ ==================== */
 #err{display:none !important}
@@ -288,7 +335,7 @@ body.broken #breakBanner{display:block !important}
 #err{
   position:fixed;left:0;right:0;bottom:0;
   background:rgba(160,30,30,.9);
-  color:#fff;font:12px/1.4 'JetBrains Mono',monospace;
+  color:#fff;font:12px/1.4 monospace;
   padding:8px;z-index:9999;white-space:pre-wrap;
 }
 #breakBanner{
@@ -298,36 +345,26 @@ body.broken #breakBanner{display:block !important}
   font-weight:600;padding:10px;font-size:12px;letter-spacing:1.5px;
 }
 
-/* ==================== АДАПТАЦИЯ (ПК / landscape) ==================== */
-@media (orientation:landscape){
-  main{flex-direction:row;padding:6px 10px;gap:8px}
-  #engineWrap{flex:1 1 0;min-width:0}
-  main > .ignbtn{
-    flex:0 0 auto;
-    width:auto;
-    min-width:160px;
-    align-self:center;
-  }
-  #dash{flex:0 0 auto;width:min(42%,340px)}
-  .gears-box{height:140px}
-  #gaugeCv{max-height:none}
-}
-
-/* На телефоне — очень компактно, всё влезает */
+/* ==================== АДАПТАЦИЯ ==================== */
 @media (orientation:portrait) and (max-width:820px){
-  #engineWrap{flex:1 1 0;min-height:110px}
-  main > .ignbtn{height:40px;font-size:11px;letter-spacing:2.5px}
-  #gaugeCv{max-height:150px}
-  .gears-box{height:105px}
-  .gb-grid .gbtn{width:32px;height:32px;font-size:12px}
-  .pedal{height:70px}
+  main{gap:24px}
+  #engineWrap{height:28vh;min-height:140px;max-height:250px}
+  #engineWrap #ignBtn{min-width:170px;height:40px;padding:0 26px;font-size:11px;bottom:-20px}
+  #gaugeCv{max-height:140px}
+  .gears-box{min-height:80px;max-height:110px}
+  .gb-grid .gbtn{width:30px;height:30px;font-size:12px}
+  .pedal{height:64px}
   .pedal .icon{font-size:20px}
 }
 @media (max-height:640px){
-  #gaugeCv{max-height:130px}
-  .gears-box{height:95px}
-  .gb-grid .gbtn{width:28px;height:28px;font-size:11px}
-  .pedal{height:60px}
+  header{font-size:8px;padding:4px 6px 2px}
+  main{gap:20px}
+  #engineWrap{height:24vh;min-height:110px}
+  #engineWrap #ignBtn{min-width:150px;height:34px;padding:0 22px;font-size:10px;bottom:-17px;letter-spacing:2.5px}
+  #gaugeCv{max-height:110px}
+  .gears-box{min-height:70px;max-height:95px}
+  .gb-grid .gbtn{width:26px;height:26px;font-size:11px}
+  .pedal{height:56px}
   .pedal .icon{font-size:18px}
-  main > .ignbtn{height:36px;font-size:10px}
+  .pedal .sub{display:none}
 }
