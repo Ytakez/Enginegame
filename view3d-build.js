@@ -82,12 +82,10 @@ function waitRef(){
     var base=bx(space+2.5,0.6,5.5,0x2a3340,0.7,0.5);
     base.position.y=-2.2;root.add(base);
 
-    /* НОВЫЕ имена — не конфликтуют со старой анимацией в view3d.js */
     window._dvsWankelRotors=[];
     window._dvsWankelPins=[];
     window._dvsWankelFlashes=[];
 
-    /* ОБЩАЯ ОСЬ ВАЛА — статичная */
     var axisMesh=new THREE.Mesh(
       new THREE.CylinderGeometry(0.28,0.28,space+3,16),
       m(0xc8d4e0,0.95,0.2)
@@ -95,13 +93,11 @@ function waitRef(){
     axisMesh.rotation.z=Math.PI/2;
     root.add(axisMesh);
 
-    /* 2 РОТОРА */
     for(var ri=0;ri<2;ri++){
       var rx=(ri-0.5)*space;
       var unit=new THREE.Group();
       unit.position.set(rx,0,0);
 
-      /* Корпус */
       var epiGeo=new THREE.ExtrudeGeometry(makeEpiShape(Rr,ecc),{depth:depth,bevelEnabled:false,curveSegments:64});
       epiGeo.center();
       var caseMesh=new THREE.Mesh(epiGeo,new THREE.MeshStandardMaterial({
@@ -110,13 +106,11 @@ function waitRef(){
       }));
       unit.add(caseMesh);pB(caseMesh);
 
-      /* Задняя стенка */
       var backGeo=new THREE.ExtrudeGeometry(makeEpiShape(Rr*0.98,ecc*0.98),{depth:0.12,bevelEnabled:false,curveSegments:64});
       backGeo.center();
       var backMesh=new THREE.Mesh(backGeo,m(0x1a232e,0.8,0.5));
       backMesh.position.z=-depth/2-0.12;unit.add(backMesh);
 
-      /* Рёбра охлаждения */
       for(var rb=0;rb<16;rb++){
         var ang=(rb/16)*Math.PI*2;
         var rr=Rr+0.35;
@@ -128,13 +122,11 @@ function waitRef(){
         ribB.rotation.z=ang;unit.add(ribB);
       }
 
-      /* РОТОР (треугольник) */
       var rotGeo=new THREE.ExtrudeGeometry(makeRotorShape(rotR),{depth:depth*0.72,bevelEnabled:false});
       rotGeo.center();
       var rotorMesh=new THREE.Mesh(rotGeo,m(0xdde5ee,0.95,0.15));
       unit.add(rotorMesh);
 
-      /* Уплотнения на 3 вершинах */
       for(var v=0;v<3;v++){
         var va=v*(Math.PI*2/3)-Math.PI/2;
         var seal=cy(0.13,0.85,10,0x1a232e,0.9,0.25);
@@ -143,13 +135,11 @@ function waitRef(){
         rotorMesh.add(seal);
       }
 
-      /* Втулка + кольцо */
       var hub=cy(0.5,0.9,20,0x1a232e,0.9,0.3);
       hub.rotation.x=Math.PI/2;rotorMesh.add(hub);
       var hubRing=new THREE.Mesh(new THREE.TorusGeometry(0.65,0.06,8,20),m(0x8a95a3,0.95,0.2));
       hubRing.rotation.x=Math.PI/2;rotorMesh.add(hubRing);
 
-      /* 2 свечи */
       for(var s=0;s<2;s++){
         var sAng=Math.PI/2+(s===0?-0.5:0.5);
         var sX=Math.cos(sAng)*(Rr+ecc);
@@ -164,7 +154,6 @@ function waitRef(){
         st.position.y=0;sGrp.add(st);
         unit.add(sGrp);
 
-        /* Вспышка */
         var flash=new THREE.Mesh(
           new THREE.SphereGeometry(0.6,14,14),
           new THREE.MeshBasicMaterial({color:0xffaa30,transparent:true,opacity:0,blending:THREE.AdditiveBlending})
@@ -177,28 +166,24 @@ function waitRef(){
         window._dvsWankelFlashes.push({mesh:flash,light:light,rotor:ri,phase:s*Math.PI});
       }
 
-      /* Патрубки */
       var inPipe=cy(0.35,0.9,12,0x3a4654,0.85,0.4);
       inPipe.rotation.z=Math.PI/2;inPipe.position.set(Rr+0.5,0,0);unit.add(inPipe);
       var exPipe=cy(0.42,1.0,12,0x2a2a2a,0.7,0.5);
       exPipe.rotation.z=Math.PI/2;exPipe.position.set(-Rr-0.55,0,0);unit.add(exPipe);
 
-      /* Сохраняем ротор для анимации */
       window._dvsWankelRotors.push({mesh:rotorMesh,ecc:ecc,initPhase:0});
 
       root.add(unit);
     }
 
-    /* ЭКСЦЕНТРИКОВЫЕ ШЕЙКИ — по одной на ротор */
     for(var pi=0;pi<2;pi++){
       var px=(pi-0.5)*space;
       var pinGrp=new THREE.Group();
       pinGrp.position.set(px,0,0);
       var pinMesh=cy(0.5,0.75,16,0xe8eff6,0.95,0.15);
       pinMesh.rotation.z=Math.PI/2;
-      pinMesh.position.set(ecc,0,0);   /* смещение от центра группы */
+      pinMesh.position.set(ecc,0,0);
       pinGrp.add(pinMesh);
-      /* маленькая метка для наглядности вращения */
       var mark=bx(0.2,0.15,0.15,0xff5b5b,0.4,0.6);
       mark.position.set(ecc,0.3,0);
       pinGrp.add(mark);
@@ -206,7 +191,6 @@ function waitRef(){
       window._dvsWankelPins.push({grp:pinGrp});
     }
 
-    /* МАХОВИК — ось X */
     var fw=new THREE.Group();
     var fwR=1.6;
     var fwDisc=new THREE.Mesh(
@@ -215,7 +199,6 @@ function waitRef(){
     );
     fwDisc.rotation.z=Math.PI/2;
     fw.add(fwDisc);
-    /* зубья по окружности в плоскости YZ */
     for(var ft=0;ft<28;ft++){
       var ta=(ft/28)*Math.PI*2;
       var tooth=bx(0.3,0.25,0.2,0x6a7685,0.9,0.3);
@@ -223,7 +206,6 @@ function waitRef(){
       tooth.rotation.x=ta;
       fw.add(tooth);
     }
-    /* красная метка чтобы видеть вращение */
     var fwMark=bx(0.4,0.5,0.3,0xff5b5b,0.4,0.6);
     fwMark.position.set(0.25,fwR*0.6,0);
     fw.add(fwMark);
@@ -234,46 +216,230 @@ function waitRef(){
     root.add(fw);
     sF(fw);
 
-    /* Коллектор */
     var col=bx(space+1.5,0.5,0.6,0x3a2a1a,0.85,0.4);
     col.position.set(0,-Rr-1.0,-0.5);root.add(col);
 
-    /* ТИК АНИМАЦИИ ВАНКЕЛЯ */
-    if(!window._dvsWankelTickActive){
-      window._dvsWankelTickActive=true;
-      window._dvsWankelTick=function(){
-        if(S.engineType!=='wankel'){window._dvsWankelTickActive=false;return;}
-        var ang=S.crankAngle||0;
+    startWankelTick();
+  }
 
-        /* Ротор — вращается в 3 раза медленнее вала + движется по орбите */
-        var wr=window._dvsWankelRotors||[];
-        for(var i=0;i<wr.length;i++){
-          var W=wr[i];
-          W.mesh.rotation.z=-ang/3;                 /* -ang/3 = по часовой, как у вала */
-          W.mesh.position.x=Math.cos(ang)*W.ecc;    /* орбита */
-          W.mesh.position.y=Math.sin(ang)*W.ecc;
-        }
-        /* Шейки */
-        var wp=window._dvsWankelPins||[];
-        for(var j=0;j<wp.length;j++){
-          wp[j].grp.rotation.z=ang;                 /* группа вращается вокруг центра вала */
-        }
-        /* Вспышки */
-        var fl=window._dvsWankelFlashes||[];
-        for(var f=0;f<fl.length;f++){
-          var F=fl[f];
-          var cycle=((ang*1.5+F.phase)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
-          var intensity=Math.max(0,1-Math.abs(cycle-Math.PI)*1.8);
-          if(intensity<0)intensity=0;
-          F.mesh.material.opacity=intensity*0.85;
-          F.light.intensity=intensity*4;
-          var sc=0.4+intensity*0.9;
-          F.mesh.scale.set(sc,sc,sc);
-        }
-        requestAnimationFrame(window._dvsWankelTick);
-      };
+  function startWankelTick(){
+    if(window._dvsWankelTickActive)return;
+    window._dvsWankelTickActive=true;
+    window._dvsWankelTick=function(){
+      if(S.engineType!=='wankel'){window._dvsWankelTickActive=false;return;}
+      var ang=S.crankAngle||0;
+      var wr=window._dvsWankelRotors||[];
+      for(var i=0;i<wr.length;i++){
+        var W=wr[i];
+        W.mesh.rotation.z=-ang/3;
+        W.mesh.position.x=Math.cos(ang)*W.ecc;
+        W.mesh.position.y=Math.sin(ang)*W.ecc;
+      }
+      var wp=window._dvsWankelPins||[];
+      for(var j=0;j<wp.length;j++){
+        wp[j].grp.rotation.z=ang;
+      }
+      var fl=window._dvsWankelFlashes||[];
+      for(var f=0;f<fl.length;f++){
+        var F=fl[f];
+        var cycle=((ang*1.5+F.phase)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+        var intensity=Math.max(0,1-Math.abs(cycle-Math.PI)*1.8);
+        if(intensity<0)intensity=0;
+        F.mesh.material.opacity=intensity*0.85;
+        F.light.intensity=intensity*4;
+        var sc=0.4+intensity*0.9;
+        F.mesh.scale.set(sc,sc,sc);
+      }
       requestAnimationFrame(window._dvsWankelTick);
+    };
+    requestAnimationFrame(window._dvsWankelTick);
+  }
+
+  /* =========== dCi 2.0 — турбодизель =========== */
+  function buildDCI(root,cfg){
+    var blockLen=4.4,blockH=1.3;
+
+    /* Поддон */
+    var pod=bx(blockLen+1.0,1.0,4.6,0x2a3340,0.7,0.5);
+    pod.position.y=-1.1;root.add(pod);
+
+    /* Блок */
+    var bk=bx(blockLen,3.8,4.4,0x3a4250,0.85,0.4);
+    bk.position.y=0.9;root.add(bk);pB(bk);
+
+    /* Рёбра */
+    for(var rr=0;rr<7;rr++){
+      var rb=bx(blockLen+0.05,0.07,4.45,0x252c38,0.6,0.6);
+      rb.position.y=-0.6+rr*0.5;root.add(rb);pR(rb);
     }
+
+    /* Головка */
+    var hd=bx(blockLen+0.2,1.2,4.6,0x3a4756,0.85,0.35);
+    hd.position.y=3.2;root.add(hd);pH(hd);
+
+    /* Клапанная крышка */
+    var cv=bx(blockLen,0.7,4.4,0x2a3340,0.75,0.4);
+    cv.position.y=4.0;root.add(cv);pC(cv);
+
+    /* 4 форсунки — с характерными разъёмами */
+    for(var i=0;i<4;i++){
+      var cx=-blockLen/2+0.55+i*(blockLen-1.1)/3;
+      var inj=cy(0.15,0.55,10,0x4a4d54,0.85,0.3);
+      inj.position.set(cx,3.9,0);root.add(inj);
+      var con=bx(0.25,0.18,0.2,0x2a2a2a,0.5,0.7);
+      con.position.set(cx,4.25,0);root.add(con);
+      var wire=cy(0.03,0.6,6,0x1a1a1a,0.3,0.8);
+      wire.position.set(cx,4.55,0.15);root.add(wire);
+    }
+
+    /* COMMON RAIL — топливная рампа */
+    var rail=cy(0.16,blockLen*0.85,12,0xb8bdc4,0.95,0.15);
+    rail.rotation.z=Math.PI/2;
+    rail.position.set(0,3.4,2.55);root.add(rail);
+
+    /* Трубки от рампы к форсункам */
+    for(var t=0;t<4;t++){
+      var tx=-blockLen/2+0.55+t*(blockLen-1.1)/3;
+      var tr=cy(0.04,0.55,6,0xb8bdc4,0.9,0.2);
+      tr.position.set(tx,3.6,2.35);tr.rotation.x=Math.PI/2.6;
+      root.add(tr);
+    }
+
+    /* ТНВД — спереди справа */
+    var pump=bx(1.3,1.0,1.1,0x3a4654,0.85,0.4);
+    pump.position.set(blockLen/2+0.4,3.5,1.6);root.add(pump);
+    var pg=cy(0.55,0.4,16,0x8a95a3,0.9,0.3);
+    pg.rotation.z=Math.PI/2;pg.position.set(blockLen/2+1.1,3.5,1.6);root.add(pg);
+
+    /* Турбина с улиткой */
+    var turbo=new THREE.Group();
+    var tb=cy(0.85,0.65,20,0x4a5566,0.85,0.4);
+    tb.rotation.z=Math.PI/2;turbo.add(tb);
+    var sp=new THREE.Mesh(new THREE.TorusGeometry(0.7,0.15,8,20),m(0x6a7685,0.9,0.3));
+    sp.rotation.y=Math.PI/2;turbo.add(sp);
+    var cool=cy(0.55,0.5,14,0x8a95a3,0.9,0.3);
+    cool.rotation.z=Math.PI/2;cool.position.set(0.6,0,0);turbo.add(cool);
+    var hot=cy(0.5,0.45,14,0x3a2a1a,0.85,0.5);
+    hot.rotation.z=Math.PI/2;hot.position.set(-0.6,0,0);turbo.add(hot);
+    turbo.position.set(-blockLen/2-0.6,3.0,-1.4);
+    turbo.rotation.y=0.4;
+    root.add(turbo);
+
+    /* Интеркулер — патрубок впуска */
+    var ic=bx(blockLen*0.85,0.5,0.4,0x3a4654,0.85,0.4);
+    ic.position.set(0,3.8,-2.5);root.add(ic);
+    var icPipe=cy(0.22,2.0,10,0x5a6578,0.7,0.5);
+    icPipe.rotation.x=Math.PI/2;
+    icPipe.position.set(blockLen/2-0.5,3.8,-3.4);root.add(icPipe);
+
+    /* Впускной коллектор */
+    var inMan=cy(0.3,blockLen,14,0x3a4654,0.85,0.4);
+    inMan.rotation.z=Math.PI/2;
+    inMan.position.set(0,3.6,-2.2);root.add(inMan);
+
+    /* Выпускной коллектор */
+    var exMan=bx(blockLen*0.9,0.35,0.4,0x4a3a2a,0.85,0.5);
+    exMan.position.set(0,-0.3,2.4);root.add(exMan);
+
+    /* Свечи накала — 4 шт */
+    for(var sg=0;sg<4;sg++){
+      var sx=-blockLen/2+0.55+sg*(blockLen-1.1)/3;
+      var plug=bl(0.16);
+      plug.position.set(sx,4.6,1.2);root.add(plug);
+    }
+
+    /* Крышка ГРМ — спереди */
+    var grm=bx(0.35,3.4,3.2,0x1a1d22,0.7,0.5);
+    grm.position.set(-blockLen/2-0.45,1.2,0);root.add(grm);pC(grm);
+
+    /* Коленвал + шейки */
+    var cg=new THREE.Group();cg.position.y=0.4;
+    var ax=cy(0.42,blockLen+1,20,0xa8b4c0,0.95,0.2);ax.rotation.z=Math.PI/2;cg.add(ax);
+    for(var mI=0;mI<5;mI++){
+      var mx=-blockLen/2+0.5+mI*(blockLen-1)/4;
+      var mn=cy(0.6,0.42,16,0xb8c6d4,0.95,0.2);
+      mn.rotation.z=Math.PI/2;mn.position.x=mx;cg.add(mn);
+    }
+    for(var cI=0;cI<4;cI++){
+      var cx2=-blockLen/2+0.85+cI*1.0;
+      var o1=cI*Math.PI/2;
+      var pn=new THREE.Group();
+      var pinM=cy(0.32,0.5,12,0xd8e4f0,0.95,0.2);
+      pinM.rotation.z=Math.PI/2;pn.add(pinM);
+      pn.position.set(cx2,Math.sin(o1)*0.6,0);cg.add(pn);
+    }
+    root.add(cg);sCr(cg);
+
+    /* Маховик */
+    var fw=new THREE.Group();
+    var fwR=2.3;
+    var fwD=cy(fwR,0.4,32,0x8a95a3,0.9,0.3);fwD.rotation.z=Math.PI/2;fw.add(fwD);
+    for(var ft=0;ft<30;ft++){
+      var th=bx(0.4,0.3,0.14,0x6a7685,0.9,0.3);
+      var a=(ft/30)*Math.PI*2;
+      th.position.set(0,Math.cos(a)*(fwR+0.1),Math.sin(a)*(fwR+0.1));th.rotation.x=-a;fw.add(th);
+    }
+    fw.position.set(blockLen/2+0.8,0.4,0);root.add(fw);sF(fw);
+
+    /* Шкив ГРМ (сверху) */
+    var bt=new THREE.Group();
+    var gt=cy(0.9,0.4,20,0x8a95a3,0.9,0.3);gt.rotation.z=Math.PI/2;bt.add(gt);
+    for(var gtt=0;gtt<16;gtt++){
+      var tg=bx(0.24,0.2,0.14,0x6a7685,0.9,0.3);
+      var a2=(gtt/16)*Math.PI*2;
+      tg.position.set(0,Math.cos(a2)*0.95,Math.sin(a2)*0.95);tg.rotation.x=-a2;bt.add(tg);
+    }
+    bt.position.set(-blockLen/2-0.7,3.4,0);root.add(bt);sBT(bt);
+
+    /* Шкив коленвала (снизу) */
+    var bb=new THREE.Group();
+    var gb=cy(1.3,0.4,20,0x8a95a3,0.9,0.3);gb.rotation.z=Math.PI/2;bb.add(gb);
+    for(var gbt=0;gbt<22;gbt++){
+      var tg2=bx(0.24,0.2,0.14,0x6a7685,0.9,0.3);
+      var a3=(gbt/22)*Math.PI*2;
+      tg2.position.set(0,Math.cos(a3)*1.35,Math.sin(a3)*1.35);tg2.rotation.x=-a3;bb.add(tg2);
+    }
+    bb.position.set(-blockLen/2-0.7,0.4,0);root.add(bb);sBB(bb);
+
+    /* Ремень ГРМ */
+    var beltMat=new THREE.MeshStandardMaterial({color:0x1a1a1a,metalness:0.2,roughness:0.9});
+    var b1=new THREE.Mesh(new THREE.BoxGeometry(0.15,3.0,0.7),beltMat);
+    b1.position.set(-blockLen/2-1.5,1.9,0);root.add(b1);
+    var b2=new THREE.Mesh(new THREE.BoxGeometry(0.15,3.0,1.0),beltMat);
+    b2.position.set(-blockLen/2+0.1,1.9,0);root.add(b2);
+
+    /* Распредвал */
+    var cs=new THREE.Group();
+    var ca=cy(0.25,blockLen+1,16,0xa8b4c0,0.95,0.2);
+    ca.rotation.z=Math.PI/2;cs.add(ca);
+    var camArr=[];
+    for(var cc=0;cc<8;cc++){
+      var cg2=new THREE.Group();
+      var cd=cy(0.32,0.3,16,0x8a95a3,0.9,0.3);cd.rotation.z=Math.PI/2;cg2.add(cd);
+      var nb=cy(0.13,0.3,10,0x6a7685,0.9,0.3);nb.rotation.z=Math.PI/2;nb.position.y=0.32;cg2.add(nb);
+      var cx3=-blockLen/2+0.5+cc*(blockLen-1)/7;
+      cg2.position.set(cx3,0,0);cs.add(cg2);
+      camArr.push({grp:cg2,off:cc*Math.PI*1.5/8});
+    }
+    cs.position.y=4.7;root.add(cs);sCam(cs);sC(camArr);
+
+    /* Поршни */
+    var arr=[];
+    for(var i2=0;i2<4;i2++){
+      var xx=-blockLen/2+0.85+i2*1.0;
+      var a4=makeCylAss({x:xx,y:0.9,z:0,r:1.05,h:4.2,diesel:true,off:i2*Math.PI});
+      root.add(a4.g);arr.push(a4);
+    }
+    sA(arr);
+
+    /* Выпускные трубы */
+    for(var e=0;e<4;e++){
+      var ex=-blockLen/2+0.85+e*1.0;
+      var pp=cy(0.22,1.4,10,0x3a2a1a,0.8,0.5);
+      pp.position.set(ex,0.3,3.0);root.add(pp);
+    }
+    var mp=cy(0.32,blockLen,16,0x3a2a1a,0.8,0.5);
+    mp.rotation.z=Math.PI/2;mp.position.set(0,-0.2,3.3);root.add(mp);
   }
 
   /* =========== ОБЫЧНЫЙ ДВИГАТЕЛЬ =========== */
@@ -351,103 +517,4 @@ function waitRef(){
         var sign=side===0?-1:1;
         var bk=bx(blockLen,5,2.6,0x4a5566,0.85,0.4);
         bk.position.set(0,3.4,sign*1.6);bk.rotation.x=sign*angV;root.add(bk);pB(bk);
-        for(var rr=0;rr<7;rr++){
-          var rb2=bx(blockLen+0.05,0.06,2.65,0x2a3340,0.6,0.6);
-          rb2.position.set(0,1.2+rr*0.55,sign*1.6);rb2.rotation.x=sign*angV;root.add(rb2);pR(rb2);
-        }
-        var hd=bx(blockLen+0.2,1.4,2.8,0x3a4756,0.85,0.35);
-        hd.position.set(0,6.4,sign*2.6);hd.rotation.x=sign*angV;root.add(hd);pH(hd);
-        var cv=bx(blockLen,0.8,2.5,0x2a3340,0.75,0.4);
-        cv.position.set(0,7.5,sign*3.1);cv.rotation.x=sign*angV;root.add(cv);pC(cv);
-      }
-    } else {
-      var bk2=bx(blockLen,5,5,0x4a5566,0.85,0.4);
-      bk2.position.y=3.4;root.add(bk2);pB(bk2);
-      for(var rr2=0;rr2<9;rr2++){
-        var rb3=bx(blockLen+0.05,0.06,5.05,0x2a3340,0.6,0.6);
-        rb3.position.y=1.2+rr2*0.55;root.add(rb3);pR(rb3);
-      }
-      var hd2=bx(blockLen+0.2,1.4,5.3,0x3a4756,0.85,0.35);
-      hd2.position.y=6.4;root.add(hd2);pH(hd2);
-      var cv2=bx(blockLen,0.8,5,0x2a3340,0.75,0.4);
-      cv2.position.y=7.5;root.add(cv2);pC(cv2);
-    }
-    for(var b=0;b<perRow+1;b++){
-      var bxx=-totalWidth/2+b*(totalWidth/perRow);
-      if(!isV){
-        for(var sg=-1;sg<=1;sg+=2){
-          var bo=bl(0.16);bo.position.set(bxx,7.95,sg*2.4);root.add(bo);
-        }
-      } else {
-        for(var sd=0;sd<2;sd++){
-          var sg2=sd===0?-1:1;
-          var bo2=bl(0.16);bo2.position.set(bxx,7.9,sg2*3.3);root.add(bo2);
-        }
-      }
-    }
-    var arr=[];
-    if(!isV){
-      for(var i=0;i<perRow;i++){
-        var xx=-totalWidth/2+spacing/2+i*spacing;
-        var a4=makeCylAss({x:xx,y:1.1,z:0,r:1.15,h:4.6,diesel:cfg.diesel,off:i*Math.PI});
-        root.add(a4.g);arr.push(a4);
-      }
-    } else {
-      var angV2=Math.PI/6;
-      for(var s2=0;s2<2;s2++){
-        var sg3=s2===0?-1:1;
-        for(var j=0;j<perRow;j++){
-          var xx2=-totalWidth/2+spacing/2+j*spacing;
-          var off2=(s2===0?j*Math.PI*2/perRow:(j*Math.PI*2/perRow)+Math.PI);
-          var a5=makeCylAss({x:xx2,y:1.1,z:sg3*2.1,r:1.15,h:4.6,diesel:cfg.diesel,off:off2});
-          a5.g.rotation.x=sg3*angV2;root.add(a5.g);arr.push(a5);
-        }
-      }
-    }
-    sA(arr);
-    var col=cfg.tractor?0x3a2a1a:0x4a3a2a;
-    for(var e=0;e<perRow;e++){
-      var ex=-totalWidth/2+spacing/2+e*spacing;
-      var pp=cy(0.24,1.4,10,col,0.8,0.5);pp.position.set(ex,8.2,isV?-3.5:-2.6);root.add(pp);
-    }
-    var mp=cy(0.34,blockLen,16,col,0.8,0.5);mp.rotation.z=Math.PI/2;mp.position.set(0,8.9,isV?-3.5:-2.6);root.add(mp);
-    if(cfg.diesel){
-      var pump=bx(1.8,1.4,1.6,0x3a4654,0.85,0.4);pump.position.set(-blockLen/2-0.4,8.5,isV?2.8:1.8);root.add(pump);
-      var pg=cy(0.6,0.3,16,0x8a95a3,0.9,0.3);pg.rotation.z=Math.PI/2;pg.position.set(-blockLen/2-0.4,8.5,isV?3.9:2.9);root.add(pg);
-      if(cfg.turbo){
-        var tg3=new THREE.Group();
-        var tb=cy(0.9,0.7,20,0x4a5566,0.85,0.4);tb.rotation.z=Math.PI/2;tg3.add(tb);
-        var sp=new THREE.Mesh(new THREE.TorusGeometry(0.7,0.15,8,20),m(0x6a7685,0.9,0.3));
-        sp.rotation.y=Math.PI/2;tg3.add(sp);
-        tg3.position.set(blockLen/2-0.8,8.2,isV?3.5:2.6);root.add(tg3);
-      }
-      if(cfg.tractor){
-        var st=cy(0.35,3.2,12,0x2a2a2a,0.5,0.7);st.position.set(blockLen/2-0.8,10.5,isV?3:2.6);root.add(st);
-        var cp=cy(0.45,0.3,12,0x1a1a1a,0.5,0.7);cp.position.set(blockLen/2-0.8,12.2,isV?3:2.6);root.add(cp);
-      }
-    }
-  }
-
-  window.DVS_3D_REBUILD=function(){
-    var scene=R.getScene();
-    if(!scene)return;
-    var cfg=R.getCfg(S.engineType);
-    var old=R.getRoot();
-    if(old)scene.remove(old);
-    var root=new THREE.Group();
-    scene.add(root);
-    R.setRoot(root);
-    R.clearAll();
-    window._dvsWankelRotors=[];
-    window._dvsWankelPins=[];
-    window._dvsWankelFlashes=[];
-
-    if(S.engineType==='wankel'){
-      buildWankel(root,cfg);
-    } else {
-      buildNormal(root,cfg);
-    }
-  };
-}
-waitRef();
-})();
+      
