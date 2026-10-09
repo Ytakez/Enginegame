@@ -8,6 +8,19 @@ function waitRef(){
   var B=window.DVS_3D_BUILD;
   var cy=B.cy,bx=B.bx,m=B.m,bl=B.bl;
 
+  /* Безопасные вызовы — не падают если функции нет */
+  function pB(x){if(R.pushBlock)R.pushBlock(x);}
+  function pH(x){if(R.pushHead)R.pushHead(x);}
+  function pC(x){if(R.pushCover)R.pushCover(x);}
+  function pR(x){if(R.pushRib)R.pushRib(x);}
+  function sA(x){if(R.setAsm)R.setAsm(x);}
+  function sC(x){if(R.setCams)R.setCams(x);}
+  function sCam(x){if(R.setCam)R.setCam(x);}
+  function sCr(x){if(R.setCrank)R.setCrank(x);}
+  function sF(x){if(R.setFly)R.setFly(x);}
+  function sBT(x){if(R.setBeltT)R.setBeltT(x);}
+  function sBB(x){if(R.setBeltB)R.setBeltB(x);}
+
   function makeCylAss(o){
     var g=new THREE.Group();
     g.position.set(o.x,o.y,o.z);
@@ -18,8 +31,12 @@ function waitRef(){
     var p=new THREE.Group();
     p.position.y=o.h*0.55;
     p.add(cy(o.r,o.r*0.9,18,0xd8e0e8,0.95,0.15));
-    for(var k=0;k<3;k++){var rg=cy(o.r+0.03,0.06,18,0x2a333f,0.6,0.7);rg.position.y=o.r*0.3-k*o.r*0.2;p.add(rg);}
-    var pin=cy(o.r*0.15,o.r*1.1,10,0x2a3543,0.9,0.3);pin.rotation.z=Math.PI/2;p.add(pin);
+    for(var k=0;k<3;k++){
+      var rg=cy(o.r+0.03,0.06,18,0x2a333f,0.6,0.7);
+      rg.position.y=o.r*0.3-k*o.r*0.2;p.add(rg);
+    }
+    var pin=cy(o.r*0.15,o.r*1.1,10,0x2a3543,0.9,0.3);
+    pin.rotation.z=Math.PI/2;p.add(pin);
     g.add(p);
     var rod=bx(o.r*0.3,o.h*0.5,o.r*0.3,0x8894a2,0.9,0.25);g.add(rod);
     var ign=new THREE.Group();
@@ -41,21 +58,18 @@ function waitRef(){
     return {g:g,p:p,rod:rod,vv:vv,x:o.x,y:o.y,z:o.z,h:o.h,r:o.r,off:o.off||0};
   }
 
-  /* ====== ЭПИТРОХОИДА ВАНКЕЛЯ ====== */
-  function makeEpiShape(R,e){
+  /* ===== ВАНКЕЛЬ (Mazda RX-8) ===== */
+  function makeEpiShape(Rr,e){
     var shape=new THREE.Shape();
     var steps=64;
     for(var i=0;i<=steps;i++){
       var t=(i/steps)*Math.PI*2;
-      var x=R*Math.cos(t)+e*Math.cos(3*t);
-      var y=R*Math.sin(t)+e*Math.sin(3*t);
-      if(i===0)shape.moveTo(x,y);
-      else shape.lineTo(x,y);
+      var x=Rr*Math.cos(t)+e*Math.cos(3*t);
+      var y=Rr*Math.sin(t)+e*Math.sin(3*t);
+      if(i===0)shape.moveTo(x,y);else shape.lineTo(x,y);
     }
     return shape;
   }
-
-  /* ====== ТРЕУГОЛЬНЫЙ РОТОР ====== */
   function makeRotorMesh(rotR,depth){
     var shape=new THREE.Shape();
     var A=Math.PI*2/3;
@@ -63,8 +77,7 @@ function waitRef(){
       var ang=k*A-Math.PI/2;
       var x=Math.cos(ang)*rotR;
       var y=Math.sin(ang)*rotR;
-      if(k===0)shape.moveTo(x,y);
-      else shape.lineTo(x,y);
+      if(k===0)shape.moveTo(x,y);else shape.lineTo(x,y);
     }
     shape.closePath();
     var geo=new THREE.ExtrudeGeometry(shape,{depth:depth,bevelEnabled:false});
@@ -72,113 +85,79 @@ function waitRef(){
     return new THREE.Mesh(geo,m(0xd8e0e8,0.9,0.25));
   }
 
-  /* ====== СБОРКА ВАНКЕЛЯ (Mazda RX-8) ====== */
   function buildWankel(root,cfg){
-    var perRotor=1;
-    var R=1.8;        // радиус корпуса
-    var e=0.35;       // эксцентриситет
-    var depth=1.4;    // толщина корпуса
-    var rotR=1.1;     // радиус ротора
-    var rotorSpace=4.2; // расстояние между роторами
+    var Rr=1.8,e=0.35,depth=1.4,rotR=1.1,rotorSpace=4.2;
 
-    /* ОСНОВАНИЕ */
     var base=bx(4.5,0.6,5.5,0x2a3340,0.7,0.5);
-    base.position.y=-1.8;
-    root.add(base);
+    base.position.y=-1.8;root.add(base);
 
-    /* 2 РОТОРА */
     var rotors=[];
     for(var i=0;i<2;i++){
       var rx=(i-0.5)*rotorSpace;
       var rg=new THREE.Group();
       rg.position.set(rx,0,0);
 
-      /* Эпитрохоидальный корпус */
-      var epiShape=makeEpiShape(R,e);
+      var epiShape=makeEpiShape(Rr,e);
       var epiGeo=new THREE.ExtrudeGeometry(epiShape,{depth:depth,bevelEnabled:false});
       epiGeo.center();
       var caseMesh=new THREE.Mesh(epiGeo,new THREE.MeshStandardMaterial({
         color:0x5a6878,metalness:0.85,roughness:0.3,transparent:true,opacity:0.55,side:THREE.DoubleSide
       }));
       rg.add(caseMesh);
-      R.pushBlock(caseMesh);
+      pB(caseMesh);
 
-      /* Обод корпуса (тонкий слой) */
       var rimMesh=new THREE.Mesh(epiGeo.clone(),m(0x3a4654,0.9,0.3));
       rimMesh.scale.set(1.08,1.08,1.08);
       rg.add(rimMesh);
 
-      /* РОТОР ВНУТРИ (треугольник) */
       var rotorMesh=makeRotorMesh(rotR,depth*0.75);
       rg.add(rotorMesh);
       rotors.push(rotorMesh);
 
-      /* Втулка в центре ротора */
       var hub=cy(0.4,0.4,16,0x2a333f,0.9,0.3);
-      hub.rotation.x=Math.PI/2;
-      rg.add(hub);
+      hub.rotation.x=Math.PI/2;rg.add(hub);
 
-      /* Свеча зажигания сверху */
       var spark=cy(0.15,0.7,10,0xe8e4dc,0.3,0.5);
-      spark.position.set(0,R+e,0);
-      rg.add(spark);
+      spark.position.set(0,Rr+e,0);rg.add(spark);
       var sparkMetal=cy(0.2,0.4,10,0x8a95a3,0.9,0.3);
-      sparkMetal.position.set(0,R+e-0.4,0);
-      rg.add(sparkMetal);
+      sparkMetal.position.set(0,Rr+e-0.4,0);rg.add(sparkMetal);
 
-      /* Впускное окно справа */
       var inPort=bx(0.7,0.8,0.4,0x1d2530,0.7,0.4);
-      inPort.position.set(R-0.1,0,0);
-      rg.add(inPort);
-      /* Выпускное окно слева */
+      inPort.position.set(Rr-0.1,0,0);rg.add(inPort);
       var exPort=bx(0.7,0.8,0.4,0x1d2530,0.7,0.4);
-      exPort.position.set(-R+0.1,0,0);
-      rg.add(exPort);
+      exPort.position.set(-Rr+0.1,0,0);rg.add(exPort);
 
-      /* Рёбра охлаждения сбоку */
       for(var rb=0;rb<6;rb++){
         var rib=bx(0.1,1.2,0.15,0x2a3340,0.6,0.6);
-        rib.position.set(rx+ (rb-2.5)*0.15, 0, depth/2 + 0.2);
-        root.add(rib);
-        R.pushRib(rib);
+        rib.position.set(rx+(rb-2.5)*0.15,0,depth/2+0.2);
+        root.add(rib);pR(rib);
       }
-
       root.add(rg);
-
-      /* Сохраняем ротор для анимации */
-      if(!R.setAsm)continue;
     }
 
-    /* МАХОВИК */
     var fw=new THREE.Group();
     var fwR=1.2;
     var fwD=cy(fwR,0.35,24,0x8a95a3,0.9,0.3);
-    fwD.rotation.x=Math.PI/2;
-    fw.add(fwD);
+    fwD.rotation.x=Math.PI/2;fw.add(fwD);
     for(var ft=0;ft<20;ft++){
       var th=bx(0.25,0.2,0.1,0x6a7685,0.9,0.3);
       var a=(ft/20)*Math.PI*2;
       th.position.set(Math.cos(a)*(fwR+0.1),Math.sin(a)*(fwR+0.1),0);
-      th.rotation.z=-a;
-      fw.add(th);
+      th.rotation.z=-a;fw.add(th);
     }
     fw.position.set(rotorSpace+1.2,0,0);
-    root.add(fw);
-    R.setFly(fw);
+    root.add(fw);sF(fw);
 
-    /* ВЫПУСКНОЙ КОЛЛЕКТОР */
     var col=bx(4,0.5,0.5,0x3a2a1a,0.8,0.5);
-    col.position.set(0,-R-0.6,-1);
-    root.add(col);
+    col.position.set(0,-Rr-0.6,-1);root.add(col);
 
-    /* Вспомогательный объект для передачи роторов в анимацию */
     window._wankelRotors=[];
     for(var ri=0;ri<rotors.length;ri++){
       window._wankelRotors.push({mesh:rotors[ri],ecc:0.35,phase:ri*Math.PI/3});
     }
   }
 
-  /* ====== ОБЫЧНЫЙ ДВИГАТЕЛЬ ====== */
+  /* ===== ОБЫЧНЫЙ ДВИГАТЕЛЬ ===== */
   function buildNormal(root,cfg){
     var isV=cfg.v,totalN=cfg.n;
     var perRow=isV?Math.floor(totalN/2):totalN;
@@ -207,7 +186,7 @@ function waitRef(){
         p2.position.set(cxx,Math.sin(o2)*0.55,0);cg.add(p2);
       }
     }
-    root.add(cg);R.setCrank(cg);
+    root.add(cg);sCr(cg);
     var fw=new THREE.Group();var fwR=isV?2.4:2.2;
     var fwD=cy(fwR,0.4,32,0x8a95a3,0.9,0.3);fwD.rotation.z=Math.PI/2;fw.add(fwD);
     for(var ft=0;ft<30;ft++){
@@ -215,7 +194,7 @@ function waitRef(){
       var a=(ft/30)*Math.PI*2;
       th.position.set(0,Math.cos(a)*(fwR+0.1),Math.sin(a)*(fwR+0.1));th.rotation.x=-a;fw.add(th);
     }
-    fw.position.set(blockLen/2+0.7,0.6,0);root.add(fw);R.setFly(fw);
+    fw.position.set(blockLen/2+0.7,0.6,0);root.add(fw);sF(fw);
     var bt=new THREE.Group();
     var gt=cy(0.9,0.4,20,0x8a95a3,0.9,0.3);gt.rotation.z=Math.PI/2;bt.add(gt);
     for(var gtt=0;gtt<16;gtt++){
@@ -223,7 +202,7 @@ function waitRef(){
       var a2=(gtt/16)*Math.PI*2;
       tg.position.set(0,Math.cos(a2)*0.95,Math.sin(a2)*0.95);tg.rotation.x=-a2;bt.add(tg);
     }
-    bt.position.set(-blockLen/2-0.7,6.2,0);root.add(bt);R.setBeltT(bt);
+    bt.position.set(-blockLen/2-0.7,6.2,0);root.add(bt);sBT(bt);
     var bb=new THREE.Group();
     var gb=cy(1.3,0.4,20,0x8a95a3,0.9,0.3);gb.rotation.z=Math.PI/2;bb.add(gb);
     for(var gbt=0;gbt<22;gbt++){
@@ -231,7 +210,7 @@ function waitRef(){
       var a3=(gbt/22)*Math.PI*2;
       tg2.position.set(0,Math.cos(a3)*1.35,Math.sin(a3)*1.35);tg2.rotation.x=-a3;bb.add(tg2);
     }
-    bb.position.set(-blockLen/2-0.7,0.6,0);root.add(bb);R.setBeltB(bb);
+    bb.position.set(-blockLen/2-0.7,0.6,0);root.add(bb);sBB(bb);
     var beltMat=new THREE.MeshStandardMaterial({color:0x1a1a1a,metalness:0.2,roughness:0.9});
     var b1=new THREE.Mesh(new THREE.BoxGeometry(0.15,5.6,0.7),beltMat);b1.position.set(-blockLen/2-1.5,3.4,0);root.add(b1);
     var b2=new THREE.Mesh(new THREE.BoxGeometry(0.15,5.6,1.0),beltMat);b2.position.set(-blockLen/2+0.1,3.4,0);root.add(b2);
@@ -246,33 +225,33 @@ function waitRef(){
       cg2.position.set(cx2,0,0);cs.add(cg2);
       camArr.push({grp:cg2,off:cc*Math.PI*1.5/Math.max(1,perRow*2)});
     }
-    cs.position.y=6.4;root.add(cs);R.setCam(cs);R.setCams(camArr);
+    cs.position.y=6.4;root.add(cs);sCam(cs);sC(camArr);
     if(isV){
       var angV=Math.PI/6;
       for(var side=0;side<2;side++){
         var sign=side===0?-1:1;
         var bk=bx(blockLen,5,2.6,0x4a5566,0.85,0.4);
-        bk.position.set(0,3.4,sign*1.6);bk.rotation.x=sign*angV;root.add(bk);R.pushBlock(bk);
+        bk.position.set(0,3.4,sign*1.6);bk.rotation.x=sign*angV;root.add(bk);pB(bk);
         for(var rr=0;rr<7;rr++){
-          var rb=bx(blockLen+0.05,0.06,2.65,0x2a3340,0.6,0.6);
-          rb.position.set(0,1.2+rr*0.55,sign*1.6);rb.rotation.x=sign*angV;root.add(rb);R.pushRib(rb);
+          var rb2=bx(blockLen+0.05,0.06,2.65,0x2a3340,0.6,0.6);
+          rb2.position.set(0,1.2+rr*0.55,sign*1.6);rb2.rotation.x=sign*angV;root.add(rb2);pR(rb2);
         }
         var hd=bx(blockLen+0.2,1.4,2.8,0x3a4756,0.85,0.35);
-        hd.position.set(0,6.4,sign*2.6);hd.rotation.x=sign*angV;root.add(hd);R.pushHead(hd);
+        hd.position.set(0,6.4,sign*2.6);hd.rotation.x=sign*angV;root.add(hd);pH(hd);
         var cv=bx(blockLen,0.8,2.5,0x2a3340,0.75,0.4);
-        cv.position.set(0,7.5,sign*3.1);cv.rotation.x=sign*angV;root.add(cv);R.pushCover(cv);
+        cv.position.set(0,7.5,sign*3.1);cv.rotation.x=sign*angV;root.add(cv);pC(cv);
       }
     } else {
       var bk2=bx(blockLen,5,5,0x4a5566,0.85,0.4);
-      bk2.position.y=3.4;root.add(bk2);R.pushBlock(bk2);
+      bk2.position.y=3.4;root.add(bk2);pB(bk2);
       for(var rr2=0;rr2<9;rr2++){
-        var rb2=bx(blockLen+0.05,0.06,5.05,0x2a3340,0.6,0.6);
-        rb2.position.y=1.2+rr2*0.55;root.add(rb2);R.pushRib(rb2);
+        var rb3=bx(blockLen+0.05,0.06,5.05,0x2a3340,0.6,0.6);
+        rb3.position.y=1.2+rr2*0.55;root.add(rb3);pR(rb3);
       }
       var hd2=bx(blockLen+0.2,1.4,5.3,0x3a4756,0.85,0.35);
-      hd2.position.y=6.4;root.add(hd2);R.pushHead(hd2);
+      hd2.position.y=6.4;root.add(hd2);pH(hd2);
       var cv2=bx(blockLen,0.8,5,0x2a3340,0.75,0.4);
-      cv2.position.y=7.5;root.add(cv2);R.pushCover(cv2);
+      cv2.position.y=7.5;root.add(cv2);pC(cv2);
     }
     for(var b=0;b<perRow+1;b++){
       var bxx=-totalWidth/2+b*(totalWidth/perRow);
@@ -306,7 +285,7 @@ function waitRef(){
         }
       }
     }
-    R.setAsm(arr);
+    sA(arr);
     var col=cfg.tractor?0x3a2a1a:0x4a3a2a;
     for(var e=0;e<perRow;e++){
       var ex=-totalWidth/2+spacing/2+e*spacing;
@@ -330,7 +309,6 @@ function waitRef(){
     }
   }
 
-  /* ====== ЗАПУСК ПЕРЕСБОРКИ ====== */
   window.DVS_3D_REBUILD=function(){
     var scene=R.getScene();
     if(!scene)return;
@@ -342,16 +320,10 @@ function waitRef(){
     R.setRoot(root);
     R.clearAll();
     window._wankelRotors=[];
-    if(S.engineType==='mt82')buildMTZPlaceholder(root,cfg);
-    else if(S.engineType==='wankel')buildWankel(root,cfg);
-    else buildNormal(root,cfg);
+    if(S.engineType==='mt82'){buildNormal(root,cfg);}
+    else if(S.engineType==='wankel'){buildWankel(root,cfg);}
+    else {buildNormal(root,cfg);}
   };
-
-  /* Заглушка для МТЗ — использует обычную сборку, если buildMTZ не определено */
-  function buildMTZPlaceholder(root,cfg){
-    if(typeof buildMTZReal==='function'){buildMTZReal(root,cfg);return;}
-    buildNormal(root,cfg);
-  }
 }
 waitRef();
 })();
