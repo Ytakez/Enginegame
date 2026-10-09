@@ -48,7 +48,7 @@ function setGhost(on){
 
 function setup(){
   if(!window.THREE){alert('Three.js не загрузился');return false;}
-  var ecv=document.getElementById('engineCv');
+  var ecv=document.getElementById('engine3dCv');
   if(!ecv)return false;
   var wrap=ecv.parentNode;
   if(!wrap)return false;
@@ -157,7 +157,7 @@ function animate(){
     if(A.vv&&A.vv[1])A.vv[1].position.y=A.h+0.05-vEx;
   }
 
-  /* Ванкель — роторы */
+  /* Ванкель */
   var wRotors=window._wankelRotors||[];
   for(var wr=0;wr<wRotors.length;wr++){
     var W=wRotors[wr];
@@ -168,7 +168,7 @@ function animate(){
     W.mesh.position.y=eccY;
   }
 
-  /* dCi — турбина, ГРМ и т.п. */
+  /* dCi */
   if(window._dciParts){
     var P=window._dciParts;
     if(P.turbo)P.turbo.rotation.x=ang*2.5;
@@ -192,12 +192,10 @@ function toggle(){
   if(!container){if(!setup())return;}
   active=!active;
   container.style.display=active?'block':'none';
-  var btn=document.getElementById('view3dBtn');
-  if(btn)btn.textContent=active?'📊 2D':'🎥 3D';
   var gb=document.getElementById('ghostBtn');
   if(gb)gb.style.display=active?'inline-block':'none';
   if(active){
-    var wrap=document.getElementById('engineCv').parentNode;
+    var wrap=document.getElementById('engine3dCv').parentNode;
     var w=wrap.clientWidth,h=wrap.clientHeight;
     if(w&&h&&renderer){
       renderer.setSize(w,h);
@@ -212,11 +210,23 @@ function toggle(){
   try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
 }
 
+/* Принудительный ресайз при возврате на страницу 3D */
+function resize(){
+  if(!active||!renderer)return;
+  var ecv=document.getElementById('engine3dCv');
+  if(!ecv)return;
+  var wrap=ecv.parentNode;
+  var w=wrap.clientWidth,h=wrap.clientHeight;
+  if(w&&h){
+    renderer.setSize(w,h);
+    camera.aspect=w/h;
+    camera.updateProjectionMatrix();
+  }
+}
+
 function toggleGhost(){setGhost(!ghost);}
 
 function attachBtn(){
-  var btn=document.getElementById('view3dBtn');
-  if(btn)btn.addEventListener('click',function(e){e.preventDefault();toggle();});
   var gb=document.getElementById('ghostBtn');
   if(gb){
     gb.style.display='none';
@@ -224,7 +234,13 @@ function attachBtn(){
   }
 }
 
-window.DVS_3D={toggle:toggle,toggleGhost:toggleGhost};
+/* Публичный API */
+window.DVS_3D={
+  toggle:toggle,
+  toggleGhost:toggleGhost,
+  resize:resize,
+  isActive:function(){return active;}
+};
 window.DVS_3D_BUILD={m:m,cy:cy,bx:bx,bl:bl};
 
 window.DVS_3D_REF={
@@ -249,7 +265,7 @@ window.DVS_3D_REF={
     var CFG={
       scooter:{n:1,v:false},
       tdi:{n:4,v:false},
-      dci:{n:4,v:false,model:'dci'},   /* ← ДОБАВЛЕН dCi */
+      dci:{n:4,v:false,model:'dci'},
       mt82:{n:4,v:false},
       passatb3:{n:4,v:false},
       bluebird:{n:4,v:false},
@@ -263,6 +279,7 @@ window.DVS_3D_REF={
   }
 };
 
+/* При загрузке — навешиваем только кнопку ghost */
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',attachBtn);}
 else{attachBtn();}
 })();
