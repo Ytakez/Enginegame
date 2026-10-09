@@ -17,9 +17,9 @@ v16:{name:'V22',cyls:22,maxTorque:900,idle:900,redline:8200,breakRpm:9600,stallR
 var AMB={summer:25,autumn:8,winter:-15};
 var OVERHEAT_LIMIT=145;
 
-/* Наборы передаточных чисел */
-var RATIOS_5=[0,3.40,2.00,1.35,1.00,0.78];
-var RATIOS_6=[0,3.40,2.00,1.35,1.00,0.78,0.62];
+/* Передаточные числа. 6-я — короче, чтобы не глохнуть на низких оборотах */
+var RATIOS_5=[0, 3.40, 2.00, 1.40, 1.00, 0.80];
+var RATIOS_6=[0, 3.40, 2.10, 1.55, 1.20, 0.95, 0.78];
 function ratiosFor(E){return (E&&E.gears===6)?RATIOS_6:RATIOS_5;}
 
 var savedEng='r4';
@@ -43,7 +43,9 @@ ambientTemp:AMB[savedWeather]||25,
 engineTemp:AMB[savedWeather]||25,
 startAttempts:0,
 primingStart:0,
-primingDuration:1500
+primingDuration:1500,
+_prevGear:0,
+_shiftTimer:0
 };
 if(S.engines[savedEng].auto)S.gear=1;
 
@@ -91,6 +93,7 @@ S.repair=function(){
   S.ignitionState='off';
   S.engineTemp=S.ambientTemp;
   S.startAttempts=0;
+  S._shiftTimer=0;
   document.body.classList.remove('broken');
   var gb=document.querySelectorAll('.gbtn');
   for(var i=0;i<gb.length;i++)gb[i].classList.toggle('on',Number(gb[i].dataset.g)===S.gear);
@@ -103,7 +106,6 @@ S.repair=function(){
   S.pressed.gas=false;S.pressed.brake=false;S.pressed.clutch=false;
 };
 
-/* Показать/скрыть кнопку передачи в UI */
 function updateGearUI(){
   var E=curE();
   var maxG=(E.auto?6:(E.gears||6));
@@ -126,6 +128,8 @@ S.setEngine=function(type){
   S.engineTemp=S.ambientTemp;
   S.startAttempts=0;
   S.gear=ENGINES[type].auto?1:0;
+  S._prevGear=S.gear;
+  S._shiftTimer=0;
   document.body.classList.remove('broken');
   var gb=document.querySelectorAll('.gbtn');
   for(var i=0;i<gb.length;i++)gb[i].classList.toggle('on',Number(gb[i].dataset.g)===S.gear);
@@ -142,12 +146,10 @@ S.setEngine=function(type){
   try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
 };
 
-/* Переключение передачи (проверка на 5-ст. КПП) */
 S.setGear=function(g){
   var E=curE();
   if(E.auto)return;
   if(S.broken||S.seized)return;
-  /* Если выбрана передача выше допустимой — игнорируем */
   if(g>0 && g>(E.gears||6))return;
   if(g===S.gear)return;
   S.gear=g;
@@ -163,6 +165,7 @@ S.physics=function(dt){
   var mass=safeNum(E.mass,1250);
   var Iwheel=mass*wheelRadius*wheelRadius;
 
+  /* ===== КЛИН ===== */
   if(S.seized){
     S.rpm=0;S.throttle=0;
     S.speed*=Math.max(0,1-2.5*dt);
@@ -179,7 +182,19 @@ S.physics=function(dt){
   S.rpm=safeNum(S.rpm,0);
   S.speed=safeNum(S.speed,0);
 
-  /* ТЕМПЕРАТУРА */
+  /* ===== АВТО-СЦЕПЛЕНИЕ ПРИ СМЕНЕ ПЕРЕДАЧИ (как в DCT) ===== */
+  if(S._prevGear!==S.gear){
+    S._shiftTimer=0.35;
+    S._prevGear=S.gear;
+  }
+  if(S._shiftTimer>0){
+    S._shiftTimer-=dt;
+    if(S._shiftTimer<0)S._shiftTimer=0;
+  }
+  var shiftSlip=1;
+  if(S._shiftTimer>0)shiftSlip=0.15;
+
+  /* ===== ТЕМПЕРАТУРА ===== */
   if(S.running&&!S.stalled){
     if(S.engineTemp<85)S.engineTemp+=dt*0.8;
     else if(S.engineTemp<95)S.engineTemp+=dt*0.3;
@@ -193,7 +208,7 @@ S.physics=function(dt){
     }
   }
 
-  /* ПЕРЕГРЕВ = КЛИН */
+  /* ===== ПЕРЕГРЕВ = КЛИН ===== */
   if(S.engineTemp >= OVERHEAT_LIMIT && S.running){
     S.seized = true;
     S.throttle = 0;
@@ -202,6 +217,7 @@ S.physics=function(dt){
     return;
   }
 
+  /* ===== ПЕРЕДАТОЧНОЕ ЧИСЛО ===== */
   var ratio=0;
   if(E.cvt){
     var vv=Math.abs(S.speed);
@@ -221,6 +237,7 @@ S.physics=function(dt){
   }
   ratio=safeNum(ratio,0);
 
+  /* ===== СЦЕПЛЕНИЕ ===== */
   var eng;
   if(E.auto){
     if(S.gear===0||S.stalled||!S.running){eng=0;}
@@ -231,11 +248,13 @@ S.physics=function(dt){
   } else {
     eng=(S.gear===0||S.stalled||!S.running)?0:(1-S.clutchPedal);
   }
+  eng *= shiftSlip;
 
   var omegaWheel=S.speed/3.6/wheelRadius;
   var omegaDirect=omegaWheel*ratio;
   var omegaEngine=S.rpm*Math.PI/30;
 
+  /* ===== КРУТЯЩИЙ МОМЕНТ ДВИГАТЕЛЯ ===== */
   var Te=0;
   if(S.running&&!S.stalled){
     var thr=safeNum(S.throttle,0);
@@ -261,6 +280,7 @@ S.physics=function(dt){
 
     var friction=5+S.rpm*0.003;
     Te-=friction;
+
     if(thr<0.05){
       var err=E.idle-S.rpm;
       if(err>0)Te+=Math.min(err*0.8,40);
@@ -269,8 +289,18 @@ S.physics=function(dt){
     } else {
       if(S.rpm<E.idle*0.7)Te+=(E.idle*0.7-S.rpm)*0.5;
     }
+
+    /* ===== АНТИ-СТОЛЛ ЗАЩИТА =====
+       Если обороты падают ниже idle с включённым сцеплением —
+       добавляем крутящий момент, как современный ЭБУ. */
+    if(eng > 0.3 && S.rpm < E.idle*0.85){
+      var guard = (E.idle*0.85 - S.rpm) * 0.5;
+      if(guard > 150) guard = 150;
+      if(guard > 0) Te += guard;
+    }
   }
 
+  /* ===== СЦЕПЛЕНИЕ / ПЕРЕДАЧА МОМЕНТА ===== */
   var slip=omegaEngine-omegaDirect;
   var Tc;
   if(E.cvt){
@@ -318,8 +348,14 @@ S.physics=function(dt){
   if(Math.abs(S.speed)<0.12&&(S.brakePedal>0.05||(!E.cvt&&S.gear===0))){
     if(Math.abs(nW)<0.6)S.speed=0;
   }
-  if(!S.stalled&&S.running&&S.rpm<E.stallRpm&&(eng>0.25||S.rpm<E.stallRpm*0.4)){
-    S.stalled=true;S.running=false;S.rpm=0;
+
+  /* ===== ЗАГЛОХ: только если сцепление включено И обороты совсем низкие ===== */
+  if(!S.stalled && S.running && S.rpm<E.stallRpm){
+    if(eng > 0.25 && S._shiftTimer<=0){
+      S.stalled=true;S.running=false;S.rpm=0;
+    } else if(S.rpm < E.stallRpm*0.4){
+      S.stalled=true;S.running=false;S.rpm=0;
+    }
   }
   if(S.stalled)S.rpm=Math.max(0,S.rpm-E.idle*3*dt);
 
