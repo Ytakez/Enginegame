@@ -2,9 +2,12 @@
 "use strict";
 var LANG_KEY='dvs_lang';
 var LANGS={
-  ru:{label:'🇷🇺 Русский',title:'Двигатель внутреннего сгорания',clutch:'СЦЕПЛЕНИЕ',brake:'ТОРМОЗ',gas:'ГАЗ',hold:'держать',ignition:'Зажигание',speed:'Скорость',gear:'Передача',settingsTitle:'Настройки',language:'Язык',languageSelect:'Выбрать язык',engine:'Двигатель',engineSelect:'Выбрать двигатель',weather:'Погода',weatherSelect:'Выбрать погоду',sound:'Звук',soundOn:'Включён',soundOff:'Выключен',back:'Назад',close:'Закрыть',other:'Другое',timer:'Секундомер 0-100',timerStart:'Начать замер',timerBest:'Лучшее время',timerReset:'Сбросить лучшее',otherEmpty:'Скоро тут будет больше функций'},
-  uk:{label:'🇺🇦 Українська',title:'Двигун внутрішнього згоряння',clutch:'ЗЧЕПЛЕННЯ',brake:'ГАЛЬМО',gas:'ГАЗ',hold:'тримати',ignition:'Запалювання',speed:'Швидкість',gear:'Передача',settingsTitle:'Налаштування',language:'Мова',languageSelect:'Вибрати мову',engine:'Двигун',engineSelect:'Вибрати двигун',weather:'Погода',weatherSelect:'Вибрати погоду',sound:'Звук',soundOn:'Увімкнено',soundOff:'Вимкнено',back:'Назад',close:'Закрити',other:'Інше',timer:'Секундомір 0-100',timerStart:'Почати замір',timerBest:'Кращий час',timerReset:'Скинути кращий',otherEmpty:'Скоро тут буде більше функцій'},
-  en:{label:'🇬🇧 English',title:'Internal Combustion Engine',clutch:'CLUTCH',brake:'BRAKE',gas:'THROTTLE',hold:'hold',ignition:'Ignition',speed:'Speed',gear:'Gear',settingsTitle:'Settings',language:'Language',languageSelect:'Choose language',engine:'Engine',engineSelect:'Choose engine',weather:'Weather',weatherSelect:'Choose weather',sound:'Sound',soundOn:'On',soundOff:'Off',back:'Back',close:'Close',other:'Other',timer:'0-100 Timer',timerStart:'Start run',timerBest:'Best time',timerReset:'Reset best',otherEmpty:'More features coming soon'}
+  ru:{label:'🇷🇺 Русский',title:'Двигатель внутреннего сгорания',clutch:'СЦЕПЛЕНИЕ',brake:'ТОРМОЗ',gas:'ГАЗ',hold:'держать',ignition:'Зажигание',speed:'Скорость',gear:'Передача',settingsTitle:'Настройки',language:'Язык',languageSelect:'Выбрать язык',engine:'Двигатель',engineSelect:'Выбрать двигатель',weather:'Погода',weatherSelect:'Выбрать погоду',sound:'Звук',soundOn:'Включён',soundOff:'Выключен',back:'Назад',close:'Закрыть',other:'Другое',timer:'Секундомер 0-100',timerStart:'Начать замер',timerBest:'Лучшее время',timerReset:'Сбросить лучшее',otherEmpty:'Скоро тут будет больше функций',
+  profile:'Профиль',stats:'Статистика',achievements:'Достижения',logout:'Выйти из профиля',changePin:'Сменить PIN',deleteProfile:'Удалить профиль',distance:'Пробег',drives:'Поездок',broken:'Сожжено моторов',maxSpeed:'Макс. скорость',best100:'Лучшее 0-100',playTime:'Время в игре',noAch:'Пока нет достижений',of:'из',confirmLogout:'Выйти из профиля?',confirmDelete:'Удалить профиль со всеми данными?',profileNoActive:'Профиль не выбран'},
+  uk:{label:'🇺🇦 Українська',title:'Двигун внутрішнього згоряння',clutch:'ЗЧЕПЛЕННЯ',brake:'ГАЛЬМО',gas:'ГАЗ',hold:'тримати',ignition:'Запалювання',speed:'Швидкість',gear:'Передача',settingsTitle:'Налаштування',language:'Мова',languageSelect:'Вибрати мову',engine:'Двигун',engineSelect:'Вибрати двигун',weather:'Погода',weatherSelect:'Вибрати погоду',sound:'Звук',soundOn:'Увімкнено',soundOff:'Вимкнено',back:'Назад',close:'Закрити',other:'Інше',timer:'Секундомір 0-100',timerStart:'Почати замір',timerBest:'Кращий час',timerReset:'Скинути кращий',otherEmpty:'Скоро тут буде більше функцій',
+  profile:'Профіль',stats:'Статистика',achievements:'Досягнення',logout:'Вийти з профілю',changePin:'Змінити PIN',deleteProfile:'Видалити профіль',distance:'Пробіг',drives:'Поїздок',broken:'Спалено моторів',maxSpeed:'Макс. швидкість',best100:'Кращий 0-100',playTime:'Час у грі',noAch:'Поки немає досягнень',of:'з',confirmLogout:'Вийти з профілю?',confirmDelete:'Видалити профіль з усіма даними?',profileNoActive:'Профіль не вибраний'},
+  en:{label:'🇬🇧 English',title:'Internal Combustion Engine',clutch:'CLUTCH',brake:'BRAKE',gas:'THROTTLE',hold:'hold',ignition:'Ignition',speed:'Speed',gear:'Gear',settingsTitle:'Settings',language:'Language',languageSelect:'Choose language',engine:'Engine',engineSelect:'Choose engine',weather:'Weather',weatherSelect:'Choose weather',sound:'Sound',soundOn:'On',soundOff:'Off',back:'Back',close:'Close',other:'Other',timer:'0-100 Timer',timerStart:'Start run',timerBest:'Best time',timerReset:'Reset best',otherEmpty:'More features coming soon',
+  profile:'Profile',stats:'Stats',achievements:'Achievements',logout:'Log out',changePin:'Change PIN',deleteProfile:'Delete profile',distance:'Distance',drives:'Drives',broken:'Engines broken',maxSpeed:'Max speed',best100:'Best 0-100',playTime:'Play time',noAch:'No achievements yet',of:'of',confirmLogout:'Log out?',confirmDelete:'Delete profile with all data?',profileNoActive:'No profile selected'}
 };
 var ENGINES_INFO=[
   {id:'scooter',label:'🛵 Скутер (S1)',sub:'1 цилиндр · 4-тактный · АКПП'},
@@ -35,86 +38,75 @@ function injectStyles(){
   var st=document.createElement('style');
   st.id='settingsStyle';
   st.textContent=
-  '.settings-btn{position:fixed;top:8px;left:8px;z-index:99998;width:44px;height:44px;border-radius:50%;'+
-  'border:1px solid rgba(255,255,255,.08);background:rgba(20,20,20,.55);'+
-  'backdrop-filter:blur(40px) saturate(100%);-webkit-backdrop-filter:blur(40px) saturate(100%);'+
-  'color:#c0c0c0;font-size:20px;cursor:pointer;touch-action:manipulation;'+
-  'display:flex;align-items:center;justify-content:center;padding:0;'+
-  'box-shadow:0 8px 24px rgba(0,0,0,.5);transition:background .2s,border-color .2s,color .2s}'+
+  '.settings-btn{position:fixed;top:8px;left:8px;z-index:99998;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.08);background:rgba(20,20,20,.55);backdrop-filter:blur(40px) saturate(100%);-webkit-backdrop-filter:blur(40px) saturate(100%);color:#c0c0c0;font-size:20px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 8px 24px rgba(0,0,0,.5);transition:background .2s,border-color .2s,color .2s}'+
   '.settings-btn:hover{border-color:rgba(255,255,255,.16);color:#ffffff}'+
-
-  '.settings-overlay{position:fixed;top:0;left:0;right:0;bottom:0;'+
-  'background:rgba(0,0,0,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);'+
-  'z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit}'+
-
-  '.settings-modal{width:100%;max-width:400px;max-height:92vh;overflow-y:auto;'+
-  'background:rgba(15,15,15,.6);backdrop-filter:blur(50px) saturate(100%);'+
-  '-webkit-backdrop-filter:blur(50px) saturate(100%);'+
-  'border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:18px;'+
-  'color:#e8e8e8;box-shadow:0 24px 70px rgba(0,0,0,.7)}'+
-
-  '.settings-modal h2{font-size:12px;letter-spacing:5px;color:#f0f0f0;'+
-  'text-transform:uppercase;margin:0 0 16px;font-weight:600;text-align:center}'+
-
-  '.settings-item{width:100%;min-height:54px;margin-bottom:8px;border-radius:14px;'+
-  'border:1px solid rgba(255,255,255,.06);background:rgba(25,25,25,.55);'+
-  'color:#c0c0c0;font:600 13px/1.3 inherit;cursor:pointer;padding:10px 14px;text-align:left;'+
-  'touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;gap:10px;'+
-  'transition:background .2s,border-color .2s,color .2s}'+
+  '.settings-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit}'+
+  '.settings-modal{width:100%;max-width:400px;max-height:92vh;overflow-y:auto;background:rgba(15,15,15,.6);backdrop-filter:blur(50px) saturate(100%);-webkit-backdrop-filter:blur(50px) saturate(100%);border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:18px;color:#e8e8e8;box-shadow:0 24px 70px rgba(0,0,0,.7)}'+
+  '.settings-modal h2{font-size:12px;letter-spacing:5px;color:#f0f0f0;text-transform:uppercase;margin:0 0 16px;font-weight:600;text-align:center}'+
+  '.settings-item{width:100%;min-height:54px;margin-bottom:8px;border-radius:14px;border:1px solid rgba(255,255,255,.06);background:rgba(25,25,25,.55);color:#c0c0c0;font:600 13px/1.3 inherit;cursor:pointer;padding:10px 14px;text-align:left;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;gap:10px;transition:background .2s,border-color .2s,color .2s}'+
   '.settings-item:hover{border-color:rgba(255,255,255,.12)}'+
   '.settings-item .txt{flex:1 1 auto;min-width:0}'+
   '.settings-item .lbl{display:block;font-size:14px;color:inherit;font-weight:600}'+
   '.settings-item .sub{display:block;font-size:10px;color:#6a6a6a;font-weight:500;margin-top:3px;letter-spacing:.5px}'+
   '.settings-item .arrow{color:#6a6a6a;font-size:18px;flex:0 0 auto}'+
   '.settings-item .check{color:#f0f0f0;font-size:18px;opacity:0;flex:0 0 auto}'+
-
   '.settings-item.on{border-color:rgba(255,255,255,.22);color:#ffffff;background:rgba(255,255,255,.10)}'+
   '.settings-item.on .check{opacity:1}.settings-item.on .sub{color:#a0a0a0}'+
-
   '.settings-item.primary{background:rgba(232,232,90,.12);border-color:rgba(232,232,90,.35);color:#fff}'+
   '.settings-item.primary:hover{background:rgba(232,232,90,.2)}'+
-
   '.settings-item.danger{color:#e0a0a0}'+
   '.settings-item.danger:hover{border-color:rgba(220,80,80,.4);color:#ffb8b8}'+
-
-  '.sound-toggle{flex:0 0 auto;width:64px;height:32px;border-radius:16px;position:relative;'+
-  'border:1px solid rgba(255,255,255,.08);background:rgba(40,40,40,.8);cursor:pointer;'+
-  'transition:background .2s,border-color .2s}'+
+  '.sound-toggle{flex:0 0 auto;width:64px;height:32px;border-radius:16px;position:relative;border:1px solid rgba(255,255,255,.08);background:rgba(40,40,40,.8);cursor:pointer;transition:background .2s,border-color .2s}'+
   '.sound-toggle.on{border-color:#f0f0f0;background:#f0f0f0}'+
-  '.sound-toggle .knob{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;'+
-  'background:#6a6a6a;transition:left .15s,background .15s}'+
+  '.sound-toggle .knob{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:#6a6a6a;transition:left .15s,background .15s}'+
   '.sound-toggle.on .knob{left:34px;background:#0a0a0a}'+
-
-  '.settings-close{width:100%;height:46px;border-radius:14px;border:1px solid rgba(255,255,255,.06);'+
-  'background:rgba(25,25,25,.55);color:#c0c0c0;font:600 12px/1 inherit;letter-spacing:2.5px;'+
-  'cursor:pointer;text-transform:uppercase;touch-action:manipulation;margin-top:12px;'+
-  'transition:background .2s,border-color .2s,color .2s}'+
+  '.settings-close{width:100%;height:46px;border-radius:14px;border:1px solid rgba(255,255,255,.06);background:rgba(25,25,25,.55);color:#c0c0c0;font:600 12px/1 inherit;letter-spacing:2.5px;cursor:pointer;text-transform:uppercase;touch-action:manipulation;margin-top:12px;transition:background .2s,border-color .2s,color .2s}'+
   '.settings-close:hover{border-color:rgba(255,255,255,.16);color:#ffffff}'+
-
-  '.settings-back{width:100%;height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.06);'+
-  'background:rgba(20,20,20,.5);color:#c0c0c0;font:600 12px/1 inherit;letter-spacing:2px;'+
-  'cursor:pointer;text-transform:uppercase;touch-action:manipulation;margin-bottom:14px;'+
-  'transition:background .2s,border-color .2s,color .2s}'+
+  '.settings-back{width:100%;height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.06);background:rgba(20,20,20,.5);color:#c0c0c0;font:600 12px/1 inherit;letter-spacing:2px;cursor:pointer;text-transform:uppercase;touch-action:manipulation;margin-bottom:14px;transition:background .2s,border-color .2s,color .2s}'+
   '.settings-back:hover{border-color:rgba(255,255,255,.16);color:#ffffff}'+
-
   '.settings-modal::-webkit-scrollbar{width:0;display:none}'+
-  '.settings-modal{scrollbar-width:none;-ms-overflow-style:none}';
-
+  '.settings-modal{scrollbar-width:none;-ms-overflow-style:none}'+
+  /* Профиль — стили */
+  '.prof-header{display:flex;align-items:center;gap:14px;padding:14px;'+
+  'background:rgba(232,232,90,.08);border:1px solid rgba(232,232,90,.25);'+
+  'border-radius:16px;margin-bottom:12px}'+
+  '.prof-avatar{width:52px;height:52px;border-radius:50%;'+
+  'background:rgba(232,232,90,.15);border:1px solid rgba(232,232,90,.4);'+
+  'display:flex;align-items:center;justify-content:center;font-size:26px;flex:0 0 auto}'+
+  '.prof-info{flex:1 1 auto;min-width:0}'+
+  '.prof-name{font-size:16px;font-weight:700;color:#f0f0f0;'+
+  'white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
+  '.prof-sub{font-size:10px;color:#8a8a8a;margin-top:3px;font-weight:500;letter-spacing:.5px}'+
+  '.prof-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}'+
+  '.prof-stat{padding:10px 12px;border-radius:12px;'+
+  'background:rgba(25,25,25,.55);border:1px solid rgba(255,255,255,.06)}'+
+  '.prof-stat .lbl{font-size:9px;color:#6a6a6a;letter-spacing:1.5px;'+
+  'text-transform:uppercase;font-weight:600;margin-bottom:4px;display:block}'+
+  '.prof-stat .val{font-size:16px;color:#f0f0f0;font-weight:700;'+
+  'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}'+
+  '.prof-stat .val.amber{color:#e8e85a}'+
+  '.ach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(52px,1fr));'+
+  'gap:6px;margin-bottom:14px}'+
+  '.ach-icon-cell{aspect-ratio:1;border-radius:12px;'+
+  'background:rgba(25,25,25,.5);border:1px solid rgba(255,255,255,.06);'+
+  'display:flex;align-items:center;justify-content:center;font-size:24px;'+
+  'opacity:.22;filter:grayscale(1);transition:all .25s;position:relative}'+
+  '.ach-icon-cell.got{opacity:1;filter:none;background:rgba(232,232,90,.12);'+
+  'border-color:rgba(232,232,90,.4);box-shadow:0 0 14px rgba(232,232,90,.2)}'+
+  '.ach-section-title{font-size:10px;color:#8a8a8a;letter-spacing:3px;'+
+  'text-transform:uppercase;font-weight:600;margin:4px 0 8px;'+
+  'display:flex;justify-content:space-between;align-items:center}'+
+  '.ach-count{font-size:11px;color:#e8e85a;font-weight:700}'+
+  '.prof-empty{text-align:center;padding:20px;font-size:12px;color:#6a6a6a}';
   document.head.appendChild(st);
 }
 
-/* Стили оверлея таймера — отдельно, чтобы работали всегда */
 function injectTimerStyles(){
   if(document.getElementById('timerStyle'))return;
   var st=document.createElement('style');
   st.id='timerStyle';
   st.textContent=
-  '#timerOverlay{position:fixed;top:60px;right:10px;z-index:9998;display:none;'+
-  'min-width:130px;padding:10px 14px;border-radius:14px;'+
-  'border:1px solid rgba(255,255,255,.10);background:rgba(15,15,15,.75);'+
-  'backdrop-filter:blur(40px) saturate(100%);-webkit-backdrop-filter:blur(40px) saturate(100%);'+
-  'color:#e8e8e8;font:600 12px/1.4 -apple-system,Inter,sans-serif;'+
-  'box-shadow:0 12px 36px rgba(0,0,0,.6);text-align:left}'+
+  '#timerOverlay{position:fixed;top:60px;right:10px;z-index:9998;display:none;min-width:130px;padding:10px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.10);background:rgba(15,15,15,.75);backdrop-filter:blur(40px) saturate(100%);-webkit-backdrop-filter:blur(40px) saturate(100%);color:#e8e8e8;font:600 12px/1.4 -apple-system,Inter,sans-serif;box-shadow:0 12px 36px rgba(0,0,0,.6);text-align:left}'+
   '#timerOverlay .tm-lbl{font-size:9px;letter-spacing:2px;color:#8a8a8a;text-transform:uppercase;margin-bottom:4px}'+
   '#timerOverlay .tm-val{font-size:24px;font-weight:700;color:#f0f0f0;transition:color .3s}'+
   '#timerOverlay .tm-val.done{color:#43c98a}'+
@@ -152,11 +144,40 @@ function fmtTime(ms){
   return (ms/1000).toFixed(2) + ' с';
 }
 
+function fmtKm(m){
+  if(!m || m < 0) return '0 км';
+  if(m < 1000) return Math.round(m) + ' м';
+  return (m/1000).toFixed(1) + ' км';
+}
+
+function fmtPlayTime(sec){
+  if(!sec || sec < 60) return Math.round(sec||0) + ' с';
+  if(sec < 3600) return Math.round(sec/60) + ' мин';
+  var h = Math.floor(sec/3600);
+  var m = Math.round((sec%3600)/60);
+  return h + ' ч ' + m + ' мин';
+}
+
+/* ==================== ГЛАВНОЕ МЕНЮ ==================== */
 function openMain(){
   closeAll();
   var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
   var h=document.createElement('h2');h.textContent='⚙ '+t('settingsTitle');m.appendChild(h);
   var S=window.S;
+  var P=window.DVS_PROFILE;
+
+  /* 👤 Профиль — если залогинен */
+  if(P && P.isLoggedIn && P.isLoggedIn()){
+    var prof = P.getActive();
+    if(prof){
+      var achCount = (prof.achievements || []).length;
+      var pb = document.createElement('button');
+      pb.type='button';pb.className='settings-item primary';
+      pb.innerHTML='<div class="txt"><span class="lbl">👤 '+prof.name+'</span><span class="sub">🏆 '+achCount+' '+t('of')+' 25 · 👆 '+t('profile')+'</span></div><span class="arrow">›</span>';
+      pb.addEventListener('click',function(){closeAll();openProfile();});
+      m.appendChild(pb);
+    }
+  }
 
   /* Двигатель */
   var curName=S?(S.engines[S.engineType]||{}).name||'R4':'R4';
@@ -201,7 +222,7 @@ function openMain(){
   });
   m.appendChild(sb);
 
-  /* 🆕 Другое */
+  /* Другое */
   var ob=document.createElement('button');
   ob.type='button';ob.className='settings-item';
   ob.innerHTML='<div class="txt"><span class="lbl">🔧 '+t('other')+'</span><span class="sub">'+t('timer')+'</span></div><span class="arrow">›</span>';
@@ -215,149 +236,59 @@ function openMain(){
   document.body.appendChild(ov);
 }
 
-/* ==================== ДРУГОЕ ==================== */
-function openOther(){
+/* ==================== ЭКРАН ПРОФИЛЯ ==================== */
+function openProfile(){
   closeAll();
+  var P = window.DVS_PROFILE;
   var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
-  var h=document.createElement('h2');h.textContent='🔧 '+t('other');m.appendChild(h);
+  var h=document.createElement('h2');h.textContent='👤 '+t('profile');m.appendChild(h);
 
   var back=document.createElement('button');
   back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
   back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
 
-  /* Секундомер 0-100 */
-  var best = (window.DVS_TIMER && window.DVS_TIMER.getBest) ? window.DVS_TIMER.getBest() : null;
-  var tb=document.createElement('button');
-  tb.type='button';tb.className='settings-item primary';
-  tb.innerHTML='<div class="txt"><span class="lbl">⏱ '+t('timer')+'</span><span class="sub" id="timerBestSub">'+t('timerBest')+': '+fmtTime(best)+'</span></div><span class="arrow">›</span>';
-  tb.addEventListener('click',function(){
-    closeAll();
-    if(window.DVS_TIMER) window.DVS_TIMER.start();
-  });
-  m.appendChild(tb);
-
-  /* Сбросить лучшее время */
-  if(best !== null){
-    var rb=document.createElement('button');
-    rb.type='button';rb.className='settings-item danger';
-    rb.innerHTML='<div class="txt"><span class="lbl">🗑 '+t('timerReset')+'</span></div>';
-    rb.addEventListener('click',function(){
-      if(window.DVS_TIMER) window.DVS_TIMER.resetBest();
-      closeAll();openOther();
-    });
-    m.appendChild(rb);
+  if(!P || !P.isLoggedIn || !P.isLoggedIn()){
+    var e=document.createElement('div');
+    e.className='prof-empty';
+    e.textContent=t('profileNoActive');
+    m.appendChild(e);
+    var cb0=document.createElement('button');
+    cb0.type='button';cb0.className='settings-close';cb0.textContent=t('close');
+    cb0.addEventListener('click',closeAll);m.appendChild(cb0);
+    document.body.appendChild(ov);return;
   }
 
-  /* Заглушка — «скоро тут будет больше» */
-  var hint=document.createElement('div');
-  hint.style.cssText='text-align:center;font-size:10px;color:#6a6a6a;letter-spacing:1px;margin-top:10px';
-  hint.textContent=t('otherEmpty');
-  m.appendChild(hint);
+  var prof = P.getActive();
+  var stats = prof.stats || {};
+  var ach = prof.achievements || [];
 
-  var cb=document.createElement('button');
-  cb.type='button';cb.className='settings-close';cb.textContent=t('close');
-  cb.addEventListener('click',closeAll);m.appendChild(cb);
+  /* Шапка */
+  var hdr = document.createElement('div');
+  hdr.className='prof-header';
+  hdr.innerHTML='<div class="prof-avatar">👤</div>'+
+    '<div class="prof-info">'+
+    '<div class="prof-name">'+prof.name+'</div>'+
+    '<div class="prof-sub">🏆 '+ach.length+' '+t('of')+' 25 '+t('achievements').toLowerCase()+'</div>'+
+    '</div>';
+  m.appendChild(hdr);
 
-  document.body.appendChild(ov);
-}
+  /* Статистика */
+  var stTitle = document.createElement('div');
+  stTitle.className='ach-section-title';
+  stTitle.textContent = t('stats');
+  m.appendChild(stTitle);
 
-/* ==================== ВЫБОР ДВИГАТЕЛЯ ==================== */
-function openPicker(){
-  closeAll();
-  var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
-  var h=document.createElement('h2');h.textContent='🏁 '+t('engine');m.appendChild(h);
-  var back=document.createElement('button');
-  back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
-  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
-  var S=window.S;var cur=S?S.engineType:'r4';
-  ENGINES_INFO.forEach(function(E){
-    var b=document.createElement('button');
-    b.type='button';b.className='settings-item'+(E.id===cur?' on':'');
-    b.innerHTML='<div class="txt"><span class="lbl">'+E.label+'</span><span class="sub">'+E.sub+'</span></div><span class="check">✓</span>';
-    b.addEventListener('click',function(){
-      if(S&&S.setEngine)S.setEngine(E.id);
-      var all=m.querySelectorAll('.settings-item');
-      for(var i=0;i<all.length;i++)all[i].classList.remove('on');
-      b.classList.add('on');
-      try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
-    });
-    m.appendChild(b);
-  });
-  var cb=document.createElement('button');
-  cb.type='button';cb.className='settings-close';cb.textContent=t('close');
-  cb.addEventListener('click',closeAll);m.appendChild(cb);
-  document.body.appendChild(ov);
-}
+  var grid = document.createElement('div');
+  grid.className='prof-stats';
+  var best100 = stats.best0to100;
+  grid.innerHTML =
+    '<div class="prof-stat"><span class="lbl">'+t('distance')+'</span><span class="val">'+fmtKm(stats.totalDistance||0)+'</span></div>'+
+    '<div class="prof-stat"><span class="lbl">'+t('maxSpeed')+'</span><span class="val">'+Math.round(stats.maxSpeed||0)+' км/ч</span></div>'+
+    '<div class="prof-stat"><span class="lbl">'+t('best100')+'</span><span class="val amber">'+fmtTime(best100)+'</span></div>'+
+    '<div class="prof-stat"><span class="lbl">'+t('broken')+'</span><span class="val">'+(stats.enginesBroken||0)+'</span></div>'+
+    '<div class="prof-stat"><span class="lbl">'+t('playTime')+'</span><span class="val">'+fmtPlayTime(stats.totalPlayTime||0)+'</span></div>'+
+    '<div class="prof-stat"><span class="lbl">'+t('enginesTried') || 'Моторов попробовано' +'</span><span class="val">'+((stats.enginesTried||[]).length)+' / '+((window.S && window.S.engines) ? Object.keys(window.S.engines).length : 11)+'</span></div>';
+  m.appendChild(grid);
 
-function openWeatherPicker(){
-  closeAll();
-  var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
-  var h=document.createElement('h2');h.textContent='🌦 '+t('weather');m.appendChild(h);
-  var back=document.createElement('button');
-  back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
-  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
-  var S=window.S;var cur=S?S.weather:'summer';
-  WEATHERS.forEach(function(W){
-    var b=document.createElement('button');
-    b.type='button';b.className='settings-item'+(W.id===cur?' on':'');
-    b.innerHTML='<div class="txt"><span class="lbl">'+W.label+'</span><span class="sub">'+W.sub+'</span></div><span class="check">✓</span>';
-    b.addEventListener('click',function(){
-      if(S&&S.setWeather)S.setWeather(W.id);
-      var all=m.querySelectorAll('.settings-item');
-      for(var i=0;i<all.length;i++)all[i].classList.remove('on');
-      b.classList.add('on');
-      try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
-    });
-    m.appendChild(b);
-  });
-  var cb=document.createElement('button');
-  cb.type='button';cb.className='settings-close';cb.textContent=t('close');
-  cb.addEventListener('click',closeAll);m.appendChild(cb);
-  document.body.appendChild(ov);
-}
-
-function openLangPicker(){
-  closeAll();
-  var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
-  var h=document.createElement('h2');h.textContent='🌐 '+t('language');m.appendChild(h);
-  var back=document.createElement('button');
-  back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
-  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
-  Object.keys(LANGS).forEach(function(code){
-    var b=document.createElement('button');
-    b.type='button';b.className='settings-item'+(code===curLang?' on':'');
-    b.innerHTML='<div class="txt"><span class="lbl">'+LANGS[code].label+'</span></div><span class="check">✓</span>';
-    b.addEventListener('click',function(){
-      curLang=code;
-      try{localStorage.setItem(LANG_KEY,code);}catch(e){}
-      applyLang();
-      var all=m.querySelectorAll('.settings-item');
-      for(var i=0;i<all.length;i++)all[i].classList.remove('on');
-      b.classList.add('on');
-      h.textContent='🌐 '+t('language');
-      back.textContent='‹ '+t('back');
-      try{if(navigator.vibrate)navigator.vibrate(10);}catch(e){}
-    });
-    m.appendChild(b);
-  });
-  var cb=document.createElement('button');
-  cb.type='button';cb.className='settings-close';cb.textContent=t('close');
-  cb.addEventListener('click',closeAll);m.appendChild(cb);
-  document.body.appendChild(ov);
-}
-
-function init(){
-  injectStyles();
-  injectTimerStyles();
-  addSettingsButton();
-  try{applyLang();}catch(e){}
-  var b=document.getElementById('engBadge');
-  var S=window.S;
-  if(b&&S&&S.engines&&S.engines[S.engineType])b.textContent=S.engines[S.engineType].name;
-}
-if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}
-else{init();}
-setTimeout(init,500);
-setTimeout(init,1500);
-
-})();
+  /* Достижения */
+  var achTitle = document.createEl
