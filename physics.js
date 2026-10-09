@@ -15,6 +15,7 @@ v8:{name:'V12',cyls:12,maxTorque:560,idle:900,redline:7600,breakRpm:9000,stallRp
 v16:{name:'V22',cyls:22,maxTorque:900,idle:900,redline:8200,breakRpm:9600,stallRpm:350,fireDiv:5.5,lpBase:230,lpRpm:0.07,subGain:2.6,sawGain:0.75,sqGain:0.04,noiseBase:0.065,mass:1800}
 };
 var AMB={summer:25,autumn:8,winter:-15};
+var OVERHEAT_LIMIT=145; /* °C — при этой температуре мотор клинит */
 
 var savedEng='r4';
 try{savedEng=localStorage.getItem(STORAGE_KEY)||'r4';}catch(e){}
@@ -26,7 +27,7 @@ if(!AMB[savedWeather])savedWeather='summer';
 
 var S=window.S={
 rpm:0,speed:0,gear:0,crankAngle:0,
-running:false,stalled:false,broken:false,
+running:false,stalled:false,broken:false,seized:false,
 throttle:0,brakePedal:0,clutchPedal:0,
 pressed:{gas:false,brake:false,clutch:false},
 engines:ENGINES,
@@ -81,6 +82,7 @@ S.breakEngine=function(reason){
 };
 
 S.repair=function(){
+  S.seized=false; /* снимаем клин */
   S.broken=false;S.stalled=false;S.running=false;S.rpm=0;S.speed=0;
   S.gear=curE().auto?1:0;
   S.ignitionState='off';
@@ -102,6 +104,7 @@ S.setEngine=function(type){
   if(!ENGINES[type])return;
   S.engineType=type;
   try{localStorage.setItem(STORAGE_KEY,type);}catch(e){}
+  S.seized=false;
   S.broken=false;S.stalled=false;S.running=false;
   S.rpm=0;S.speed=0;S.crankAngle=0;
   S.ignitionState='off';
@@ -128,6 +131,15 @@ S.physics=function(dt){
   var mass=safeNum(E.mass,1250);
   var Iwheel=mass*wheelRadius*wheelRadius;
 
+  /* ===== КЛИН — мотор мёртв, машина катится и останавливается ===== */
+  if(S.seized){
+    S.rpm=0;
+    S.throttle=0;
+    S.speed*=Math.max(0,1-2.5*dt);
+    if(Math.abs(S.speed)<0.1)S.speed=0;
+    return;
+  }
+
   if(S.broken){
     S.rpm=0;
     S.speed*=Math.max(0,1-2.5*dt);
@@ -150,6 +162,15 @@ S.physics=function(dt){
       S.engineTemp-=dt*coolRate;
       if(S.engineTemp<S.ambientTemp)S.engineTemp=S.ambientTemp;
     }
+  }
+
+  /* ===== ПЕРЕГРЕВ = КЛИН ===== */
+  if(S.engineTemp >= OVERHEAT_LIMIT && S.running){
+    S.seized = true;
+    S.throttle = 0;
+    S.breakEngine('ПЕРЕГРЕВ! Клин при ' + OVERHEAT_LIMIT + '°C');
+    try{if(navigator.vibrate)navigator.vibrate([80,100,80,100,200]);}catch(e){}
+    return;
   }
 
   var ratio=0;
@@ -200,6 +221,13 @@ S.physics=function(dt){
         S.rpm-=150;
         if(S.rpm<0)S.rpm=0;
       }
+    }
+
+    /* Перегрев > 130°C — теряем мощность */
+    if(S.engineTemp > 130){
+      var overheat = (S.engineTemp - 130) / (OVERHEAT_LIMIT - 130);
+      if(overheat > 1) overheat = 1;
+      Te *= (1 - overheat * 0.7);
     }
 
     var friction=5+S.rpm*0.003;
