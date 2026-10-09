@@ -90,7 +90,41 @@ body.broken #repairBtn{display:flex}
   overflow:hidden;
 }
 
-/* Панель графика */
+/* ==================== 2D-ПАНЕЛЬ (СТРАНИЦА 0) ==================== */
+#engineWrap2d{
+  flex:1 1 100%;width:100%;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;position:relative;
+}
+#engineWrap2d #engineCv{
+  display:block;max-width:100%;max-height:100%;
+  border-radius:14px;
+}
+
+/* ==================== 3D-ПАНЕЛЬ (СТРАНИЦА 1) ==================== */
+#engineWrap{
+  flex:1 1 100%;width:100%;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;position:relative;
+}
+#engine3dCv{
+  display:block;max-width:100%;max-height:100%;
+  border-radius:14px;
+}
+#ghostBtn{
+  position:absolute;top:10px;right:10px;z-index:20;
+  padding:8px 16px;border-radius:20px;
+  border:1px solid rgba(255,255,255,.06);
+  background:rgba(20,20,20,.55);
+  backdrop-filter:blur(40px) saturate(100%);
+  -webkit-backdrop-filter:blur(40px) saturate(100%);
+  color:#c0c0c0;font:600 11px/1 inherit;letter-spacing:1.2px;
+  cursor:pointer;transition:background .2s,border-color .2s,color .2s;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);display:none;
+}
+#ghostBtn:hover{border-color:rgba(255,255,255,.14);color:#fff}
+
+/* ==================== ПАНЕЛИ ГРАФИКОВ (СТРАНИЦЫ 2-5) ==================== */
 .chart-panel{
   flex:1 1 100%;width:100%;
   display:flex;flex-direction:column;
@@ -106,27 +140,7 @@ body.broken #repairBtn{display:flex}
   display:block;min-height:0;border-radius:10px;
 }
 
-/* 3D-панель */
-#engineWrap{
-  flex:1 1 100%;width:100%;
-  display:flex;align-items:center;justify-content:center;
-  overflow:hidden;position:relative;
-}
-#engineCv{display:block;max-width:100%;max-height:100%;border-radius:14px}
-#ghostBtn{
-  position:absolute;top:10px;right:10px;z-index:20;
-  padding:8px 16px;border-radius:20px;
-  border:1px solid rgba(255,255,255,.06);
-  background:rgba(20,20,20,.55);
-  backdrop-filter:blur(40px) saturate(100%);
-  -webkit-backdrop-filter:blur(40px) saturate(100%);
-  color:#c0c0c0;font:600 11px/1 inherit;letter-spacing:1.2px;
-  cursor:pointer;transition:background .2s,border-color .2s,color .2s;
-  box-shadow:0 8px 24px rgba(0,0,0,.5);display:none;
-}
-#ghostBtn:hover{border-color:rgba(255,255,255,.14);color:#fff}
-
-/* Точки-индикаторы */
+/* ==================== ТОЧКИ-ИНДИКАТОРЫ ==================== */
 .dots{
   display:flex;justify-content:center;align-items:center;
   gap:6px;padding:6px 0 4px;flex:0 0 auto;
