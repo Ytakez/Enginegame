@@ -13,6 +13,7 @@ var ENGINES_INFO=[
   {id:'passatb3',label:'🚙 1.8 B3',sub:'4 цилиндра · бензин · Passat B3'},
   {id:'bluebird',label:'🚗 2.0 CA20',sub:'4 цилиндра · бензин · Bluebird'},
   {id:'galant6',label:'🚘 2.0 V6',sub:'6 цилиндров · Galant 6'},
+  {id:'wankel',label:'🏎️ Mazda RX-8',sub:'2-роторный Ванкель · 13B-MSP Renesis'},
   {id:'r4',label:'🚗 R4',sub:'4 цилиндра · в ряд'},
   {id:'v8',label:'🏎️ V12',sub:'12 цилиндров · V-образный'},
   {id:'v16',label:'🔥 V22',sub:'22 цилиндра · монстр'}
@@ -28,7 +29,6 @@ if(!LANGS[curLang])curLang='ru';
 
 function t(k){var L=LANGS[curLang]||LANGS.ru;return L[k]||(LANGS.ru[k]||k);}
 
-/* СТИЛИ */
 function injectStyles(){
   if(document.getElementById('settingsStyle'))return;
   var st=document.createElement('style');
@@ -54,7 +54,6 @@ function injectStyles(){
   document.head.appendChild(st);
 }
 
-/* КНОПКА — создаём сразу, до всех проверок */
 function addSettingsButton(){
   if(document.getElementById('settingsBtn'))return;
   var btn=document.createElement('button');
@@ -84,7 +83,6 @@ function openMain(){
   var h=document.createElement('h2');h.textContent='⚙ '+t('settingsTitle');m.appendChild(h);
   var S=window.S;
 
-  /* Двигатель */
   var curName=S?(S.engines[S.engineType]||{}).name||'R4':'R4';
   var eb=document.createElement('button');
   eb.type='button';eb.className='settings-item';
@@ -92,7 +90,6 @@ function openMain(){
   eb.addEventListener('click',function(){closeAll();openPicker();});
   m.appendChild(eb);
 
-  /* Погода */
   var curW=S?S.weather:'summer';
   var wObj=WEATHERS.filter(function(x){return x.id===curW;})[0]||WEATHERS[0];
   var wb=document.createElement('button');
@@ -101,7 +98,6 @@ function openMain(){
   wb.addEventListener('click',function(){closeAll();openWeatherPicker();});
   m.appendChild(wb);
 
-  /* Язык */
   var ln=(LANGS[curLang]||LANGS.ru).label;
   var lb=document.createElement('button');
   lb.type='button';lb.className='settings-item';
@@ -109,7 +105,6 @@ function openMain(){
   lb.addEventListener('click',function(){closeAll();openLangPicker();});
   m.appendChild(lb);
 
-  /* Звук */
   var soundOn=false;
   if(window.DVS_SOUND&&window.DVS_SOUND.isMuted){soundOn=!window.DVS_SOUND.isMuted();}
   var sb=document.createElement('button');
@@ -127,7 +122,6 @@ function openMain(){
   });
   m.appendChild(sb);
 
-  /* Закрыть */
   var cb=document.createElement('button');
   cb.type='button';cb.className='settings-close';cb.textContent=t('close');
   cb.addEventListener('click',closeAll);m.appendChild(cb);
@@ -219,7 +213,6 @@ function openLangPicker(){
   document.body.appendChild(ov);
 }
 
-/* ИНИЦИАЛИЗАЦИЯ — жёсткая */
 function init(){
   injectStyles();
   addSettingsButton();
@@ -230,7 +223,6 @@ function init(){
 }
 if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}
 else{init();}
-/* Страховка — на случай если DOM ещё не готов */
 setTimeout(init,500);
 setTimeout(init,1500);
 })();
