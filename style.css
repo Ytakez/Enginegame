@@ -1,6 +1,9 @@
 /* ==================== БАЗА ==================== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{height:100%}
+html,body{scrollbar-width:none;-ms-overflow-style:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar,
+*::-webkit-scrollbar{width:0;height:0;display:none;background:transparent}
 
 body{
   height:100dvh;
@@ -16,38 +19,32 @@ body{
   background:#04070b;
 }
 
-/* Многослойный фон с глубиной */
 body::before{
   content:'';
   position:fixed;inset:-10%;
   background:
-    radial-gradient(ellipse 60% 50% at 20% 10%, rgba(90,130,180,.28), transparent 65%),
-    radial-gradient(ellipse 55% 45% at 85% 20%, rgba(60,110,170,.22), transparent 65%),
-    radial-gradient(ellipse 70% 60% at 50% 95%, rgba(50,90,140,.20), transparent 65%),
-    radial-gradient(circle at 90% 85%, rgba(120,90,180,.14), transparent 55%),
-    radial-gradient(circle at 10% 80%, rgba(70,140,160,.12), transparent 55%),
+    radial-gradient(ellipse 60% 50% at 20% 10%, rgba(90,130,180,.22), transparent 65%),
+    radial-gradient(ellipse 55% 45% at 85% 20%, rgba(60,110,170,.18), transparent 65%),
+    radial-gradient(ellipse 70% 60% at 50% 95%, rgba(50,90,140,.16), transparent 65%),
+    radial-gradient(circle at 90% 85%, rgba(120,90,180,.10), transparent 55%),
     linear-gradient(180deg,#080c12 0%,#04070b 100%);
-  filter:blur(40px);
+  filter:blur(50px);
   z-index:-2;
   animation:bgShift 30s ease-in-out infinite alternate;
 }
 @keyframes bgShift{
   0%{transform:translate(0,0) scale(1)}
-  50%{transform:translate(-2%,1%) scale(1.06)}
+  50%{transform:translate(-2%,1%) scale(1.05)}
   100%{transform:translate(1%,-1%) scale(1.02)}
 }
-/* Тонкая "шумовая" текстура для тактильности */
 body::after{
   content:'';
   position:fixed;inset:0;
-  background-image:
-    radial-gradient(rgba(255,255,255,.018) 1px, transparent 1px),
-    radial-gradient(rgba(255,255,255,.012) 1px, transparent 1px);
-  background-size:3px 3px, 7px 7px;
-  background-position:0 0, 2px 2px;
+  background-image:radial-gradient(rgba(255,255,255,.015) 1px, transparent 1px);
+  background-size:3px 3px;
   z-index:-1;
   pointer-events:none;
-  opacity:.7;
+  opacity:.5;
 }
 
 /* ==================== ШАПКА ==================== */
@@ -59,7 +56,9 @@ header{
   text-transform:uppercase;
   font-weight:600;
   color:#8fa3ba;
-  text-shadow:0 1px 0 rgba(255,255,255,.05);
+  background:transparent;
+  border:none;
+  box-shadow:none;
 }
 
 /* ==================== МЕНЮ ДВИГАТЕЛЕЙ ==================== */
@@ -70,20 +69,20 @@ header{
 .engbtn{
   flex:0 1 84px;height:40px;
   border-radius:16px;
-  border:1px solid rgba(255,255,255,.12);
-  background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.025));
-  backdrop-filter:blur(40px) saturate(200%);
-  -webkit-backdrop-filter:blur(40px) saturate(200%);
-  color:#93a7bf;
+  border:1px solid rgba(255,255,255,.14);
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04));
+  backdrop-filter:blur(35px) saturate(200%);
+  -webkit-backdrop-filter:blur(35px) saturate(200%);
+  color:#a8bbd0;
   font:700 14px/1 inherit;
   letter-spacing:1.5px;
   cursor:pointer;
   touch-action:manipulation;
   transition:all .3s cubic-bezier(.4,0,.2,1);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.18),
-    inset 0 -1px 0 rgba(0,0,0,.28),
-    0 6px 20px rgba(0,0,0,.4);
+    inset 0 1px 0 rgba(255,255,255,.20),
+    inset 0 -1px 0 rgba(0,0,0,.22),
+    0 8px 26px rgba(0,0,0,.45);
   position:relative;
   overflow:hidden;
 }
@@ -91,33 +90,29 @@ header{
   content:'';
   position:absolute;
   top:0;left:0;right:0;height:55%;
-  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.02) 60%,transparent);
+  background:linear-gradient(180deg,rgba(255,255,255,.18),transparent);
   border-radius:16px 16px 60% 60%/16px 16px 25% 25%;
   pointer-events:none;
 }
 .engbtn:hover{
-  border-color:rgba(255,255,255,.24);
-  color:#d8e3f0;
+  border-color:rgba(255,255,255,.28);
+  color:#e0eaf5;
   transform:translateY(-1px);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.25),
-    inset 0 -1px 0 rgba(0,0,0,.3),
-    0 10px 28px rgba(0,0,0,.5);
 }
 .engbtn.on{
-  background:linear-gradient(180deg,rgba(255,255,255,.20),rgba(255,255,255,.07));
-  border-color:rgba(255,255,255,.35);
+  background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.08));
+  border-color:rgba(255,255,255,.4);
   color:#ffffff;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.35),
-    inset 0 -1px 0 rgba(0,0,0,.3),
-    0 0 0 1px rgba(255,255,255,.06),
-    0 8px 26px rgba(140,190,255,.22);
+    inset 0 1px 0 rgba(255,255,255,.4),
+    inset 0 -1px 0 rgba(0,0,0,.28),
+    0 0 24px rgba(160,200,255,.28),
+    0 8px 26px rgba(0,0,0,.5);
 }
 .engbtn[data-eng="v6"].on,
 .engbtn[data-eng="v12"].on{
-  background:linear-gradient(180deg,rgba(255,255,255,.20),rgba(255,255,255,.07));
-  border-color:rgba(255,255,255,.35);
+  background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.08));
+  border-color:rgba(255,255,255,.4);
   color:#ffffff;
 }
 
@@ -126,39 +121,28 @@ main{
   flex:1 1 0;min-height:0;
   display:flex;gap:10px;
   padding:6px 10px;
+  border-top:none;
+  box-shadow:none;
 }
 .panel{
   position:relative;
-  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));
-  backdrop-filter:blur(60px) saturate(220%);
-  -webkit-backdrop-filter:blur(60px) saturate(220%);
+  background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
+  backdrop-filter:blur(50px) saturate(220%);
+  -webkit-backdrop-filter:blur(50px) saturate(220%);
   border:1px solid rgba(255,255,255,.13);
   border-radius:22px;
   padding:8px;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.14),
-    inset 0 -1px 0 rgba(0,0,0,.28),
-    0 24px 70px rgba(0,0,0,.6),
-    0 0 0 1px rgba(255,255,255,.03);
+    inset 0 -1px 0 rgba(0,0,0,.25),
+    0 24px 70px rgba(0,0,0,.6);
   overflow:hidden;
 }
-/* Верхний блик — эффект отполированного стекла */
 .panel::before{
   content:'';
   position:absolute;
   top:0;left:0;right:0;height:50%;
-  background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.015) 60%,transparent);
+  background:linear-gradient(180deg,rgba(255,255,255,.05),transparent 70%);
   border-radius:22px 22px 65% 65%/22px 22px 30% 30%;
-  pointer-events:none;
-  z-index:1;
-}
-/* Боковой блик справа — для объёма */
-.panel::after{
-  content:'';
-  position:absolute;
-  top:0;right:0;bottom:0;width:30%;
-  background:linear-gradient(270deg,rgba(255,255,255,.04),transparent);
-  border-radius:22px;
   pointer-events:none;
   z-index:1;
 }
@@ -181,16 +165,15 @@ main{
 /* ==================== СЕЛЕКТОР ПЕРЕДАЧ ==================== */
 .gears-box{
   position:relative;width:100%;height:150px;
-  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));
-  backdrop-filter:blur(40px) saturate(190%);
-  -webkit-backdrop-filter:blur(40px) saturate(190%);
-  border:1px solid rgba(255,255,255,.11);
+  background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
+  backdrop-filter:blur(40px) saturate(200%);
+  -webkit-backdrop-filter:blur(40px) saturate(200%);
+  border:1px solid rgba(255,255,255,.13);
   border-radius:18px;
   padding:4px;
   overflow:hidden;
   flex:0 0 auto;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.12),
     inset 0 -1px 0 rgba(0,0,0,.25),
     0 12px 36px rgba(0,0,0,.45);
 }
@@ -198,16 +181,15 @@ main{
   content:'';
   position:absolute;
   top:0;left:0;right:0;height:45%;
-  background:linear-gradient(180deg,rgba(255,255,255,.07),transparent);
+  background:linear-gradient(180deg,rgba(255,255,255,.05),transparent);
   border-radius:18px 18px 50% 50%/18px 18px 25% 25%;
   pointer-events:none;
 }
 .gb-lines{position:absolute;top:4px;left:4px;width:calc(100% - 8px);height:calc(100% - 8px);pointer-events:none}
 .gb-lines line{
-  stroke:rgba(210,225,245,.16);
+  stroke:rgba(210,225,245,.14);
   stroke-width:2.5;
   stroke-linecap:round;
-  filter:drop-shadow(0 0 4px rgba(160,200,255,.15));
 }
 .gb-grid{
   position:relative;display:grid;
@@ -218,11 +200,11 @@ main{
 }
 .gb-grid .gbtn{
   width:40px;height:40px;border-radius:50%;
-  border:1px solid rgba(255,255,255,.14);
-  background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.02));
-  backdrop-filter:blur(24px) saturate(180%);
-  -webkit-backdrop-filter:blur(24px) saturate(180%);
-  color:#c8d4e0;
+  border:1px solid rgba(255,255,255,.16);
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04));
+  backdrop-filter:blur(30px) saturate(200%);
+  -webkit-backdrop-filter:blur(30px) saturate(200%);
+  color:#d0dcea;
   font:700 14px/1 inherit;
   cursor:pointer;
   touch-action:manipulation;
@@ -232,14 +214,15 @@ main{
   transition:all .25s cubic-bezier(.4,0,.2,1);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.22),
-    inset 0 -1px 0 rgba(0,0,0,.3),
+    inset 0 -1px 0 rgba(0,0,0,.28),
     0 6px 16px rgba(0,0,0,.4);
   position:relative;
+  overflow:hidden;
 }
 .gb-grid .gbtn::before{
   content:'';
   position:absolute;
-  top:2px;left:15%;right:15%;height:40%;
+  top:2px;left:15%;right:15%;height:42%;
   background:linear-gradient(180deg,rgba(255,255,255,.20),transparent);
   border-radius:50%;
   pointer-events:none;
@@ -247,37 +230,31 @@ main{
 .gb-grid .gbtn:hover{
   transform:scale(1.07);
   border-color:rgba(255,255,255,.3);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.3),
-    inset 0 -1px 0 rgba(0,0,0,.3),
-    0 8px 22px rgba(0,0,0,.5);
 }
 .gb-grid .gbtn.on{
-  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(215,228,240,.88));
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(215,228,240,.9));
   border-color:rgba(255,255,255,.95);
   color:#0a0e13;
   font-weight:800;
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,1),
-    inset 0 -2px 6px rgba(0,0,0,.1),
-    0 0 32px rgba(255,255,255,.55),
+    0 0 32px rgba(255,255,255,.5),
     0 8px 26px rgba(0,0,0,.5);
   transform:scale(1.12);
 }
 .gb-grid .gbtn.gb-n.on{
-  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(215,228,240,.88));
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(215,228,240,.9));
   border-color:rgba(255,255,255,.95);
   color:#0a0e13;
 }
-.gb-grid .gbtn.gb-r{color:#ffa0a0}
+.gb-grid .gbtn.gb-r{color:#ffb0b0}
 .gb-grid .gbtn.gb-r.on{
-  background:linear-gradient(180deg,rgba(255,130,130,.98),rgba(200,55,55,.88));
+  background:linear-gradient(180deg,rgba(255,130,130,.98),rgba(200,55,55,.9));
   border-color:rgba(255,170,170,.95);
   color:#ffffff;
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.5),
-    inset 0 -2px 6px rgba(0,0,0,.15),
-    0 0 32px rgba(255,90,90,.6),
+    0 0 32px rgba(255,90,90,.55),
     0 8px 26px rgba(0,0,0,.5);
 }
 .gb-r{grid-area:r}.gb-n{grid-area:n}
@@ -288,29 +265,27 @@ main{
 /* ==================== АВТО-КПП ==================== */
 .gears-auto{
   display:none;gap:6px;
-  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));
-  backdrop-filter:blur(40px) saturate(190%);
-  -webkit-backdrop-filter:blur(40px) saturate(190%);
-  border:1px solid rgba(255,255,255,.11);
+  background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
+  backdrop-filter:blur(40px) saturate(200%);
+  -webkit-backdrop-filter:blur(40px) saturate(200%);
+  border:1px solid rgba(255,255,255,.13);
   border-radius:16px;padding:6px;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.12),
-    0 10px 30px rgba(0,0,0,.4);
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
 }
 body.auto-mode .gears-auto{display:grid;grid-template-columns:repeat(3,1fr)}
 body.auto-mode #gearsManual{display:none}
 .agbtn{
   height:48px;border-radius:14px;
-  border:1px solid rgba(255,255,255,.12);
-  background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.02));
-  backdrop-filter:blur(24px) saturate(180%);
-  -webkit-backdrop-filter:blur(24px) saturate(180%);
-  color:#93a7bf;font:700 16px/1 inherit;
+  border:1px solid rgba(255,255,255,.14);
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04));
+  backdrop-filter:blur(35px) saturate(200%);
+  -webkit-backdrop-filter:blur(35px) saturate(200%);
+  color:#a8bbd0;font:700 16px/1 inherit;
   cursor:pointer;touch-action:manipulation;
   transition:all .25s;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.18),
-    inset 0 -1px 0 rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.20),
+    inset 0 -1px 0 rgba(0,0,0,.25),
     0 6px 18px rgba(0,0,0,.4);
   position:relative;
   overflow:hidden;
@@ -319,13 +294,13 @@ body.auto-mode #gearsManual{display:none}
   content:'';
   position:absolute;
   top:0;left:0;right:0;height:50%;
-  background:linear-gradient(180deg,rgba(255,255,255,.12),transparent);
+  background:linear-gradient(180deg,rgba(255,255,255,.16),transparent);
   border-radius:14px 14px 50% 50%/14px 14px 22% 22%;
   pointer-events:none;
 }
-.agbtn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.25)}
+.agbtn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.3)}
 .agbtn.on{
-  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(215,228,240,.88));
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(215,228,240,.9));
   border-color:rgba(255,255,255,.95);
   color:#0a0e13;font-weight:800;
   box-shadow:
@@ -334,26 +309,26 @@ body.auto-mode #gearsManual{display:none}
     0 6px 20px rgba(0,0,0,.45);
 }
 .agbtn.neu.on{
-  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(215,228,240,.88));
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(215,228,240,.9));
   border-color:rgba(255,255,255,.95);
   color:#0a0e13;
 }
 .agbtn.rev.on{
-  background:linear-gradient(180deg,rgba(255,130,130,.98),rgba(200,55,55,.88));
+  background:linear-gradient(180deg,rgba(255,130,130,.98),rgba(200,55,55,.9));
   border-color:rgba(255,170,170,.95);
   color:#ffffff;
   box-shadow:0 0 28px rgba(255,90,90,.5),0 6px 20px rgba(0,0,0,.45);
 }
 
-/* ==================== КНОПКА ЗАЖИГАНИЯ/ПУСК ==================== */
+/* ==================== КНОПКА ЗАЖИГАНИЯ / ПУСК ==================== */
 .ignbtn{
   width:100%;height:48px;
   border-radius:16px;
-  border:1px solid rgba(255,255,255,.14);
-  background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.025));
-  backdrop-filter:blur(40px) saturate(200%);
-  -webkit-backdrop-filter:blur(40px) saturate(200%);
-  color:#b8cade;
+  border:1px solid rgba(255,255,255,.16);
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04));
+  backdrop-filter:blur(40px) saturate(220%);
+  -webkit-backdrop-filter:blur(40px) saturate(220%);
+  color:#c4d4e6;
   font:700 13px/1 inherit;
   letter-spacing:2px;
   text-transform:uppercase;
@@ -363,8 +338,8 @@ body.auto-mode #gearsManual{display:none}
   -webkit-tap-highlight-color:transparent;
   transition:all .3s cubic-bezier(.4,0,.2,1);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.20),
-    inset 0 -1px 0 rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.24),
+    inset 0 -1px 0 rgba(0,0,0,.25),
     0 8px 24px rgba(0,0,0,.45);
   position:relative;
   overflow:hidden;
@@ -373,23 +348,15 @@ body.auto-mode #gearsManual{display:none}
   content:'';
   position:absolute;
   top:0;left:0;right:0;height:55%;
-  background:linear-gradient(180deg,rgba(255,255,255,.14),transparent);
+  background:linear-gradient(180deg,rgba(255,255,255,.18),transparent);
   border-radius:16px 16px 60% 60%/16px 16px 25% 25%;
   pointer-events:none;
 }
-.ignbtn:hover{
-  border-color:rgba(255,255,255,.28);
-  color:#e0e8f2;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.28),
-    inset 0 -1px 0 rgba(0,0,0,.28),
-    0 10px 30px rgba(0,0,0,.55);
-}
+.ignbtn:hover{border-color:rgba(255,255,255,.3);color:#e8eff7}
 .ignbtn.on{
-  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(215,228,240,.88));
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(215,228,240,.9));
   border-color:rgba(255,255,255,.95);
-  color:#0a0e13;
-  font-weight:800;
+  color:#0a0e13;font-weight:800;
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,1),
     0 0 32px rgba(255,255,255,.5),
@@ -403,16 +370,16 @@ body.auto-mode #gearsManual{display:none}
   letter-spacing:4px;
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.55),
-    0 0 45px rgba(255,180,60,.65),
+    0 0 45px rgba(255,180,60,.6),
     0 10px 30px rgba(0,0,0,.55);
   animation:startPulse 2s ease-in-out infinite;
 }
 @keyframes startPulse{
   0%,100%{box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 0 32px rgba(255,180,60,.5),0 10px 30px rgba(0,0,0,.55)}
-  50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 0 60px rgba(255,180,60,.95),0 10px 30px rgba(0,0,0,.55)}
+  50%{box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 0 60px rgba(255,180,60,.9),0 10px 30px rgba(0,0,0,.55)}
 }
 
-/* Кнопка зажигания поверх 3D-сцены — компактная капсула из жидкого стекла */
+/* Кнопка зажигания поверх 3D-сцены */
 #engineWrap #ignBtn{
   position:absolute;
   bottom:14px;
@@ -426,38 +393,31 @@ body.auto-mode #gearsManual{display:none}
   letter-spacing:2.5px;
   border-radius:20px;
   z-index:20;
-  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04));
-  backdrop-filter:blur(50px) saturate(220%);
-  -webkit-backdrop-filter:blur(50px) saturate(220%);
-  border:1px solid rgba(255,255,255,.20);
+  background:linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.06));
+  backdrop-filter:blur(40px) saturate(220%);
+  -webkit-backdrop-filter:blur(40px) saturate(220%);
+  border:1px solid rgba(255,255,255,.22);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.30),
-    inset 0 -1px 0 rgba(0,0,0,.28),
-    0 12px 36px rgba(0,0,0,.6),
-    0 0 0 1px rgba(255,255,255,.04);
+    inset 0 -1px 0 rgba(0,0,0,.25),
+    0 12px 36px rgba(0,0,0,.6);
 }
 #engineWrap #ignBtn::before{
   content:'';
   position:absolute;
   top:0;left:0;right:0;height:55%;
-  background:linear-gradient(180deg,rgba(255,255,255,.20),transparent);
+  background:linear-gradient(180deg,rgba(255,255,255,.24),transparent);
   border-radius:20px 20px 60% 60%/20px 20px 30% 30%;
   pointer-events:none;
 }
-
 #engineWrap #ignBtn.start{
   background:linear-gradient(180deg,rgba(255,205,100,.92),rgba(195,125,25,.82));
   border-color:rgba(255,225,150,.95);
   color:#1a0e00;
-  font-weight:800;
-  backdrop-filter:blur(50px) saturate(240%);
-  -webkit-backdrop-filter:blur(50px) saturate(240%);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.6),
-    inset 0 -1px 0 rgba(0,0,0,.22),
-    0 0 40px rgba(255,180,60,.65),
+    0 0 40px rgba(255,180,60,.6),
     0 12px 36px rgba(0,0,0,.6);
-  animation:startPulse 2s ease-in-out infinite;
 }
 
 /* ==================== КНОПКИ 3D / СКРЫТО ==================== */
@@ -466,40 +426,35 @@ body.auto-mode #gearsManual{display:none}
   z-index:20;
   padding:9px 18px;
   border-radius:24px;
-  border:1px solid rgba(255,255,255,.15);
-  background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
-  backdrop-filter:blur(40px) saturate(200%);
-  -webkit-backdrop-filter:blur(40px) saturate(200%);
-  color:#b8cade;
+  border:1px solid rgba(255,255,255,.18);
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05));
+  backdrop-filter:blur(35px) saturate(200%);
+  -webkit-backdrop-filter:blur(35px) saturate(200%);
+  color:#c4d4e6;
   font:700 11px/1 inherit;
   letter-spacing:1.2px;
   cursor:pointer;
   touch-action:manipulation;
   transition:all .25s;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 1px 0 rgba(255,255,255,.24),
     inset 0 -1px 0 rgba(0,0,0,.25),
     0 8px 24px rgba(0,0,0,.5);
-  position:absolute;
   overflow:hidden;
 }
 #view3dBtn::before,#ghostBtn::before{
   content:'';
   position:absolute;
   top:0;left:0;right:0;height:55%;
-  background:linear-gradient(180deg,rgba(255,255,255,.16),transparent);
+  background:linear-gradient(180deg,rgba(255,255,255,.20),transparent);
   border-radius:24px 24px 60% 60%/24px 24px 30% 30%;
   pointer-events:none;
 }
 #view3dBtn{right:10px}
 #ghostBtn{right:120px;display:none}
 #view3dBtn:hover,#ghostBtn:hover{
-  border-color:rgba(255,255,255,.3);
+  border-color:rgba(255,255,255,.35);
   color:#ffffff;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.3),
-    inset 0 -1px 0 rgba(0,0,0,.25),
-    0 10px 28px rgba(0,0,0,.6);
 }
 
 /* ==================== ПЕДАЛИ ==================== */
@@ -513,26 +468,26 @@ body.auto-mode #gearsManual{display:none}
 .pedal{
   position:relative;height:110px;
   border-radius:22px;
-  border:1px solid rgba(255,255,255,.12);
-  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
-  backdrop-filter:blur(45px) saturate(200%);
-  -webkit-backdrop-filter:blur(45px) saturate(200%);
-  color:#a9bdd4;
+  border:1px solid rgba(255,255,255,.14);
+  background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
+  backdrop-filter:blur(40px) saturate(200%);
+  -webkit-backdrop-filter:blur(40px) saturate(200%);
+  color:#b4c6da;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:5px;
   font:700 12px/1 inherit;letter-spacing:1.2px;
   overflow:hidden;touch-action:none;
   transition:all .25s cubic-bezier(.4,0,.2,1);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.16),
-    inset 0 -1px 0 rgba(0,0,0,.26),
+    inset 0 1px 0 rgba(255,255,255,.18),
+    inset 0 -1px 0 rgba(0,0,0,.25),
     0 14px 40px rgba(0,0,0,.55);
 }
 .pedal::before{
   content:'';
   position:absolute;
   top:0;left:0;right:0;height:55%;
-  background:linear-gradient(180deg,rgba(255,255,255,.10),transparent);
+  background:linear-gradient(180deg,rgba(255,255,255,.12),transparent);
   border-radius:22px 22px 60% 60%/22px 22px 28% 28%;
   pointer-events:none;
 }
@@ -546,23 +501,23 @@ body.auto-mode #gearsManual{display:none}
 .pedal.brake .bar{background:linear-gradient(90deg,rgba(255,90,90,.25),rgba(255,90,90,.04))}
 .pedal.clutch .bar{background:linear-gradient(90deg,rgba(255,190,80,.25),rgba(255,190,80,.04))}
 .pedal .icon{font-size:28px;line-height:1;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6));z-index:1}
-.pedal .sub{font-size:9px;color:#647790;font-weight:600;letter-spacing:1px;z-index:1}
+.pedal .sub{font-size:9px;color:#7186a0;font-weight:600;letter-spacing:1px;z-index:1}
 .pedal span{position:relative;z-index:1}
 .pedal.active{
   border-color:rgba(255,255,255,.4);
   color:#ffffff;
   transform:translateY(-3px);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.3),
-    inset 0 -1px 0 rgba(0,0,0,.26),
-    0 0 40px rgba(255,255,255,.25),
+    inset 0 1px 0 rgba(255,255,255,.30),
+    inset 0 -1px 0 rgba(0,0,0,.25),
+    0 0 40px rgba(255,255,255,.22),
     0 16px 44px rgba(0,0,0,.6);
 }
 .pedal.brake.active{
   border-color:rgba(255,120,120,.6);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.3),
-    0 0 40px rgba(255,90,90,.45),
+    0 0 40px rgba(255,90,90,.4),
     0 16px 44px rgba(0,0,0,.6);
   color:#ffe8e8;
 }
@@ -570,7 +525,7 @@ body.auto-mode #gearsManual{display:none}
   border-color:rgba(255,200,90,.6);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.3),
-    0 0 40px rgba(255,190,80,.45),
+    0 0 40px rgba(255,190,80,.4),
     0 16px 44px rgba(0,0,0,.6);
   color:#fff6e0;
 }
@@ -578,26 +533,25 @@ body.auto-mode #gearsManual{display:none}
 /* ==================== БЕЙДЖ ДВИГАТЕЛЯ ==================== */
 .eng-badge{
   position:fixed;top:12px;right:14px;z-index:30;
-  padding:7px 15px;
+  padding:8px 16px;
   border-radius:22px;
-  border:1px solid rgba(255,255,255,.15);
-  background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03));
-  backdrop-filter:blur(40px) saturate(200%);
-  -webkit-backdrop-filter:blur(40px) saturate(200%);
-  color:#c8d6e6;
+  border:1px solid rgba(255,255,255,.18);
+  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05));
+  backdrop-filter:blur(35px) saturate(200%);
+  -webkit-backdrop-filter:blur(35px) saturate(200%);
+  color:#d0dcea;
   font:700 12px/1 inherit;letter-spacing:2px;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 1px 0 rgba(255,255,255,.24),
     inset 0 -1px 0 rgba(0,0,0,.25),
     0 8px 24px rgba(0,0,0,.5);
-  position:fixed;
   overflow:hidden;
 }
 .eng-badge::before{
   content:'';
   position:absolute;
   top:0;left:0;right:0;height:55%;
-  background:linear-gradient(180deg,rgba(255,255,255,.16),transparent);
+  background:linear-gradient(180deg,rgba(255,255,255,.20),transparent);
   border-radius:22px 22px 60% 60%/22px 22px 30% 30%;
   pointer-events:none;
 }
@@ -625,6 +579,17 @@ body.auto-mode #gearsManual{display:none}
 }
 
 /* ==================== ОШИБКИ / ПОЛОМКА ==================== */
+/* Скрываем всё по умолчанию */
+#err{display:none !important}
+#err:empty{display:none !important}
+#breakBanner{display:none !important}
+#repairBtn{display:none !important}
+
+/* Показываем только когда реально сломано */
+body.broken #err{display:block !important}
+body.broken #breakBanner{display:block !important}
+body.broken #repairBtn{display:flex !important}
+
 #err{
   position:fixed;left:0;right:0;bottom:0;
   background:linear-gradient(180deg,rgba(180,30,30,.92),rgba(120,15,15,.92));
@@ -633,4 +598,39 @@ body.auto-mode #gearsManual{display:none}
   color:#fff;
   font:12px/1.4 'JetBrains Mono',monospace;
   padding:10px;
-  z-ind
+  z-index:9999;
+  white-space:pre-wrap;
+  border-top:1px solid rgba(255,150,150,.4);
+  box-shadow:0 -14px 48px rgba(180,30,30,.5);
+}
+#repairBtn{
+  position:fixed;top:66px;left:12px;z-index:1001;
+  width:52px;height:52px;border-radius:50%;
+  border:1px solid rgba(255,150,150,.55);
+  background:linear-gradient(180deg,rgba(255,90,90,.4),rgba(140,20,20,.4));
+  backdrop-filter:blur(35px) saturate(180%);
+  -webkit-backdrop-filter:blur(35px) saturate(180%);
+  color:#fff;font-size:22px;
+  cursor:pointer;
+  align-items:center;justify-content:center;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.3),
+    0 0 28px rgba(255,90,90,.55),
+    0 10px 28px rgba(0,0,0,.55);
+  transition:transform .2s;
+  overflow:hidden;
+}
+#repairBtn::before{
+  content:'';
+  position:absolute;
+  top:2px;left:15%;right:15%;height:42%;
+  background:linear-gradient(180deg,rgba(255,255,255,.3),transparent);
+  border-radius:50%;
+  pointer-events:none;
+}
+#repairBtn:hover{transform:scale(1.1)}
+#breakBanner{
+  position:fixed;top:0;left:0;right:0;z-index:999;
+  background:linear-gradient(180deg,rgba(200,30,30,.92),rgba(140,15,15,.92));
+  backdrop-filter:blur(40px) saturate(180%);
+  
