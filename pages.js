@@ -20,17 +20,15 @@ function onScroll(){
     if(window.DVS_3D && window.DVS_3D_REF){
       var scene=window.DVS_3D_REF.getScene();
       if(!scene){
-        /* Первый раз включаем 3D */
         try{window.DVS_3D.toggle();}catch(e){console.warn('3D toggle:',e);}
       }else{
-        /* Уже включено — просто пересчитываем размеры */
         if(window.DVS_3D.resize)window.DVS_3D.resize();
       }
       if(gb)gb.style.display='inline-block';
       if(lb)lb.style.display='flex';
     }
   } else {
-    /* Ушли с 3D-страницы — прячем кнопки и снимаем замок */
+    /* Ушли с 3D — прячем кнопки и снимаем замок */
     if(gb)gb.style.display='none';
     if(lb)lb.style.display='none';
     var wrap=document.getElementById('engineWrap');
@@ -44,6 +42,26 @@ function onScroll(){
   }
 }
 pages.addEventListener('scroll',onScroll,{passive:true});
+
+/* ==================== КЛИК ПО ТОЧКАМ ==================== */
+for(var di=0;di<dots.length;di++){
+  (function(i){
+    dots[i].addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      var target=i*pages.clientWidth;
+      pages.scrollTo({left:target,behavior:'smooth'});
+      try{if(navigator.vibrate)navigator.vibrate(8);}catch(err){}
+    });
+    /* Расширяем зону тапа (визуально точка та же) */
+    dots[i].style.cursor='pointer';
+    dots[i].style.pointerEvents='auto';
+    dots[i].style.padding='6px';
+    dots[i].style.backgroundClip='content-box';
+    dots[i].style.boxSizing='content-box';
+    dots[i].style.margin='-6px';
+  })(di);
+}
 
 /* Первая проверка после загрузки */
 setTimeout(onScroll,700);
@@ -201,7 +219,6 @@ function drawTorque(){
   var padL=36,padR=16,padT=28,padB=24;
   var gW=W-padL-padR, gH=H-padT-padB;
 
-  /* Сетка */
   ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=1;
   for(var i=0;i<=4;i++){
     var y=padT+(i/4)*gH;
@@ -289,7 +306,6 @@ function drawFlow(){
     ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+gW,y);ctx.stroke();
   }
 
-  /* Нулевая линия */
   ctx.strokeStyle='rgba(255,255,255,.15)';
   ctx.beginPath();ctx.moveTo(padL,padT+gH/2);ctx.lineTo(padL+gW,padT+gH/2);ctx.stroke();
 
@@ -342,12 +358,10 @@ function loop(){
 }
 requestAnimationFrame(loop);
 
-/* Сброс store при смене страницы, чтобы канвас пересчитался */
+/* Сброс store при смене страницы и повороте экрана */
 pages.addEventListener('scroll',function(){
   manifoldStore=null;cylsStore=null;torqueStore=null;flowStore=null;
 },{passive:true});
-
-/* Сброс при повороте экрана */
 window.addEventListener('resize',function(){
   manifoldStore=null;cylsStore=null;torqueStore=null;flowStore=null;
 });
