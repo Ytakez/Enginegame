@@ -8,7 +8,6 @@ function waitRef(){
   var B=window.DVS_3D_BUILD;
   var cy=B.cy,bx=B.bx,m=B.m,bl=B.bl;
 
-  /* Безопасные вызовы — не падают если функции нет */
   function pB(x){if(R.pushBlock)R.pushBlock(x);}
   function pH(x){if(R.pushHead)R.pushHead(x);}
   function pC(x){if(R.pushCover)R.pushCover(x);}
@@ -58,106 +57,6 @@ function waitRef(){
     return {g:g,p:p,rod:rod,vv:vv,x:o.x,y:o.y,z:o.z,h:o.h,r:o.r,off:o.off||0};
   }
 
-  /* ===== ВАНКЕЛЬ (Mazda RX-8) ===== */
-  function makeEpiShape(Rr,e){
-    var shape=new THREE.Shape();
-    var steps=64;
-    for(var i=0;i<=steps;i++){
-      var t=(i/steps)*Math.PI*2;
-      var x=Rr*Math.cos(t)+e*Math.cos(3*t);
-      var y=Rr*Math.sin(t)+e*Math.sin(3*t);
-      if(i===0)shape.moveTo(x,y);else shape.lineTo(x,y);
-    }
-    return shape;
-  }
-  function makeRotorMesh(rotR,depth){
-    var shape=new THREE.Shape();
-    var A=Math.PI*2/3;
-    for(var k=0;k<3;k++){
-      var ang=k*A-Math.PI/2;
-      var x=Math.cos(ang)*rotR;
-      var y=Math.sin(ang)*rotR;
-      if(k===0)shape.moveTo(x,y);else shape.lineTo(x,y);
-    }
-    shape.closePath();
-    var geo=new THREE.ExtrudeGeometry(shape,{depth:depth,bevelEnabled:false});
-    geo.center();
-    return new THREE.Mesh(geo,m(0xd8e0e8,0.9,0.25));
-  }
-
-  function buildWankel(root,cfg){
-    var Rr=1.8,e=0.35,depth=1.4,rotR=1.1,rotorSpace=4.2;
-
-    var base=bx(4.5,0.6,5.5,0x2a3340,0.7,0.5);
-    base.position.y=-1.8;root.add(base);
-
-    var rotors=[];
-    for(var i=0;i<2;i++){
-      var rx=(i-0.5)*rotorSpace;
-      var rg=new THREE.Group();
-      rg.position.set(rx,0,0);
-
-      var epiShape=makeEpiShape(Rr,e);
-      var epiGeo=new THREE.ExtrudeGeometry(epiShape,{depth:depth,bevelEnabled:false});
-      epiGeo.center();
-      var caseMesh=new THREE.Mesh(epiGeo,new THREE.MeshStandardMaterial({
-        color:0x5a6878,metalness:0.85,roughness:0.3,transparent:true,opacity:0.55,side:THREE.DoubleSide
-      }));
-      rg.add(caseMesh);
-      pB(caseMesh);
-
-      var rimMesh=new THREE.Mesh(epiGeo.clone(),m(0x3a4654,0.9,0.3));
-      rimMesh.scale.set(1.08,1.08,1.08);
-      rg.add(rimMesh);
-
-      var rotorMesh=makeRotorMesh(rotR,depth*0.75);
-      rg.add(rotorMesh);
-      rotors.push(rotorMesh);
-
-      var hub=cy(0.4,0.4,16,0x2a333f,0.9,0.3);
-      hub.rotation.x=Math.PI/2;rg.add(hub);
-
-      var spark=cy(0.15,0.7,10,0xe8e4dc,0.3,0.5);
-      spark.position.set(0,Rr+e,0);rg.add(spark);
-      var sparkMetal=cy(0.2,0.4,10,0x8a95a3,0.9,0.3);
-      sparkMetal.position.set(0,Rr+e-0.4,0);rg.add(sparkMetal);
-
-      var inPort=bx(0.7,0.8,0.4,0x1d2530,0.7,0.4);
-      inPort.position.set(Rr-0.1,0,0);rg.add(inPort);
-      var exPort=bx(0.7,0.8,0.4,0x1d2530,0.7,0.4);
-      exPort.position.set(-Rr+0.1,0,0);rg.add(exPort);
-
-      for(var rb=0;rb<6;rb++){
-        var rib=bx(0.1,1.2,0.15,0x2a3340,0.6,0.6);
-        rib.position.set(rx+(rb-2.5)*0.15,0,depth/2+0.2);
-        root.add(rib);pR(rib);
-      }
-      root.add(rg);
-    }
-
-    var fw=new THREE.Group();
-    var fwR=1.2;
-    var fwD=cy(fwR,0.35,24,0x8a95a3,0.9,0.3);
-    fwD.rotation.x=Math.PI/2;fw.add(fwD);
-    for(var ft=0;ft<20;ft++){
-      var th=bx(0.25,0.2,0.1,0x6a7685,0.9,0.3);
-      var a=(ft/20)*Math.PI*2;
-      th.position.set(Math.cos(a)*(fwR+0.1),Math.sin(a)*(fwR+0.1),0);
-      th.rotation.z=-a;fw.add(th);
-    }
-    fw.position.set(rotorSpace+1.2,0,0);
-    root.add(fw);sF(fw);
-
-    var col=bx(4,0.5,0.5,0x3a2a1a,0.8,0.5);
-    col.position.set(0,-Rr-0.6,-1);root.add(col);
-
-    window._wankelRotors=[];
-    for(var ri=0;ri<rotors.length;ri++){
-      window._wankelRotors.push({mesh:rotors[ri],ecc:0.35,phase:ri*Math.PI/3});
-    }
-  }
-
-  /* ===== ОБЫЧНЫЙ ДВИГАТЕЛЬ ===== */
   function buildNormal(root,cfg){
     var isV=cfg.v,totalN=cfg.n;
     var perRow=isV?Math.floor(totalN/2):totalN;
@@ -320,9 +219,13 @@ function waitRef(){
     R.setRoot(root);
     R.clearAll();
     window._wankelRotors=[];
-    if(S.engineType==='mt82'){buildNormal(root,cfg);}
-    else if(S.engineType==='wankel'){buildWankel(root,cfg);}
-    else {buildNormal(root,cfg);}
+    window._wankelFlashes=[];
+
+    if(S.engineType==='wankel'&&window.DVS_3D_WANKEL&&window.DVS_3D_WANKEL.build){
+      window.DVS_3D_WANKEL.build(root,cfg);
+    } else {
+      buildNormal(root,cfg);
+    }
   };
 }
 waitRef();
