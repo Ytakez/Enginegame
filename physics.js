@@ -132,6 +132,7 @@ S.setEngine=function(type){
   S._prevGear=S.gear;
   S._shiftTimer=0;
   document.body.classList.remove('broken');
+
   var gb=document.querySelectorAll('.gbtn');
   for(var i=0;i<gb.length;i++)gb[i].classList.toggle('on',Number(gb[i].dataset.g)===S.gear);
   var ab=document.querySelectorAll('.agbtn');
@@ -142,8 +143,28 @@ S.setEngine=function(type){
   if(ig){ig.textContent='ЗАЖИГАНИЕ';ig.className='ignbtn';}
   var badge=document.getElementById('engBadge');
   if(badge)badge.textContent=ENGINES[type].name;
+
   updateGearUI();
+
   if(window.DVS_RENDER&&window.DVS_RENDER.draw)window.DVS_RENDER.draw();
+
+  /* ===== ПЕРЕСТРОИТЬ 3D-МОДЕЛЬ ПОД НОВЫЙ ДВИГАТЕЛЬ ===== */
+  try{
+    if(window.DVS_3D_REF && typeof window.DVS_3D_REF.clearAll === 'function'){
+      window.DVS_3D_REF.clearAll();
+    }
+    /* Обнулить ссылки на старые детали новых моделей */
+    window._wankelRotors = [];
+    window._wankelFlashes = [];
+    window._dciParts = null;
+    /* Перестроить сцену после короткой паузы (чтобы UI успел обновиться) */
+    if(window.DVS_3D_REBUILD){
+      setTimeout(function(){
+        try{ window.DVS_3D_REBUILD(); }catch(err){ console.warn('3D rebuild:',err); }
+      }, 80);
+    }
+  }catch(e){ console.warn('3D rebuild outer:',e); }
+
   try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
 };
 
@@ -166,6 +187,7 @@ S.physics=function(dt){
   var mass=safeNum(E.mass,1250);
   var Iwheel=mass*wheelRadius*wheelRadius;
 
+  /* ===== КЛИН ===== */
   if(S.seized){
     S.rpm=0;S.throttle=0;
     S.speed*=Math.max(0,1-2.5*dt);
