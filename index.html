@@ -8,54 +8,7 @@
 <link rel="apple-touch-icon" href="launchericon-192x192.png">
 <link rel="shortcut icon" href="launchericon-96x96.png">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css?v=1000000">
-<style>
-.gears-auto{display:none;gap:6px;background:#0d1319;border:1px solid #2a3a4c;border-radius:10px;padding:6px}
-body.auto-mode .gears-auto{display:grid;grid-template-columns:repeat(3,1fr)}
-body.auto-mode #gearsManual{display:none}
-.agbtn{height:44px;border-radius:8px;border:1px solid #2c3e52;background:linear-gradient(180deg,#1a2430,#0e161e);color:#8ea4bd;font:700 16px/1 inherit;cursor:pointer;touch-action:manipulation}
-.agbtn.on{background:linear-gradient(180deg,#2b7a56,#1c5a3d);border-color:#43c98a;color:#e6fff3}
-.agbtn.neu.on{background:linear-gradient(180deg,#5a5f2b,#3d421c);border-color:#c9c943;color:#fbffe6}
-.agbtn.rev.on{background:linear-gradient(180deg,#7a2b2b,#4a1a1a);border-color:#ff5b5b;color:#ffe6e6}
-#gaugeCv{display:block;width:100%;height:auto;border-radius:10px}
-.gears-box{position:relative;width:100%;height:150px;background:radial-gradient(ellipse at 50% 50%,#1a2430 0%,#0d1319 100%);border:1px solid #2a3a4c;border-radius:12px;padding:4px;overflow:hidden;flex:0 0 auto}
-.gb-lines{position:absolute;top:4px;left:4px;width:calc(100% - 8px);height:calc(100% - 8px);pointer-events:none}
-.gb-lines line{stroke:#2a3a4c;stroke-width:2.5;stroke-linecap:round}
-.gb-grid{position:relative;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;grid-template-areas:"r g1 g3 g5"". n  n  . "". g2 g4 g6";gap:2px;width:100%;height:100%;z-index:1}
-.gb-grid .gbtn{width:34px;height:34px;border-radius:50%;border:2px solid #3a4a5c;background:linear-gradient(180deg,#1a2430,#0e161e);color:#c8d4e0;font:800 13px/1 inherit;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;align-self:center;justify-self:center;padding:0;margin:0;transition:background .1s,border-color .1s,box-shadow .1s,color .1s}
-.gb-grid .gbtn.on{background:#f0f0f0;border-color:#fff;color:#000;box-shadow:0 0 14px rgba(255,255,255,.75);transform:scale(1.08)}
-.gb-grid .gbtn.gb-n.on{background:#c9c943;border-color:#fff;color:#000;box-shadow:0 0 14px rgba(201,201,67,.75)}
-.gb-grid .gbtn.gb-r{border-color:#6a3030;color:#ff9090}
-.gb-grid .gbtn.gb-r.on{background:#c11;border-color:#ff5b5b;color:#fff;box-shadow:0 0 14px rgba(255,91,91,.85)}
-.gb-r{grid-area:r}.gb-n{grid-area:n}
-.gbtn[data-g="1"]{grid-area:g1}.gbtn[data-g="2"]{grid-area:g2}
-.gbtn[data-g="3"]{grid-area:g3}.gbtn[data-g="4"]{grid-area:g4}
-.gbtn[data-g="5"]{grid-area:g5}.gbtn[data-g="6"]{grid-area:g6}
-.ignbtn{width:100%;height:40px;border-radius:10px;border:1px solid #2c4a63;background:linear-gradient(180deg,#1d2f3f,#101a23);color:#8fd8ff;font:800 12px/1 inherit;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
-.ignbtn.on{background:linear-gradient(180deg,#2b7a56,#1c5a3d);border-color:#43c98a;color:#e6fff3}
-#ignBtn.start{background:linear-gradient(180deg,#c98a2b,#7a5a1a);border-color:#ffc93c;color:#fff;font-weight:900;letter-spacing:3px;box-shadow:0 0 20px rgba(255,201,60,.5)}
-
-/* Кнопка зажигания поверх 3D-сцены */
-#engineWrap #ignBtn{
-  position:absolute;
-  bottom:12px;
-  left:50%;
-  transform:translateX(-50%);
-  width:auto;
-  min-width:190px;
-  padding:0 30px;
-  z-index:20;
-  box-shadow:0 8px 28px rgba(0,0,0,.6),0 0 24px rgba(80,160,255,.25),inset 0 1px 0 rgba(255,255,255,.12);
-}
-#engineWrap #ignBtn.start{
-  box-shadow:0 8px 28px rgba(0,0,0,.6),0 0 40px rgba(255,201,60,.75),inset 0 1px 0 rgba(255,255,255,.2);
-}
-
-#view3dBtn{position:absolute;top:8px;right:8px;z-index:20;padding:6px 12px;border-radius:20px;border:1px solid #2c4a63;background:rgba(20,28,38,.9);color:#8fd8ff;font:800 11px/1 inherit;letter-spacing:1px;cursor:pointer;touch-action:manipulation}
-#view3dBtn:hover{border-color:#4a7ea6}
-#ghostBtn{position:absolute;top:8px;right:110px;z-index:20;padding:6px 12px;border-radius:20px;border:1px solid #2c4a63;background:rgba(20,28,38,.9);color:#8fd8ff;font:800 11px/1 inherit;letter-spacing:1px;cursor:pointer;touch-action:manipulation;display:none}
-#ghostBtn:hover{border-color:#4a7ea6}
-</style>
+<link rel="stylesheet" href="style.css?v=1000001">
 </head>
 <body>
 <header>Двигатель внутреннего сгорания</header>
@@ -104,24 +57,24 @@ body.auto-mode #gearsManual{display:none}
 <div id="breakBanner"></div>
 <div id="err"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="physics.js?v=1000000" defer></script>
-<script src="render-base.js?v=1000000" defer></script>
-<script src="re-1.js?v=1000000" defer></script>
-<script src="re-2.js?v=1000000" defer></script>
-<script src="re-3.js?v=1000000" defer></script>
-<script src="re-4.js?v=1000000" defer></script>
-<script src="re-5.js?v=1000000" defer></script>
-<script src="re-6.js?v=1000000" defer></script>
-<script src="re-7.js?v=1000000" defer></script>
-<script src="render.js?v=1000000" defer></script>
-<script src="engine.js?v=1000000" defer></script>
-<script src="sound.js?v=1000000" defer></script>
-<script src="menu.js?v=1000000" defer></script>
-<script src="settings.js?v=1000000" defer></script>
-<script src="view3d.js?v=1000000" defer></script>
-<script src="view3d-build.js?v=1000000" defer></script>
-<script src="view3d-wankel.js?v=1000000" defer></script>
-<script src="maint.js?v=1000000" defer></script>
+<script src="physics.js?v=1000001" defer></script>
+<script src="render-base.js?v=1000001" defer></script>
+<script src="re-1.js?v=1000001" defer></script>
+<script src="re-2.js?v=1000001" defer></script>
+<script src="re-3.js?v=1000001" defer></script>
+<script src="re-4.js?v=1000001" defer></script>
+<script src="re-5.js?v=1000001" defer></script>
+<script src="re-6.js?v=1000001" defer></script>
+<script src="re-7.js?v=1000001" defer></script>
+<script src="render.js?v=1000001" defer></script>
+<script src="engine.js?v=1000001" defer></script>
+<script src="sound.js?v=1000001" defer></script>
+<script src="menu.js?v=1000001" defer></script>
+<script src="settings.js?v=1000001" defer></script>
+<script src="view3d.js?v=1000001" defer></script>
+<script src="view3d-build.js?v=1000001" defer></script>
+<script src="view3d-wankel.js?v=1000001" defer></script>
+<script src="maint.js?v=1000001" defer></script>
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(function(regs){
