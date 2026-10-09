@@ -13,6 +13,7 @@ if(S.primingDuration===undefined)S.primingDuration=1500;
 if(S.weather===undefined)S.weather='summer';
 if(S.ambientTemp===undefined)S.ambientTemp=25;
 if(S.engineTemp===undefined)S.engineTemp=S.ambientTemp;
+if(S.seized===undefined)S.seized=false;
 if(S.setWeather===undefined)S.setWeather=function(w){
   var AMB={summer:25,autumn:8,winter:-15};
   S.weather=w;S.ambientTemp=AMB[w]||25;
@@ -35,11 +36,11 @@ window.addEventListener('blur',pedalReleaseAll);
 document.addEventListener('visibilitychange',function(){if(document.hidden)pedalReleaseAll();});
 
 var gearBtns=Array.prototype.slice.call(document.querySelectorAll('.gbtn'));
-S.setGear=function(g){var E=S.engines[S.engineType];if(E&&E.auto)return;if(S.broken)return;if(g===S.gear)return;S.gear=g;gearBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.g)===g);});var gv=document.getElementById('gearVal');if(gv)gv.textContent=(g===0?'N':(g===-1?'R':String(g)));try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}};
+S.setGear=function(g){var E=S.engines[S.engineType];if(E&&E.auto)return;if(S.broken||S.seized)return;if(g===S.gear)return;S.gear=g;gearBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.g)===g);});var gv=document.getElementById('gearVal');if(gv)gv.textContent=(g===0?'N':(g===-1?'R':String(g)));try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}};
 gearBtns.forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();S.setGear(Number(b.dataset.g));});});
 
 var autoBtns=Array.prototype.slice.call(document.querySelectorAll('.agbtn'));
-S.setAutoGear=function(g){var E=S.engines[S.engineType];if(!E||!E.auto)return;if(S.broken)return;if(g===S.gear)return;S.gear=g;autoBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.ag)===g);});var gv=document.getElementById('gearVal');if(gv)gv.textContent=(g===0?'N':(g===-1?'R':'D'));try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}};
+S.setAutoGear=function(g){var E=S.engines[S.engineType];if(!E||!E.auto)return;if(S.broken||S.seized)return;if(g===S.gear)return;S.gear=g;autoBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.ag)===g);});var gv=document.getElementById('gearVal');if(gv)gv.textContent=(g===0?'N':(g===-1?'R':'D'));try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}};
 autoBtns.forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();S.setAutoGear(Number(b.dataset.ag));});});
 
 var ignBtn=document.getElementById('ignBtn');
@@ -77,10 +78,15 @@ function getCrankDuration(){
 function startCranking(){
   if(cranking)return;
   if(S.ignitionState!=='ready')return;
+  if(S.seized){
+    setIgnBtn('КЛИН 🔒','',false);
+    try{if(navigator.vibrate)navigator.vibrate([40,60,40]);}catch(e){}
+    setTimeout(function(){if(S.seized)setIgnBtn('КЛИН 🔒','',false);},1500);
+    return;
+  }
   cranking=true;
   crankStartTime=Date.now();
   crankNeeded=getCrankDuration();
-  /* Было "🌀 ТАРАХ..." — стало понятное "🌀 ЗАЖМИ..." */
   setIgnBtn('🌀 ЗАЖМИ...','',true);
   try{if(navigator.vibrate)navigator.vibrate([20,30,20]);}catch(e){}
   if(window.DVS_SOUND&&window.DVS_SOUND.startCrank)window.DVS_SOUND.startCrank();
@@ -130,6 +136,16 @@ function stopEngine(){
 function onIgnDown(e){
   e.preventDefault();
   if(ignLock)return;
+  /* Мотор заклинен — кнопка не работает */
+  if(S.seized){
+    setIgnBtn('КЛИН 🔒','',false);
+    try{if(navigator.vibrate)navigator.vibrate([40,60,40]);}catch(e){}
+    return;
+  }
+  if(S.broken){
+    setIgnBtn('СЛОМАН 🔧','',false);
+    return;
+  }
   var st=S.ignitionState;
   if(st==='off'){ignLock=true;keyOn();setTimeout(function(){ignLock=false;},500);return;}
   if(st==='priming'){return;}
@@ -152,7 +168,12 @@ if(ignBtn){
 }
 
 var repairBtn=document.getElementById('repairBtn');
-if(repairBtn)repairBtn.addEventListener('click',function(e){e.preventDefault();S.repair();});
+if(repairBtn)repairBtn.addEventListener('click',function(e){
+  e.preventDefault();
+  S.repair();
+  if(errBox) errBox.style.display='none';
+  setIgnBtn('ЗАЖИГАНИЕ','',false);
+});
 
 var acc=0,last=performance.now(),FIXED=1/240;
 var tSm=0,bSm=0,cSm=0;
@@ -198,6 +219,13 @@ function loop(now){
   tSm=smoothStep(tSm,S.pressed.gas?1:0,4.5,7.0,frame);
   bSm=smoothStep(bSm,S.pressed.brake?1:0,5.0,7.0,frame);
   cSm=smoothStep(cSm,S.pressed.clutch?1:0,7.0,1.6,frame);
+
+  /* Если заклинен или сломан — газ не работает */
+  if(S.seized || S.broken){
+    tSm = 0;
+    S.pressed.gas = false;
+  }
+
   S.throttle=tSm;S.brakePedal=bSm;S.clutchPedal=cSm;
   var pg=document.getElementById('pGas');var pb=document.getElementById('pBrake');var pc=document.getElementById('pClutch');
   if(pg)pg.querySelector('.bar').style.width=(tSm*100)+'%';
