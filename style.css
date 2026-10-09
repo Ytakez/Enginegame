@@ -124,6 +124,36 @@ body.broken #repairBtn{display:flex}
 }
 #ghostBtn:hover{border-color:rgba(255,255,255,.14);color:#fff}
 
+/* ==================== ЗАМОК 3D ==================== */
+#lockBtn{
+  position:absolute;top:10px;left:10px;z-index:21;
+  width:42px;height:42px;border-radius:50%;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(20,20,20,.65);
+  backdrop-filter:blur(40px) saturate(100%);
+  -webkit-backdrop-filter:blur(40px) saturate(100%);
+  color:#c0c0c0;font-size:18px;line-height:1;
+  cursor:pointer;padding:0;
+  display:none;align-items:center;justify-content:center;
+  transition:background .2s,border-color .2s,color .2s,transform .2s;
+  box-shadow:0 8px 24px rgba(0,0,0,.5);
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+#lockBtn:hover{border-color:rgba(255,255,255,.18);color:#fff}
+#lockBtn.on{
+  background:#e8e85a;
+  border-color:#f0f090;
+  color:#1a1a00;
+  box-shadow:0 0 28px rgba(230,230,90,.5),0 8px 24px rgba(0,0,0,.5);
+}
+/* Когда замок закрыт — не перехватываем касания на канвасе */
+#engineWrap.locked #engine3dCv{
+  touch-action:pan-x !important;
+  pointer-events:none !important;
+}
+#engineWrap.locked{cursor:grab}
+
 /* ==================== ПАНЕЛИ ГРАФИКОВ (СТРАНИЦЫ 2-5) ==================== */
 .chart-panel{
   flex:1 1 100%;width:100%;
