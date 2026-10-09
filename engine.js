@@ -21,6 +21,7 @@ if(S.setWeather===undefined)S.setWeather=function(w){
   try{localStorage.setItem('dvs_weather',w);}catch(e){}
 };
 
+/* ==================== ПЕДАЛИ ==================== */
 var pedalEls={clutch:document.getElementById('pClutch'),brake:document.getElementById('pBrake'),gas:document.getElementById('pGas')};
 var activeTouches={};
 function pedalPress(n){if(S.pressed[n])return;S.pressed[n]=true;if(pedalEls[n])pedalEls[n].classList.add('active');}
@@ -35,14 +36,50 @@ Object.keys(pedalEls).forEach(function(n){var el=pedalEls[n];if(!el)return;el.ad
 window.addEventListener('blur',pedalReleaseAll);
 document.addEventListener('visibilitychange',function(){if(document.hidden)pedalReleaseAll();});
 
+/* ==================== ПЕРЕДАЧИ ==================== */
+/* Сам S.setGear теперь определён в physics.js — здесь только клики */
 var gearBtns=Array.prototype.slice.call(document.querySelectorAll('.gbtn'));
-S.setGear=function(g){var E=S.engines[S.engineType];if(E&&E.auto)return;if(S.broken||S.seized)return;if(g===S.gear)return;S.gear=g;gearBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.g)===g);});var gv=document.getElementById('gearVal');if(gv)gv.textContent=(g===0?'N':(g===-1?'R':String(g)));try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}};
-gearBtns.forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();S.setGear(Number(b.dataset.g));});});
+gearBtns.forEach(function(b){
+  b.addEventListener('click',function(e){
+    e.preventDefault();
+    S.setGear(Number(b.dataset.g));
+  });
+});
 
 var autoBtns=Array.prototype.slice.call(document.querySelectorAll('.agbtn'));
-S.setAutoGear=function(g){var E=S.engines[S.engineType];if(!E||!E.auto)return;if(S.broken||S.seized)return;if(g===S.gear)return;S.gear=g;autoBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.ag)===g);});var gv=document.getElementById('gearVal');if(gv)gv.textContent=(g===0?'N':(g===-1?'R':'D'));try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}};
-autoBtns.forEach(function(b){b.addEventListener('click',function(e){e.preventDefault();S.setAutoGear(Number(b.dataset.ag));});});
+S.setAutoGear=function(g){
+  var E=S.engines[S.engineType];
+  if(!E||!E.auto)return;
+  if(S.broken||S.seized)return;
+  if(g===S.gear)return;
+  S.gear=g;
+  autoBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.ag)===g);});
+  var gv=document.getElementById('gearVal');
+  if(gv)gv.textContent=(g===0?'N':(g===-1?'R':'D'));
+  try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}
+};
+autoBtns.forEach(function(b){
+  b.addEventListener('click',function(e){
+    e.preventDefault();
+    S.setAutoGear(Number(b.dataset.ag));
+  });
+});
 
+/* Показать/скрыть кнопки передач согласно числу ступеней у двигателя */
+function updateGearButtons(){
+  var E=S.engines[S.engineType];
+  if(!E)return;
+  var maxG=E.auto?6:(E.gears||6);
+  var all=document.querySelectorAll('.gbtn[data-g]');
+  for(var i=0;i<all.length;i++){
+    var g=Number(all[i].dataset.g);
+    if(g>0 && g>maxG) all[i].style.display='none';
+    else all[i].style.display='';
+  }
+}
+window.updateGearButtons=updateGearButtons;
+
+/* ==================== ЗАЖИГАНИЕ ==================== */
 var ignBtn=document.getElementById('ignBtn');
 var ignLock=false;
 var cranking=false;
@@ -136,7 +173,6 @@ function stopEngine(){
 function onIgnDown(e){
   e.preventDefault();
   if(ignLock)return;
-  /* Мотор заклинен — кнопка не работает */
   if(S.seized){
     setIgnBtn('КЛИН 🔒','',false);
     try{if(navigator.vibrate)navigator.vibrate([40,60,40]);}catch(e){}
@@ -167,6 +203,7 @@ if(ignBtn){
   ignBtn.addEventListener('mouseup',function(){if(window.PointerEvent)return;onIgnUp();});
 }
 
+/* ==================== РЕМОНТ ==================== */
 var repairBtn=document.getElementById('repairBtn');
 if(repairBtn)repairBtn.addEventListener('click',function(e){
   e.preventDefault();
@@ -175,6 +212,7 @@ if(repairBtn)repairBtn.addEventListener('click',function(e){
   setIgnBtn('ЗАЖИГАНИЕ','',false);
 });
 
+/* ==================== ГЛАВНЫЙ ЦИКЛ ==================== */
 var acc=0,last=performance.now(),FIXED=1/240;
 var tSm=0,bSm=0,cSm=0;
 var spdEl=document.getElementById('spdVal');
@@ -187,6 +225,10 @@ function updateEngineUI(){
   if(badge&&E.name&&badge.textContent!==E.name)badge.textContent=E.name;
   if(lastEngine===S.engineType)return;
   lastEngine=S.engineType;
+
+  /* Обновить видимость кнопок передач (5 или 6 ступеней) */
+  updateGearButtons();
+
   var clutch=document.getElementById('pClutch');
   var pedals=document.querySelector('.pedals');
   if(E.auto){document.body.classList.add('auto-mode');if(clutch)clutch.style.display='none';if(pedals)pedals.style.gridTemplateColumns='1fr 1fr';}
@@ -220,7 +262,6 @@ function loop(now){
   bSm=smoothStep(bSm,S.pressed.brake?1:0,5.0,7.0,frame);
   cSm=smoothStep(cSm,S.pressed.clutch?1:0,7.0,1.6,frame);
 
-  /* Если заклинен или сломан — газ не работает */
   if(S.seized || S.broken){
     tSm = 0;
     S.pressed.gas = false;
