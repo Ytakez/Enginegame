@@ -55,9 +55,8 @@ body.broken #repairBtn{display:flex}
 /* ==================== MAIN ==================== */
 main{
   flex:1 1 0;min-height:0;
-  display:flex;flex-direction:column;
-  gap:26px; /* место для кнопки, которая вылезает за 3D-панель */
-  padding:4px 8px 0;
+  display:flex;flex-direction:column;gap:8px;
+  padding:4px 8px;
   overflow:hidden;
 }
 .panel{
@@ -72,14 +71,12 @@ main{
   overflow:hidden;
 }
 
-/* 3D-сцена — фиксированная высота, overflow виден для кнопки */
+/* 3D-сцена — БОЛЬШАЯ */
 #engineWrap{
-  flex:0 0 auto;
-  height:30vh;
-  min-height:150px;
-  max-height:280px;
+  flex:1 1 0;
+  min-height:220px;
   display:flex;align-items:center;justify-content:center;
-  overflow:visible; /* кнопка вылезает наружу */
+  overflow:hidden;
   position:relative;
 }
 #engineCv{
@@ -134,7 +131,7 @@ main{
 #engineWrap.locked #ghostBtn,
 #engineWrap.locked #view3dBtn{pointer-events:auto !important;z-index:30 !important}
 
-/* ==================== КНОПКА ЗАЖИГАНИЯ — ВНИЗУ 3D-ПАНЕЛИ ==================== */
+/* ==================== КНОПКА ЗАЖИГАНИЯ — ВНУТРИ 3D, СНИЗУ ==================== */
 .ignbtn{
   flex:0 0 auto;
   width:100%;
@@ -154,9 +151,7 @@ main{
   box-shadow:0 6px 18px rgba(0,0,0,.45);
 }
 .ignbtn:hover{border-color:rgba(255,255,255,.12);color:#e0e0e0}
-.ignbtn.on{
-  background:#f0f0f0;border-color:#f0f0f0;color:#000;font-weight:700;
-}
+.ignbtn.on{background:#f0f0f0;border-color:#f0f0f0;color:#000;font-weight:700}
 #ignBtn.start{
   background:#e0a030;border-color:#e0a030;color:#1a0e00;
   font-weight:700;letter-spacing:5px;
@@ -168,10 +163,10 @@ main{
   50%{box-shadow:0 0 45px rgba(255,180,60,.85)}
 }
 
-/* Кнопка ВНУТРИ #engineWrap — приклеена к низу, свисает на 22px */
+/* Кнопка ВНУТРИ #engineWrap — внизу по центру, НЕ вылезает */
 #engineWrap #ignBtn{
   position:absolute;
-  bottom:-22px;
+  bottom:12px;
   left:50%;
   transform:translateX(-50%);
   width:auto;
@@ -188,10 +183,7 @@ main{
   border:1px solid rgba(255,255,255,.10);
   box-shadow:0 10px 30px rgba(0,0,0,.7);
 }
-#engineWrap #ignBtn:hover{
-  border-color:rgba(255,255,255,.20);
-  color:#e0e0e0;
-}
+#engineWrap #ignBtn:hover{border-color:rgba(255,255,255,.20);color:#e0e0e0}
 #engineWrap #ignBtn.start{
   background:#e0a030;
   border-color:#e0a030;
@@ -200,29 +192,22 @@ main{
   animation:startPulse 2s ease-in-out infinite;
 }
 
-/* ==================== ПРИБОРКА + ПЕРЕДАЧИ ==================== */
+/* ==================== ПРИБОРКА + ПЕРЕДАЧИ (нормальный размер) ==================== */
 #dash{
-  flex:1 1 0;
-  min-height:0;
-  display:flex;flex-direction:column;gap:5px;
-  overflow:hidden;
+  flex:0 0 auto;
+  display:flex;flex-direction:column;gap:6px;
 }
 #gaugeCv{
   display:block;
   width:100%;
   height:auto;
-  flex:0 1 auto;
-  min-height:0;
-  max-height:170px;
   border-radius:12px;
 }
 
 .gears-box{
   position:relative;
   width:100%;
-  flex:1 1 0;
-  min-height:90px;
-  max-height:130px;
+  height:130px;
   background:rgba(6,6,6,.85);
   backdrop-filter:blur(40px) saturate(100%);
   -webkit-backdrop-filter:blur(40px) saturate(100%);
@@ -241,12 +226,12 @@ main{
   gap:2px;width:100%;height:100%;z-index:1;
 }
 .gb-grid .gbtn{
-  width:34px;height:34px;border-radius:50%;
+  width:38px;height:38px;border-radius:50%;
   border:1px solid rgba(255,255,255,.10);
   background:rgba(12,12,12,.9);
   backdrop-filter:blur(20px) saturate(100%);
   -webkit-backdrop-filter:blur(20px) saturate(100%);
-  color:#b0b0b0;font:600 13px/1 inherit;cursor:pointer;
+  color:#b0b0b0;font:600 14px/1 inherit;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   align-self:center;justify-self:center;
   padding:0;margin:0;
@@ -281,7 +266,7 @@ main{
 body.auto-mode .gears-auto{display:grid;grid-template-columns:repeat(3,1fr)}
 body.auto-mode #gearsManual{display:none}
 .agbtn{
-  height:40px;border-radius:10px;
+  height:44px;border-radius:10px;
   border:1px solid rgba(255,255,255,.10);
   background:rgba(12,12,12,.9);
   color:#8a8a8a;font:600 14px/1 inherit;cursor:pointer;
@@ -293,19 +278,19 @@ body.auto-mode #gearsManual{display:none}
 /* ==================== ПЕДАЛИ ==================== */
 .pedals{
   flex:0 0 auto;
-  display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;
-  padding:6px 8px;
-  padding-bottom:calc(6px + env(safe-area-inset-bottom,0px));
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;
+  padding:8px;
+  padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
 }
 .pedal{
-  position:relative;height:74px;border-radius:16px;
+  position:relative;height:82px;border-radius:16px;
   border:1px solid rgba(255,255,255,.06);
   background:rgba(15,15,15,.5);
   backdrop-filter:blur(40px) saturate(100%);
   -webkit-backdrop-filter:blur(40px) saturate(100%);
   color:#a8a8a8;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:2px;font:600 10px/1 inherit;letter-spacing:1px;
+  gap:3px;font:600 11px/1 inherit;letter-spacing:1px;
   overflow:hidden;touch-action:none;
   box-shadow:0 8px 20px rgba(0,0,0,.5);
 }
@@ -316,7 +301,7 @@ body.auto-mode #gearsManual{display:none}
 }
 .pedal.brake .bar{background:rgba(220,80,80,.18)}
 .pedal.clutch .bar{background:rgba(220,180,80,.18)}
-.pedal .icon{font-size:22px;line-height:1;z-index:1}
+.pedal .icon{font-size:24px;line-height:1;z-index:1}
 .pedal .sub{font-size:8px;color:#6a6a6a;font-weight:500;z-index:1}
 .pedal span{position:relative;z-index:1}
 .pedal.active{
@@ -346,25 +331,28 @@ body.broken #breakBanner{display:block !important}
 }
 
 /* ==================== АДАПТАЦИЯ ==================== */
+@media (orientation:landscape){
+  main{flex-direction:row;gap:10px;padding:6px 10px}
+  #engineWrap{flex:1 1 0}
+  #dash{flex:0 0 auto;width:min(42%,340px)}
+}
+
 @media (orientation:portrait) and (max-width:820px){
-  main{gap:24px}
-  #engineWrap{height:28vh;min-height:140px;max-height:250px}
-  #engineWrap #ignBtn{min-width:170px;height:40px;padding:0 26px;font-size:11px;bottom:-20px}
-  #gaugeCv{max-height:140px}
-  .gears-box{min-height:80px;max-height:110px}
+  #engineWrap{min-height:200px}
+  #engineWrap #ignBtn{bottom:10px;min-width:170px;height:40px;padding:0 26px;font-size:11px}
+  .gears-box{height:120px}
+  .gb-grid .gbtn{width:34px;height:34px;font-size:13px}
+  .pedal{height:74px}
+  .pedal .icon{font-size:22px}
+}
+
+@media (max-height:640px){
+  header{font-size:8px;padding:4px 6px 2px}
+  #engineWrap{min-height:160px}
+  #engineWrap #ignBtn{bottom:8px;min-width:150px;height:34px;padding:0 22px;font-size:10px;letter-spacing:2.5px}
+  .gears-box{height:100px}
   .gb-grid .gbtn{width:30px;height:30px;font-size:12px}
   .pedal{height:64px}
   .pedal .icon{font-size:20px}
-}
-@media (max-height:640px){
-  header{font-size:8px;padding:4px 6px 2px}
-  main{gap:20px}
-  #engineWrap{height:24vh;min-height:110px}
-  #engineWrap #ignBtn{min-width:150px;height:34px;padding:0 22px;font-size:10px;bottom:-17px;letter-spacing:2.5px}
-  #gaugeCv{max-height:110px}
-  .gears-box{min-height:70px;max-height:95px}
-  .gb-grid .gbtn{width:26px;height:26px;font-size:11px}
-  .pedal{height:56px}
-  .pedal .icon{font-size:18px}
   .pedal .sub{display:none}
 }
