@@ -4,29 +4,32 @@ var pages=document.getElementById('pages');
 var dots=document.querySelectorAll('#dots .dot');
 if(!pages)return;
 
-/* ==================== ИНДИКАТОР СТРАНИЦ ==================== */
+/* ==================== ИНДИКАТОР СТРАНИЦ + АВТО-3D ==================== */
+var lastIdx=-1;
 function onScroll(){
   var idx=Math.round(pages.scrollLeft/pages.clientWidth);
   for(var i=0;i<dots.length;i++)dots[i].classList.toggle('on',i===idx);
+
+  if(idx===lastIdx)return;
+  lastIdx=idx;
+
+  /* Страница 1 = 3D. Активируем 3D, когда доходим до неё */
+  if(idx===1){
+    if(window.DVS_3D && window.DVS_3D_REF){
+      var scene=window.DVS_3D_REF.getScene();
+      if(!scene){
+        /* Первый раз — включаем */
+        try{window.DVS_3D.toggle();}catch(e){console.warn(e);}
+        var gb=document.getElementById('ghostBtn');
+        if(gb)gb.style.display='inline-block';
+      }
+    }
+  }
 }
 pages.addEventListener('scroll',onScroll,{passive:true});
 
-/* ==================== АВТО-СТАРТ 3D ==================== */
-function autoStart3D(){
-  if(window.DVS_3D && typeof window.DVS_3D.toggle === 'function'){
-    setTimeout(function(){
-      try{
-        var scene = window.DVS_3D_REF && window.DVS_3D_REF.getScene ? window.DVS_3D_REF.getScene() : null;
-        if(!scene) window.DVS_3D.toggle();
-        var gb=document.getElementById('ghostBtn');
-        if(gb) gb.style.display='inline-block';
-      }catch(e){console.warn('3D auto:',e);}
-    },400);
-  } else {
-    setTimeout(autoStart3D,200);
-  }
-}
-autoStart3D();
+/* Проверка при загрузке: если случайно на странице 1 — включить 3D */
+setTimeout(onScroll,600);
 
 /* ==================== УТИЛИТЫ CANVAS ==================== */
 function setupCanvas(cv){
@@ -51,7 +54,7 @@ function fitCanvas(cv,store){
   return store;
 }
 
-/* ==================== СТРАНИЦА 1: MANIFOLD ==================== */
+/* ==================== СТРАНИЦА 2: MANIFOLD ==================== */
 var manifoldStore=null;
 function drawManifold(){
   var cv=document.getElementById('manifoldCv');if(!cv)return;
@@ -107,7 +110,7 @@ function drawManifold(){
   ctx.fillText('inHg',cx,cy+72);
 }
 
-/* ==================== СТРАНИЦА 2: CYLINDERS ==================== */
+/* ==================== СТРАНИЦА 3: CYLINDERS ==================== */
 var cylsStore=null;
 function drawCyls(){
   var cv=document.getElementById('cylsCv');if(!cv)return;
@@ -161,7 +164,7 @@ function drawCyls(){
   ctx.fillText(Math.round(rpm)+' rpm',W/2,22);
 }
 
-/* ==================== СТРАНИЦА 3: TORQUE / POWER ==================== */
+/* ==================== СТРАНИЦА 4: TORQUE / POWER ==================== */
 var torqueStore=null;
 function drawTorque(){
   var cv=document.getElementById('torqueCv');if(!cv)return;
@@ -197,7 +200,6 @@ function drawTorque(){
     points.push({x:padL+t*gW, y:padT+gH-(torque/(maxT*1.15))*gH, rpm:rpm, torque:torque});
   }
 
-  /* Torque — жёлтая */
   ctx.strokeStyle='#f0c030';ctx.lineWidth=2.5;
   ctx.beginPath();
   for(var a=0;a<points.length;a++){
@@ -206,7 +208,6 @@ function drawTorque(){
   }
   ctx.stroke();
 
-  /* Power — красная */
   var maxPower=(maxT*(redline-1000)*0.7*Math.PI/30/1000);
   ctx.strokeStyle='#e04040';
   ctx.beginPath();
@@ -218,7 +219,6 @@ function drawTorque(){
   }
   ctx.stroke();
 
-  /* текущая точка */
   var curRpm=S.rpm||0;
   var x2=Math.max(lo,Math.min(hi,curRpm));
   var cur=0.55+0.45*Math.sin(Math.PI*(x2-lo)/(hi-lo));
@@ -230,7 +230,6 @@ function drawTorque(){
     ctx.beginPath();ctx.arc(cx,cyy,4,0,Math.PI*2);ctx.fill();
   }
 
-  /* легенда */
   ctx.font='500 10px -apple-system,Inter,sans-serif';ctx.textAlign='left';
   ctx.fillStyle='#f0c030';ctx.fillRect(W-110,10,12,3);
   ctx.fillStyle='#d0d0d0';ctx.fillText('Torque',W-94,14);
@@ -241,7 +240,7 @@ function drawTorque(){
   ctx.fillText('RPM',W/2,H-8);
 }
 
-/* ==================== СТРАНИЦА 4: FLOW ==================== */
+/* ==================== СТРАНИЦА 5: FLOW ==================== */
 var flowStore=null;
 function drawFlow(){
   var cv=document.getElementById('flowCv');if(!cv)return;
@@ -264,11 +263,9 @@ function drawFlow(){
     ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(padL+gW,y);ctx.stroke();
   }
 
-  /* нулевая линия */
   ctx.strokeStyle='rgba(255,255,255,.15)';
   ctx.beginPath();ctx.moveTo(padL,padT+gH/2);ctx.lineTo(padL+gW,padT+gH/2);ctx.stroke();
 
-  /* Exhaust — оранжевая */
   ctx.strokeStyle='#e0a030';ctx.lineWidth=2.5;
   ctx.beginPath();
   for(var p=0;p<=60;p++){
@@ -281,7 +278,6 @@ function drawFlow(){
   }
   ctx.stroke();
 
-  /* Intake — голубая */
   ctx.strokeStyle='#4090ff';ctx.lineWidth=2.5;
   ctx.beginPath();
   for(var q=0;q<=60;q++){
@@ -307,15 +303,14 @@ function drawFlow(){
 /* ==================== ЦИКЛ ОТРИСОВКИ ==================== */
 function loop(){
   var idx=Math.round(pages.scrollLeft/pages.clientWidth);
-  if(idx===1)drawManifold();
-  else if(idx===2)drawCyls();
-  else if(idx===3)drawTorque();
-  else if(idx===4)drawFlow();
+  if(idx===2)drawManifold();
+  else if(idx===3)drawCyls();
+  else if(idx===4)drawTorque();
+  else if(idx===5)drawFlow();
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
 
-/* Пересчёт размеров при смене страницы и повороте */
 pages.addEventListener('scroll',function(){
   manifoldStore=null;cylsStore=null;torqueStore=null;flowStore=null;
 },{passive:true});
