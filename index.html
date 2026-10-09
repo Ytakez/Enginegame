@@ -8,7 +8,7 @@
 <link rel="apple-touch-icon" href="launchericon-192x192.png">
 <link rel="shortcut icon" href="launchericon-96x96.png">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css?v=1000008">
+<link rel="stylesheet" href="style.css?v=1000010">
 </head>
 <body>
 <header>Двигатель внутреннего сгорания</header>
@@ -115,94 +115,31 @@
 <div id="err"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="physics.js?v=1000008" defer></script>
-<script src="render-base.js?v=1000008" defer></script>
-<script src="re-1.js?v=1000008" defer></script>
-<script src="re-2.js?v=1000008" defer></script>
-<script src="re-3.js?v=1000008" defer></script>
-<script src="re-4.js?v=1000008" defer></script>
-<script src="re-5.js?v=1000008" defer></script>
-<script src="re-6.js?v=1000008" defer></script>
-<script src="re-7.js?v=1000008" defer></script>
-<script src="render.js?v=1000008" defer></script>
-<script src="engine.js?v=1000008" defer></script>
-<script src="sound.js?v=1000008" defer></script>
-<script src="menu.js?v=1000008" defer></script>
-<script src="settings.js?v=1000008" defer></script>
-<script src="view3d.js?v=1000008" defer></script>
-<script src="view3d-build.js?v=1000008" defer></script>
-<script src="view3d-wankel.js?v=1000008" defer></script>
-<script src="view3d-dci.js?v=1000008" defer></script>
-<script src="pages.js?v=1000008" defer></script>
-<script src="timer.js?v=1000008" defer></script>
-<script src="maint.js?v=1000008" defer></script>
+<script src="physics.js?v=1000010" defer></script>
+<script src="render-base.js?v=1000010" defer></script>
+<script src="re-1.js?v=1000010" defer></script>
+<script src="re-2.js?v=1000010" defer></script>
+<script src="re-3.js?v=1000010" defer></script>
+<script src="re-4.js?v=1000010" defer></script>
+<script src="re-5.js?v=1000010" defer></script>
+<script src="re-6.js?v=1000010" defer></script>
+<script src="re-7.js?v=1000010" defer></script>
+<script src="render.js?v=1000010" defer></script>
+<script src="render-engines.js?v=1000010" defer></script>
+<script src="engine.js?v=1000010" defer></script>
+<script src="sound.js?v=1000010" defer></script>
+<script src="horn.js?v=1000010" defer></script>
+<script src="menu.js?v=1000010" defer></script>
+<script src="settings.js?v=1000010" defer></script>
+<script src="view3d.js?v=1000010" defer></script>
+<script src="view3d-build.js?v=1000010" defer></script>
+<script src="view3d-wankel.js?v=1000010" defer></script>
+<script src="view3d-dci.js?v=1000010" defer></script>
+<script src="pages.js?v=1000010" defer></script>
+<script src="timer.js?v=1000010" defer></script>
+<script src="maint.js?v=1000010" defer></script>
 
 <script>
-/* ==================== ЖИВАЯ ДИАГНОСТИКА 3D ==================== */
-(function(){
-  var box=document.createElement('div');
-  box.style.cssText='position:fixed;top:70px;left:8px;right:8px;z-index:999999;'+
-    'background:#000;color:#0f0;font:11px/1.4 monospace;padding:10px;'+
-    'border:2px solid #0f0;white-space:pre-wrap;border-radius:8px;'+
-    'box-shadow:0 0 30px rgba(0,255,0,.5)';
-
-  var txt=document.createElement('div');
-  box.appendChild(txt);
-
-  var btn=document.createElement('div');
-  btn.textContent='▶ ОТКРЫТЬ 3D СЕЙЧАС';
-  btn.style.cssText='margin-top:8px;padding:10px;background:#0f0;color:#000;'+
-    'text-align:center;font-weight:700;border-radius:6px;cursor:pointer;font-size:13px';
-  btn.onclick=function(){
-    if(window.DVS_3D && window.DVS_3D.show3D){
-      try{window.DVS_3D.show3D();}catch(e){ txt.textContent='ОШИБКА show3D: '+e.message; return; }
-    }
-    var pg=document.getElementById('pages');
-    if(pg)pg.scrollTo({left:pg.clientWidth,behavior:'smooth'});
-  };
-  box.appendChild(btn);
-
-  var close=document.createElement('div');
-  close.textContent='✕ закрыть диагностику';
-  close.style.cssText='margin-top:6px;padding:6px;background:rgba(255,80,80,.3);color:#fff;'+
-    'text-align:center;border-radius:6px;cursor:pointer;font-size:11px';
-  close.onclick=function(){ box.remove(); };
-  box.appendChild(close);
-
-  document.body.appendChild(box);
-
-  function update(){
-    var msg=[];
-    msg.push('THREE: '+(window.THREE?'OK':'НЕТ'));
-    msg.push('DVS_3D: '+(window.DVS_3D?'OK':'НЕТ'));
-    msg.push('show3D: '+(window.DVS_3D&&typeof window.DVS_3D.show3D==='function'?'OK':'НЕТ'));
-    msg.push('DVS_3D_REF: '+(window.DVS_3D_REF?'OK':'НЕТ'));
-    msg.push('DVS_3D_BUILD: '+(window.DVS_3D_BUILD?'OK':'НЕТ'));
-    msg.push('REBUILD: '+(window.DVS_3D_REBUILD?'OK':'НЕТ'));
-    msg.push('fallback: '+(window._dvsFallbackRebuild?'ДА':'НЕТ'));
-    msg.push('active: '+(window.DVS_3D&&window.DVS_3D.isActive?window.DVS_3D.isActive():'?'));
-    var cv=document.getElementById('engine3dCv');
-    msg.push('canvas: '+(cv?cv.clientWidth+'x'+cv.clientHeight:'НЕТ'));
-    var wrap=document.getElementById('engineWrap');
-    msg.push('wrap: '+(wrap?wrap.clientWidth+'x'+wrap.clientHeight:'НЕТ'));
-    var pg=document.getElementById('pages');
-    if(pg){
-      var idx=Math.round(pg.scrollLeft/pg.clientWidth);
-      msg.push('page: '+idx);
-    }
-    if(window.DVS_3D_REF){
-      var sc=window.DVS_3D_REF.getScene();
-      msg.push('scene: '+(sc?'OK':'НЕТ'));
-      if(sc)msg.push('дети: '+sc.children.length);
-    }
-    msg.push('engineType: '+(window.S?window.S.engineType:'?'));
-    txt.textContent=msg.join('\n');
-  }
-  update();
-  setInterval(update,1200);
-})();
-
-/* ==================== SERVICE WORKER ==================== */
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(r){r.unregister();});}).catch(function(){});
   window.addEventListener('load', function(){navigator.serviceWorker.register('sw.js').catch(function(e){console.log('SW:',e);});});
