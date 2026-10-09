@@ -1,117 +1,105 @@
-/* ==================== ЖИДКОЕ СТЕКЛО — УСИЛЕННЫЙ БЛЮР ==================== */
+/* ==================== УСИЛЕННЫЙ БЛЮР (безопасно) ==================== */
 
-/* Панели — максимальный блюр */
+/* Все панели — сильнее размытие */
 .panel{
-  backdrop-filter:blur(120px) saturate(200%) brightness(1.05) !important;
-  -webkit-backdrop-filter:blur(120px) saturate(200%) brightness(1.05) !important;
-  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01)) !important;
-  border:1px solid rgba(255,255,255,.12) !important;
+  backdrop-filter:blur(90px) saturate(200%) !important;
+  -webkit-backdrop-filter:blur(90px) saturate(200%) !important;
+  background:rgba(10,10,10,.5) !important;
+  border:1px solid rgba(255,255,255,.11) !important;
   box-shadow:
-    0 20px 60px rgba(0,0,0,.7),
-    inset 0 1px 0 rgba(255,255,255,.10),
-    inset 0 -1px 0 rgba(0,0,0,.3) !important;
+    0 16px 44px rgba(0,0,0,.7),
+    inset 0 1px 0 rgba(255,255,255,.08) !important;
 }
 
 /* Кнопки 3D / Скрыто */
 #view3dBtn, #ghostBtn{
-  backdrop-filter:blur(80px) saturate(200%) brightness(1.1) !important;
-  -webkit-backdrop-filter:blur(80px) saturate(200%) brightness(1.1) !important;
-  background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.02)) !important;
-  border:1px solid rgba(255,255,255,.16) !important;
+  backdrop-filter:blur(70px) saturate(200%) !important;
+  -webkit-backdrop-filter:blur(70px) saturate(200%) !important;
+  background:rgba(12,12,12,.55) !important;
+  border:1px solid rgba(255,255,255,.15) !important;
   box-shadow:
-    0 10px 30px rgba(0,0,0,.65),
-    inset 0 1px 0 rgba(255,255,255,.14),
-    inset 0 -1px 0 rgba(0,0,0,.28) !important;
+    0 10px 28px rgba(0,0,0,.65),
+    inset 0 1px 0 rgba(255,255,255,.12) !important;
 }
 
-/* Кнопка ПУСК / СТОП / ЗАЖИГАНИЕ */
+/* Кнопка ЗАЖИГАНИЕ / ПУСК */
 #engineWrap #ignBtn{
-  backdrop-filter:blur(100px) saturate(220%) brightness(1.1) !important;
-  -webkit-backdrop-filter:blur(100px) saturate(220%) brightness(1.1) !important;
-  background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03)) !important;
-  border:1px solid rgba(255,255,255,.18) !important;
+  backdrop-filter:blur(90px) saturate(200%) !important;
+  -webkit-backdrop-filter:blur(90px) saturate(200%) !important;
+  background:rgba(12,12,12,.6) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
   box-shadow:
-    0 16px 44px rgba(0,0,0,.75),
-    inset 0 1px 0 rgba(255,255,255,.18),
+    0 14px 38px rgba(0,0,0,.75),
+    inset 0 1px 0 rgba(255,255,255,.15),
     inset 0 -1px 0 rgba(0,0,0,.3) !important;
 }
 
 /* Кнопки передач */
 .gb-grid .gbtn{
-  backdrop-filter:blur(60px) saturate(200%) brightness(1.05) !important;
-  -webkit-backdrop-filter:blur(60px) saturate(200%) brightness(1.05) !important;
-  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02)) !important;
-  border:1px solid rgba(255,255,255,.14) !important;
+  backdrop-filter:blur(50px) saturate(200%) !important;
+  -webkit-backdrop-filter:blur(50px) saturate(200%) !important;
+  background:rgba(12,12,12,.55) !important;
+  border:1px solid rgba(255,255,255,.13) !important;
   box-shadow:
     0 8px 22px rgba(0,0,0,.65),
-    inset 0 1px 0 rgba(255,255,255,.12),
-    inset 0 -1px 0 rgba(0,0,0,.28) !important;
+    inset 0 1px 0 rgba(255,255,255,.10) !important;
 }
 
 /* Панель передач */
 .gears-box{
-  backdrop-filter:blur(100px) saturate(200%) !important;
-  -webkit-backdrop-filter:blur(100px) saturate(200%) !important;
-  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.01)) !important;
-  border:1px solid rgba(255,255,255,.12) !important;
-  box-shadow:
-    0 12px 36px rgba(0,0,0,.7),
-    inset 0 1px 0 rgba(255,255,255,.10),
-    inset 0 -1px 0 rgba(0,0,0,.3) !important;
+  backdrop-filter:blur(80px) saturate(200%) !important;
+  -webkit-backdrop-filter:blur(80px) saturate(200%) !important;
+  background:rgba(8,8,8,.55) !important;
+  border:1px solid rgba(255,255,255,.11) !important;
 }
 
 /* Педали */
 .pedal{
-  backdrop-filter:blur(80px) saturate(200%) brightness(1.05) !important;
-  -webkit-backdrop-filter:blur(80px) saturate(200%) brightness(1.05) !important;
-  background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015)) !important;
-  border:1px solid rgba(255,255,255,.12) !important;
+  backdrop-filter:blur(80px) saturate(200%) !important;
+  -webkit-backdrop-filter:blur(80px) saturate(200%) !important;
+  background:rgba(10,10,10,.55) !important;
+  border:1px solid rgba(255,255,255,.11) !important;
   box-shadow:
-    0 14px 40px rgba(0,0,0,.65),
-    inset 0 1px 0 rgba(255,255,255,.12),
-    inset 0 -1px 0 rgba(0,0,0,.3) !important;
+    0 14px 38px rgba(0,0,0,.65),
+    inset 0 1px 0 rgba(255,255,255,.10) !important;
 }
 
 /* Бейдж двигателя */
 .eng-badge{
-  backdrop-filter:blur(70px) saturate(200%) brightness(1.05) !important;
-  -webkit-backdrop-filter:blur(70px) saturate(200%) brightness(1.05) !important;
-  background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03)) !important;
-  border:1px solid rgba(255,255,255,.15) !important;
+  backdrop-filter:blur(70px) saturate(200%) !important;
+  -webkit-backdrop-filter:blur(70px) saturate(200%) !important;
+  background:rgba(12,12,12,.55) !important;
+  border:1px solid rgba(255,255,255,.14) !important;
 }
 
 /* Кнопки авто-КПП */
 .agbtn{
   backdrop-filter:blur(60px) saturate(200%) !important;
   -webkit-backdrop-filter:blur(60px) saturate(200%) !important;
-  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02)) !important;
-  border:1px solid rgba(255,255,255,.12) !important;
+  background:rgba(12,12,12,.55) !important;
 }
 
 /* Кнопка настроек */
 .settings-btn{
-  backdrop-filter:blur(80px) saturate(200%) brightness(1.1) !important;
-  -webkit-backdrop-filter:blur(80px) saturate(200%) brightness(1.1) !important;
-  background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.03)) !important;
-  border:1px solid rgba(255,255,255,.18) !important;
+  backdrop-filter:blur(80px) saturate(200%) !important;
+  -webkit-backdrop-filter:blur(80px) saturate(200%) !important;
+  background:rgba(12,12,12,.55) !important;
+  border:1px solid rgba(255,255,255,.16) !important;
   box-shadow:
-    0 10px 30px rgba(0,0,0,.6),
-    inset 0 1px 0 rgba(255,255,255,.16) !important;
+    0 10px 28px rgba(0,0,0,.6),
+    inset 0 1px 0 rgba(255,255,255,.14) !important;
 }
 
-/* Рычаг коробки */
-.gear-stick{
+/* Модалка настроек */
+.settings-modal{
+  backdrop-filter:blur(120px) saturate(220%) !important;
+  -webkit-backdrop-filter:blur(120px) saturate(220%) !important;
+  background:rgba(10,10,10,.7) !important;
+  border:1px solid rgba(255,255,255,.13) !important;
+}
+
+/* Затемнение фона в настройках */
+.settings-overlay{
   backdrop-filter:blur(40px) !important;
   -webkit-backdrop-filter:blur(40px) !important;
-}
-
-/* Модальные окна настроек */
-.settings-modal{
-  backdrop-filter:blur(140px) saturate(220%) !important;
-  -webkit-backdrop-filter:blur(140px) saturate(220%) !important;
-  background:linear-gradient(180deg,rgba(20,20,20,.65),rgba(10,10,10,.75)) !important;
-  border:1px solid rgba(255,255,255,.14) !important;
-  box-shadow:
-    0 30px 90px rgba(0,0,0,.85),
-    inset 0 1px 0 rgba(255,255,255,.10) !important;
 }
