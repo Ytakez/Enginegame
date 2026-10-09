@@ -157,6 +157,7 @@ function animate(){
     if(A.vv&&A.vv[1])A.vv[1].position.y=A.h+0.05-vEx;
   }
 
+  /* Ванкель — роторы */
   var wRotors=window._wankelRotors||[];
   for(var wr=0;wr<wRotors.length;wr++){
     var W=wRotors[wr];
@@ -165,6 +166,15 @@ function animate(){
     var eccY=Math.sin(ang)*W.ecc;
     W.mesh.position.x=eccX;
     W.mesh.position.y=eccY;
+  }
+
+  /* dCi — турбина, ГРМ и т.п. */
+  if(window._dciParts){
+    var P=window._dciParts;
+    if(P.turbo)P.turbo.rotation.x=ang*2.5;
+    if(P.cam)P.cam.rotation.x=ang*0.5;
+    if(P.fw)P.fw.rotation.x=ang;
+    if(P.crank)P.crank.rotation.x=ang;
   }
 
   if(_crank)_crank.rotation.x=ang;
@@ -239,11 +249,12 @@ window.DVS_3D_REF={
     var CFG={
       scooter:{n:1,v:false},
       tdi:{n:4,v:false},
+      dci:{n:4,v:false,model:'dci'},   /* ← ДОБАВЛЕН dCi */
       mt82:{n:4,v:false},
       passatb3:{n:4,v:false},
       bluebird:{n:4,v:false},
       galant6:{n:6,v:true},
-      wankel:{n:2,v:false},
+      wankel:{n:2,v:false,model:'wankel'},
       r4:{n:4,v:false},
       v8:{n:12,v:true},
       v16:{n:22,v:true}
