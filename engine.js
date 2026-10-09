@@ -80,7 +80,8 @@ function startCranking(){
   cranking=true;
   crankStartTime=Date.now();
   crankNeeded=getCrankDuration();
-  setIgnBtn('🌀 ТАРАХ...','',true);
+  /* Было "🌀 ТАРАХ..." — стало понятное "🌀 ЗАЖМИ..." */
+  setIgnBtn('🌀 ЗАЖМИ...','',true);
   try{if(navigator.vibrate)navigator.vibrate([20,30,20]);}catch(e){}
   if(window.DVS_SOUND&&window.DVS_SOUND.startCrank)window.DVS_SOUND.startCrank();
 }
