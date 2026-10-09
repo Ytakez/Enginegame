@@ -530,29 +530,30 @@ body.auto-mode #gearsManual{display:none}
   color:#fff6e0;
 }
 
-/* ==================== БЕЙДЖ ДВИГАТЕЛЯ ==================== */
+/* ==================== БЕЙДЖ ДВИГАТЕЛЯ (компактный) ==================== */
 .eng-badge{
-  position:fixed;top:12px;right:14px;z-index:30;
-  padding:8px 16px;
-  border-radius:22px;
-  border:1px solid rgba(255,255,255,.18);
-  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.05));
-  backdrop-filter:blur(35px) saturate(200%);
-  -webkit-backdrop-filter:blur(35px) saturate(200%);
-  color:#d0dcea;
-  font:700 12px/1 inherit;letter-spacing:2px;
+  position:fixed;top:8px;right:10px;z-index:30;
+  padding:4px 10px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.16);
+  background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04));
+  backdrop-filter:blur(30px) saturate(200%);
+  -webkit-backdrop-filter:blur(30px) saturate(200%);
+  color:#c8d6e6;
+  font:700 10px/1 inherit;
+  letter-spacing:1.2px;
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.24),
-    inset 0 -1px 0 rgba(0,0,0,.25),
-    0 8px 24px rgba(0,0,0,.5);
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 -1px 0 rgba(0,0,0,.22),
+    0 6px 18px rgba(0,0,0,.45);
   overflow:hidden;
 }
 .eng-badge::before{
   content:'';
   position:absolute;
   top:0;left:0;right:0;height:55%;
-  background:linear-gradient(180deg,rgba(255,255,255,.20),transparent);
-  border-radius:22px 22px 60% 60%/22px 22px 30% 30%;
+  background:linear-gradient(180deg,rgba(255,255,255,.18),transparent);
+  border-radius:14px 14px 60% 60%/14px 14px 30% 30%;
   pointer-events:none;
 }
 
@@ -632,5 +633,4 @@ body.broken #repairBtn{display:flex !important}
 #breakBanner{
   position:fixed;top:0;left:0;right:0;z-index:999;
   background:linear-gradient(180deg,rgba(200,30,30,.92),rgba(140,15,15,.92));
-  backdrop-filter:blur(40px) saturate(180%);
-  
+  backdrop-filter:blur(40px) 
