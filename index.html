@@ -8,25 +8,22 @@
 <link rel="apple-touch-icon" href="launchericon-192x192.png">
 <link rel="shortcut icon" href="launchericon-96x96.png">
 <link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="style.css?v=1000013">
+<link rel="stylesheet" href="style.css?v=1000020">
 </head>
 <body>
 <header>Двигатель внутреннего сгорания</header>
 <div class="eng-badge" id="engBadge">R4</div>
 <button id="repairBtn" type="button">🔧</button>
 
-<!-- ============ ВЕРХ: КАРУСЕЛЬ СТРАНИЦ ============ -->
 <div class="pages-wrap">
   <div class="pages" id="pages">
 
-    <!-- Страница 0: 2D-мотор -->
     <section class="page">
       <div class="panel" id="engineWrap2d">
         <canvas id="engineCv" width="640" height="430"></canvas>
       </div>
     </section>
 
-    <!-- Страница 1: 3D-мотор -->
     <section class="page">
       <div class="panel" id="engineWrap">
         <canvas id="engine3dCv" width="640" height="430"></canvas>
@@ -35,7 +32,6 @@
       </div>
     </section>
 
-    <!-- Страница 2: Manifold Pressure -->
     <section class="page">
       <div class="panel chart-panel">
         <div class="chart-title">MANIFOLD PRESSURE</div>
@@ -43,7 +39,6 @@
       </div>
     </section>
 
-    <!-- Страница 3: Цилиндры -->
     <section class="page">
       <div class="panel chart-panel">
         <div class="chart-title">CYLINDERS</div>
@@ -51,7 +46,6 @@
       </div>
     </section>
 
-    <!-- Страница 4: Torque / Power -->
     <section class="page">
       <div class="panel chart-panel">
         <div class="chart-title">TORQUE / POWER</div>
@@ -59,7 +53,6 @@
       </div>
     </section>
 
-    <!-- Страница 5: Flow -->
     <section class="page">
       <div class="panel chart-panel">
         <div class="chart-title">EXHAUST / INTAKE FLOW</div>
@@ -74,7 +67,6 @@
   </div>
 </div>
 
-<!-- ============ НИЗ: ПРИБОРКА + ПЕРЕДАЧИ + ПУСК ============ -->
 <div class="panel" id="dash">
   <canvas id="gaugeCv" width="340" height="190"></canvas>
   <div class="gears-box" id="gearsManual">
@@ -104,7 +96,6 @@
   <button class="ignbtn" id="ignBtn" type="button">ЗАЖИГАНИЕ</button>
 </div>
 
-<!-- ============ ПЕДАЛИ ============ -->
 <div class="pedals">
   <div class="pedal clutch" id="pClutch" data-pedal="clutch"><div class="bar"></div><span class="icon">🦶</span><span>СЦЕПЛЕНИЕ</span><span class="sub">держать</span></div>
   <div class="pedal brake" id="pBrake" data-pedal="brake"><div class="bar"></div><span class="icon">🛑</span><span>ТОРМОЗ</span><span class="sub">держать</span></div>
@@ -115,32 +106,29 @@
 <div id="err"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="physics.js?v=1000013" defer></script>
-<script src="render-base.js?v=1000013" defer></script>
-<script src="re-1.js?v=1000013" defer></script>
-<script src="re-2.js?v=1000013" defer></script>
-<script src="re-3.js?v=1000013" defer></script>
-<script src="re-4.js?v=1000013" defer></script>
-<script src="re-5.js?v=1000013" defer></script>
-<script src="re-6.js?v=1000013" defer></script>
-<script src="re-7.js?v=1000013" defer></script>
-<script src="render.js?v=1000013" defer></script>
-<script src="render-engines.js?v=1000013" defer></script>
-<script src="engine.js?v=1000013" defer></script>
-<script src="sound.js?v=1000013" defer></script>
-<script src="horn.js?v=1000013" defer></script>
-<script src="menu.js?v=1000013" defer></script>
-<script src="profile.js?v=1000013" defer></script>
-<script src="login.js?v=1000013" defer></script>
-<script src="achievements.js?v=1000013" defer></script>
-<script src="settings.js?v=1000013" defer></script>
-<script src="view3d.js?v=1000013" defer></script>
-<script src="view3d-build.js?v=1000013" defer></script>
-<script src="view3d-wankel.js?v=1000013" defer></script>
-<script src="view3d-dci.js?v=1000013" defer></script>
-<script src="pages.js?v=1000013" defer></script>
-<script src="timer.js?v=1000013" defer></script>
-<script src="maint.js?v=1000013" defer></script>
+<script src="physics.js?v=1000020" defer></script>
+<script src="render-base.js?v=1000020" defer></script>
+<script src="re-1.js?v=1000020" defer></script>
+<script src="re-2.js?v=1000020" defer></script>
+<script src="re-3.js?v=1000020" defer></script>
+<script src="re-4.js?v=1000020" defer></script>
+<script src="re-5.js?v=1000020" defer></script>
+<script src="re-6.js?v=1000020" defer></script>
+<script src="re-7.js?v=1000020" defer></script>
+<script src="render.js?v=1000020" defer></script>
+<script src="render-engines.js?v=1000020" defer></script>
+<script src="engine.js?v=1000020" defer></script>
+<script src="sound.js?v=1000020" defer></script>
+<script src="horn.js?v=1000020" defer></script>
+<script src="menu.js?v=1000020" defer></script>
+<script src="settings.js?v=1000020" defer></script>
+<script src="view3d.js?v=1000020" defer></script>
+<script src="view3d-build.js?v=1000020" defer></script>
+<script src="view3d-wankel.js?v=1000020" defer></script>
+<script src="view3d-dci.js?v=1000020" defer></script>
+<script src="pages.js?v=1000020" defer></script>
+<script src="timer.js?v=1000020" defer></script>
+<script src="maint.js?v=1000020" defer></script>
 
 <script>
 if ('serviceWorker' in navigator) {
