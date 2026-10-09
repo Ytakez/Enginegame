@@ -46,6 +46,7 @@ var ignBtn=document.getElementById('ignBtn');
 var ignLock=false;
 var cranking=false;
 var crankStartTime=0;
+var crankNeeded=0;
 var primingStartTime=0;
 
 function setIgnBtn(txt,cls,active){if(!ignBtn)return;ignBtn.textContent=txt;ignBtn.className='ignbtn'+(cls?' '+cls:'')+(active?' on':'');}
@@ -62,7 +63,6 @@ function keyOn(){
 }
 function readyToStart(){S.ignitionState='ready';setIgnBtn('▶ ПУСК','start',false);try{if(navigator.vibrate)navigator.vibrate([30,30]);}catch(e){}}
 
-/* Определяем сколько держать стартер в зависимости от температуры */
 function getCrankDuration(){
   var t=S.engineTemp||25;
   var base;
@@ -71,40 +71,33 @@ function getCrankDuration(){
   else if(t>5)base=2.2;
   else if(t>-5)base=3.5;
   else base=5.0;
-  /* случайность ±30% */
   return base*(0.85+Math.random()*0.3);
 }
 
 function startCranking(){
-  if(cranking||S.ignitionState!=='ready')return;
+  if(cranking)return;
+  if(S.ignitionState!=='ready')return;
   cranking=true;
   crankStartTime=Date.now();
-  /* сколько секунд нужно на этот раз */
-  cranking.needed=getCrankDuration();
+  crankNeeded=getCrankDuration();
   setIgnBtn('🌀 ТАРАХ...','',true);
   try{if(navigator.vibrate)navigator.vibrate([20,30,20]);}catch(e){}
   if(window.DVS_SOUND&&window.DVS_SOUND.startCrank)window.DVS_SOUND.startCrank();
 }
 
-function stopCranking(success){
+function stopCranking(){
   if(!cranking)return;
   cranking=false;
   if(window.DVS_SOUND&&window.DVS_SOUND.stopCrank)window.DVS_SOUND.stopCrank();
-  if(!success){
-    /* Отпустил рано — не завёлся */
-    setIgnBtn('▶ ПУСК','start',false);
-  }
 }
 
 function actualStart(){
   var E=S.engines[S.engineType];
-  /* шанс что схватится с первого раза, но иногда глохнет */
   var t=S.engineTemp||25;
   var dieChance=0;
   if(t<0)dieChance=0.35;
   else if(t<15)dieChance=0.2;
   else if(t<30)dieChance=0.1;
-
   S.ignitionState='running';
   S.stalled=false;S.running=true;
   S.rpm=E.idle;
@@ -113,8 +106,6 @@ function actualStart(){
   setIgnBtn('СТОП','',true);
   try{if(navigator.vibrate)navigator.vibrate([30,40,30]);}catch(e){}
   if(window.DVS_SOUND&&window.DVS_SOUND.starter)window.DVS_SOUND.starter();
-
-  /* шанс что заглохнет через секунду */
   if(Math.random()<dieChance){
     setTimeout(function(){
       if(S.running&&S.engineTemp<40){
@@ -128,7 +119,7 @@ function actualStart(){
 }
 
 function stopEngine(){
-  stopCranking(false);
+  stopCranking();
   S.running=false;S.stalled=true;S.rpm=0;
   S.ignitionState='off';S.startAttempts=0;
   setIgnBtn('ЗАЖИГАНИЕ','',false);
@@ -141,22 +132,18 @@ function onIgnDown(e){
   var st=S.ignitionState;
   if(st==='off'){ignLock=true;keyOn();setTimeout(function(){ignLock=false;},500);return;}
   if(st==='priming'){return;}
-  if(st==='ready'){ignLock=true;startCranking();return;}
+  if(st==='ready'){startCranking();return;}
   if(st==='running'){ignLock=true;stopEngine();setTimeout(function(){ignLock=false;},500);return;}
 }
 function onIgnUp(){
   ignLock=false;
-  if(cranking)stopCranking(false);
+  if(cranking)stopCranking();
 }
 if(ignBtn){
   ignBtn.addEventListener('pointerdown',onIgnDown);
   ignBtn.addEventListener('pointerup',onIgnUp);
   ignBtn.addEventListener('pointercancel',onIgnUp);
-  ignBtn.addEventListener('pointerleave',function(e){
-    /* Если палец ушёл за пределы — тоже отпускаем */
-    if(cranking)stopCranking(false);
-  });
-  /* Резерв для браузеров без Pointer Events */
+  ignBtn.addEventListener('pointerleave',function(){if(cranking)stopCranking();});
   ignBtn.addEventListener('touchstart',function(e){if(window.PointerEvent)return;e.preventDefault();onIgnDown(e);},{passive:false});
   ignBtn.addEventListener('touchend',function(e){if(window.PointerEvent)return;e.preventDefault();onIgnUp();},{passive:false});
   ignBtn.addEventListener('mousedown',function(e){if(window.PointerEvent)return;e.preventDefault();onIgnDown(e);});
@@ -193,8 +180,6 @@ function loop(now){
   if(frame>0.25)frame=0.25;
   if(frame<0)frame=0;
   updateEngineUI();
-
-  /* НАСОС */
   if(S.ignitionState==='priming'){
     if(primingStartTime===0)primingStartTime=Date.now();
     if(Date.now()-primingStartTime>=(S.primingDuration||1500)){
@@ -202,17 +187,13 @@ function loop(now){
       readyToStart();
     }
   }
-
-  /* СТАРТЕР — пока держат, крутит */
   if(cranking&&S.ignitionState==='ready'){
     var crankTime=(Date.now()-crankStartTime)/1000;
-    if(crankTime>=cranking.needed){
-      /* Хватит! Заводимся */
-      stopCranking(true);
+    if(crankTime>=crankNeeded){
+      stopCranking();
       actualStart();
     }
   }
-
   tSm=smoothStep(tSm,S.pressed.gas?1:0,4.5,7.0,frame);
   bSm=smoothStep(bSm,S.pressed.brake?1:0,5.0,7.0,frame);
   cSm=smoothStep(cSm,S.pressed.clutch?1:0,7.0,1.6,frame);
