@@ -8,32 +8,28 @@ var ctx = null;
 var masterGain = null;
 var muted = false;
 
-/* Генераторы */
 var oscSub=null, oscSaw1=null, oscSaw2=null, oscSq=null;
 var subGain=null, saw1Gain=null, saw2Gain=null, sqGain=null;
-
-/* Шум */
 var noiseNode=null, noiseFilter=null, noiseGain=null;
-
-/* Фильтр + дистошн */
 var mainFilter=null;
 var shaper=null;
 var shaperGain=null;
 var postGain=null;
 
-/* ==================== ПРОФИЛИ ДВИГАТЕЛЕЙ ==================== */
+/* ==================== ПРОФИЛИ (x2 ГРУБОСТЬ) ==================== */
 var PROFILES = {
-  scooter:  { pitch:1.55, sub:0.10, saw:0.16, sq:0.06, noise:0.010, drive:2.5, filter:3200, q:1.4, wave:'sawtooth', detune:12 },
-  tdi:      { pitch:0.72, sub:0.24, saw:0.20, sq:0.10, noise:0.038, drive:5.5, filter:1500, q:2.4, wave:'square',   detune:30 },
-  dci:      { pitch:0.78, sub:0.22, saw:0.18, sq:0.09, noise:0.032, drive:5.0, filter:1700, q:2.2, wave:'square',   detune:28 },
-  mt82:     { pitch:0.55, sub:0.32, saw:0.24, sq:0.14, noise:0.055, drive:7.0, filter:900,  q:2.8, wave:'square',   detune:45 },
-  passatb3: { pitch:1.00, sub:0.14, saw:0.16, sq:0.06, noise:0.008, drive:3.0, filter:2400, q:1.6, wave:'sawtooth', detune:14 },
-  bluebird: { pitch:1.05, sub:0.14, saw:0.18, sq:0.07, noise:0.010, drive:3.2, filter:2600, q:1.7, wave:'sawtooth', detune:16 },
-  galant6:  { pitch:1.18, sub:0.12, saw:0.15, sq:0.05, noise:0.010, drive:2.5, filter:3000, q:1.4, wave:'triangle', detune:10 },
-  wankel:   { pitch:1.35, sub:0.10, saw:0.22, sq:0.09, noise:0.012, drive:3.5, filter:3800, q:2.0, wave:'sawtooth', detune:22 },
-  r4:       { pitch:1.02, sub:0.15, saw:0.18, sq:0.07, noise:0.010, drive:3.0, filter:2500, q:1.7, wave:'sawtooth', detune:15 },
-  v8:       { pitch:1.12, sub:0.16, saw:0.17, sq:0.06, noise:0.014, drive:2.8, filter:2900, q:1.5, wave:'sawtooth', detune:8 },
-  v16:      { pitch:0.92, sub:0.26, saw:0.20, sq:0.10, noise:0.022, drive:4.0, filter:2100, q:2.0, wave:'sawtooth', detune:35 }
+  /* pitch, sub, saw, sq, noise, drive(x2), filter(ниже), q(выше), wave, detune(x2) */
+  scooter:  { pitch:1.55, sub:0.12, saw:0.20, sq:0.08, noise:0.020, drive:5.5,  filter:2000, q:2.6, wave:'sawtooth', detune:28 },
+  tdi:      { pitch:0.68, sub:0.30, saw:0.26, sq:0.14, noise:0.070, drive:11.0, filter:850,  q:4.0, wave:'square',   detune:60 },
+  dci:      { pitch:0.74, sub:0.28, saw:0.24, sq:0.13, noise:0.062, drive:10.0, filter:1000, q:3.8, wave:'square',   detune:56 },
+  mt82:     { pitch:0.50, sub:0.42, saw:0.32, sq:0.20, noise:0.100, drive:13.0, filter:520,  q:4.5, wave:'square',   detune:85 },
+  passatb3: { pitch:0.96, sub:0.18, saw:0.22, sq:0.09, noise:0.018, drive:6.0,  filter:1500, q:2.8, wave:'sawtooth', detune:28 },
+  bluebird: { pitch:1.00, sub:0.18, saw:0.24, sq:0.10, noise:0.020, drive:6.5,  filter:1600, q:2.9, wave:'sawtooth', detune:32 },
+  galant6:  { pitch:1.14, sub:0.16, saw:0.20, sq:0.08, noise:0.020, drive:5.0,  filter:1900, q:2.5, wave:'triangle', detune:20 },
+  wankel:   { pitch:1.30, sub:0.14, saw:0.28, sq:0.14, noise:0.024, drive:7.0,  filter:2400, q:3.4, wave:'sawtooth', detune:44 },
+  r4:       { pitch:0.98, sub:0.20, saw:0.24, sq:0.10, noise:0.020, drive:6.0,  filter:1600, q:2.8, wave:'sawtooth', detune:30 },
+  v8:       { pitch:1.08, sub:0.22, saw:0.22, sq:0.09, noise:0.028, drive:5.6,  filter:1800, q:2.6, wave:'sawtooth', detune:16 },
+  v16:      { pitch:0.86, sub:0.34, saw:0.28, sq:0.14, noise:0.044, drive:8.0,  filter:1400, q:3.2, wave:'sawtooth', detune:70 }
 };
 var DEFAULT_PROFILE = PROFILES.r4;
 
@@ -48,7 +44,11 @@ function makeDriveCurve(amount){
   var curve = new Float32Array(n);
   for(var i=0; i<n; i++){
     var x = (i * 2) / n - 1;
-    curve[i] = Math.tanh(x * amount);
+    /* Жёстче tanh + clip сверху для грубости */
+    var y = Math.tanh(x * amount);
+    /* Добавляем квадратичность — больше гармоник */
+    y = y * 0.7 + Math.tanh(x * amount * 2) * 0.3;
+    curve[i] = Math.max(-1, Math.min(1, y));
   }
   return curve;
 }
@@ -66,16 +66,16 @@ function initAudio(){
     masterGain.connect(ctx.destination);
 
     shaper = ctx.createWaveShaper();
-    shaper.curve = makeDriveCurve(3);
-    shaper.oversample = '2x';
+    shaper.curve = makeDriveCurve(6);
+    shaper.oversample = '4x';
 
     shaperGain = ctx.createGain();
-    shaperGain.gain.value = 0.7;
+    shaperGain.gain.value = 1.0;
 
     mainFilter = ctx.createBiquadFilter();
     mainFilter.type = 'lowpass';
-    mainFilter.frequency.value = 2400;
-    mainFilter.Q.value = 1.6;
+    mainFilter.frequency.value = 1600;
+    mainFilter.Q.value = 2.8;
 
     postGain = ctx.createGain();
     postGain.gain.value = 1.0;
@@ -94,7 +94,7 @@ function initAudio(){
     subGain.connect(shaper);
     oscSub.start();
 
-    /* SAW1 */
+    /* SAW1 — основная пила */
     oscSaw1 = ctx.createOscillator();
     oscSaw1.type = 'sawtooth';
     oscSaw1.frequency.value = 80;
@@ -104,11 +104,11 @@ function initAudio(){
     saw1Gain.connect(shaper);
     oscSaw1.start();
 
-    /* SAW2 */
+    /* SAW2 — расстроенная, для грубости */
     oscSaw2 = ctx.createOscillator();
     oscSaw2.type = 'sawtooth';
     oscSaw2.frequency.value = 82;
-    oscSaw2.detune.value = 20;
+    oscSaw2.detune.value = 40;
     saw2Gain = ctx.createGain();
     saw2Gain.gain.value = 0;
     oscSaw2.connect(saw2Gain);
@@ -146,7 +146,7 @@ function initAudio(){
     noiseGain.connect(shaper);
     noiseNode.start();
 
-    console.log('sound.js: готово');
+    console.log('sound.js: ГОТОВО (x2 грубость)');
     return true;
   }catch(e){
     console.warn('sound.js: ошибка', e);
@@ -178,6 +178,7 @@ function updateSound(){
   if(stopping) volMul = Math.max(0, Math.min(1, rpm / 4500));
   else if(!running) volMul = 0;
 
+  /* Частоты */
   var mainFreq = (30 + rpm * 0.05) * P.pitch;
   if(mainFreq < 15) mainFreq = 15;
 
@@ -185,17 +186,18 @@ function updateSound(){
   var sqFreq = mainFreq * 0.25;
   if(sqFreq < 3) sqFreq = 3;
 
+  /* Уровни сигналов — БОЛЬШЕ */
   var subL = 0, sawL = 0, sqL = 0, noiseL = 0;
   if(running){
-    subL   = P.sub   * 0.30 * (0.4 + Math.min(1, rpm/3000) * 0.6);
-    sawL   = P.saw   * 0.22 * (0.3 + thr * 0.7);
-    sqL    = P.sq    * 0.14 * (0.4 + Math.min(1, rpm/5000) * 0.6);
+    subL   = P.sub   * 0.40 * (0.4 + Math.min(1, rpm/3000) * 0.6);
+    sawL   = P.saw   * 0.28 * (0.3 + thr * 0.7);
+    sqL    = P.sq    * 0.18 * (0.4 + Math.min(1, rpm/5000) * 0.6);
     noiseL = P.noise * (0.5 + thr * 0.5);
   } else if(stopping){
-    subL   = P.sub   * 0.15;
-    sawL   = P.saw   * 0.10;
-    sqL    = P.sq    * 0.05;
-    noiseL = P.noise * 0.4;
+    subL   = P.sub   * 0.20;
+    sawL   = P.saw   * 0.14;
+    sqL    = P.sq    * 0.07;
+    noiseL = P.noise * 0.5;
   }
   subL *= volMul; sawL *= volMul; sqL *= volMul; noiseL *= volMul;
 
@@ -212,22 +214,26 @@ function updateSound(){
   oscSub.frequency.setTargetAtTime(subFreq, t, fSmooth);
   oscSaw1.frequency.setTargetAtTime(mainFreq, t, fSmooth);
   oscSaw2.frequency.setTargetAtTime(mainFreq, t, fSmooth);
-  oscSaw2.detune.value = P.detune + Math.sin(t * 3) * 3;
+  oscSaw2.detune.value = P.detune + Math.sin(t * 4) * 6;
   oscSq.frequency.setTargetAtTime(sqFreq, t, fSmooth);
 
   if(oscSaw1.type !== P.wave) oscSaw1.type = P.wave;
 
-  var nF = P.filter + rpm * 0.15;
-  if(nF > 6000) nF = 6000;
+  /* Фильтр — НИЖЕ для густоты */
+  var nF = P.filter + rpm * 0.12;
+  if(nF > 5000) nF = 5000;
   mainFilter.frequency.setTargetAtTime(nF, t, 0.06);
   mainFilter.Q.setTargetAtTime(P.q, t, 0.1);
 
+  /* DRIVE — в 2 раза грубее */
   shaper.curve = makeDriveCurve(P.drive);
-  shaperGain.gain.setTargetAtTime(0.5 + thr * 0.3, t, 0.05);
+  shaperGain.gain.setTargetAtTime(0.7 + thr * 0.4, t, 0.05);
 
+  /* Шум */
   noiseFilter.frequency.setTargetAtTime(900 + rpm * 0.3, t, 0.05);
 
-  var masterVol = muted ? 0 : 0.85;
+  /* Мастер */
+  var masterVol = muted ? 0 : 0.75;
   masterGain.gain.setTargetAtTime(masterVol, t, 0.08);
 }
 setInterval(updateSound, 30);
@@ -260,16 +266,13 @@ function startCrank(){
     o.type = 'sawtooth';
     o.frequency.setValueAtTime(45, t);
     o.frequency.linearRampToValueAtTime(65, t + 0.5);
-
     var o2 = ctx.createOscillator();
     o2.type = 'square';
     o2.frequency.setValueAtTime(12, t);
-
     var g = ctx.createGain();
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(0.08, t + 0.05);
-    g.gain.linearRampToValueAtTime(0.08, t + 0.6);
-
+    g.gain.linearRampToValueAtTime(0.09, t + 0.05);
+    g.gain.linearRampToValueAtTime(0.09, t + 0.6);
     o.connect(g); o2.connect(g); g.connect(ctx.destination);
     o.start(t); o2.start(t);
     window._crankNodes = {o:o, o2:o2, g:g};
@@ -300,7 +303,7 @@ function starter(){
     o.frequency.exponentialRampToValueAtTime(200, t + 0.3);
     o.frequency.exponentialRampToValueAtTime(80, t + 0.6);
     var g = ctx.createGain();
-    g.gain.setValueAtTime(0.15, t);
+    g.gain.setValueAtTime(0.16, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
     o.connect(g); g.connect(ctx.destination);
     o.start(t); o.stop(t + 0.8);
@@ -317,46 +320,40 @@ function stall(){
     o.frequency.setValueAtTime(90, t);
     o.frequency.exponentialRampToValueAtTime(22, t + 0.7);
     var g = ctx.createGain();
-    g.gain.setValueAtTime(0.10, t);
+    g.gain.setValueAtTime(0.12, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
     o.connect(g); g.connect(ctx.destination);
     o.start(t); o.stop(t + 0.9);
   }catch(e){}
 }
 
-/* ==================== ХРУСТ КОРОБКИ (сильный) ==================== */
+/* ==================== ХРУСТ КОРОБКИ ==================== */
 function gearCrunch(){
   if(!initAudio()) return;
   if(!ctx) return;
   try{
     var t = ctx.currentTime;
 
-    /* 1) Металлический скрежет — шум с резонансом */
     var bufSize = Math.floor(ctx.sampleRate * 0.22);
     var buffer = ctx.createBuffer(1, bufSize, ctx.sampleRate);
     var data = buffer.getChannelData(0);
     for(var i = 0; i < bufSize; i++){
       var env = Math.exp(-i / (bufSize * 0.35));
-      /* Рваный шум — металл скрежещет */
       var jitter = (Math.random() < 0.4) ? 1.8 : 0.6;
       data[i] = (Math.random() * 2 - 1) * env * jitter;
     }
     var noise = ctx.createBufferSource();
     noise.buffer = buffer;
-
     var filt = ctx.createBiquadFilter();
     filt.type = 'bandpass';
     filt.frequency.value = 3200;
     filt.Q.value = 8;
-
     var g = ctx.createGain();
     g.gain.setValueAtTime(0.28, t);
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
-
     noise.connect(filt); filt.connect(g); g.connect(ctx.destination);
     noise.start(t);
 
-    /* 2) Резкий металлический удар — высокий */
     var o1 = ctx.createOscillator();
     o1.type = 'square';
     o1.frequency.setValueAtTime(320, t);
@@ -367,7 +364,6 @@ function gearCrunch(){
     o1.connect(og1); og1.connect(ctx.destination);
     o1.start(t); o1.stop(t + 0.18);
 
-    /* 3) Низкий глухой удар */
     var o2 = ctx.createOscillator();
     o2.type = 'triangle';
     o2.frequency.setValueAtTime(120, t);
@@ -378,7 +374,6 @@ function gearCrunch(){
     o2.connect(og2); og2.connect(ctx.destination);
     o2.start(t); o2.stop(t + 0.15);
 
-    /* 4) Дребезг — второй скрежет через 60мс */
     setTimeout(function(){
       if(!ctx) return;
       try{
@@ -402,11 +397,10 @@ function gearCrunch(){
         n2.start(t2);
       }catch(e){}
     }, 60);
-
   }catch(e){ console.warn('gearCrunch err:', e); }
 }
 
-/* ==================== МЯГКИЙ ЩЕЛЧОК ==================== */
+/* ==================== ЩЕЛЧОК ==================== */
 function gearClick(){
   if(!initAudio()) return;
   if(!ctx) return;
@@ -421,41 +415,6 @@ function gearClick(){
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
     o.connect(g); g.connect(ctx.destination);
     o.start(t); o.stop(t + 0.09);
-
-    /* Короткий тик */
-    var bufSize = Math.floor(ctx.sampleRate * 0.02);
-    var b = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-    var d = b.getChannelData(0);
-    for(var i = 0; i < bufSize; i++){
-      d[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.2));
-    }
-    var n = ctx.createBufferSource();
-    n.buffer = b;
-    var f = ctx.createBiquadFilter();
-    f.type = 'highpass';
-    f.frequency.value = 1500;
-    var g2 = ctx.createGain();
-    g2.gain.value = 0.05;
-    n.connect(f); f.connect(g2); g2.connect(ctx.destination);
-    n.start(t);
-  }catch(e){}
-}
-
-/* ==================== БУКС (опционально) ==================== */
-function tireSqueal(){
-  if(!ctx) return;
-  try{
-    var t = ctx.currentTime;
-    var o = ctx.createOscillator();
-    o.type = 'sawtooth';
-    o.frequency.setValueAtTime(800, t);
-    o.frequency.linearRampToValueAtTime(700, t + 0.3);
-    var g = ctx.createGain();
-    g.gain.setValueAtTime(0.06, t);
-    g.gain.linearRampToValueAtTime(0.04, t + 0.3);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
-    o.connect(g); g.connect(ctx.destination);
-    o.start(t); o.stop(t + 0.45);
   }catch(e){}
 }
 
@@ -482,12 +441,11 @@ window.DVS_SOUND = {
   toggleMute: toggleMute,
   isMuted: isMuted,
   gearCrunch: gearCrunch,
-  gearClick: gearClick,
-  tireSqueal: tireSqueal
+  gearClick: gearClick
 };
 
 document.addEventListener('touchstart', function(){ if(!ctx) initAudio(); }, {once:true, passive:true});
 document.addEventListener('click', function(){ if(!ctx) initAudio(); }, {once:true});
 
-console.log('sound.js: загружено (с хрустом коробки)');
+console.log('sound.js: загружено (x2 грубость)');
 })();
