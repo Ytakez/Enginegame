@@ -127,12 +127,12 @@ body.broken #repairBtn{display:flex}
 /* ==================== ЗАМОК 3D ==================== */
 #lockBtn{
   position:absolute;top:10px;left:10px;z-index:21;
-  width:42px;height:42px;border-radius:50%;
+  width:46px;height:46px;border-radius:50%;
   border:1px solid rgba(255,255,255,.10);
   background:rgba(20,20,20,.65);
   backdrop-filter:blur(40px) saturate(100%);
   -webkit-backdrop-filter:blur(40px) saturate(100%);
-  color:#c0c0c0;font-size:18px;line-height:1;
+  color:#c0c0c0;font-size:20px;line-height:1;
   cursor:pointer;padding:0;
   display:none;align-items:center;justify-content:center;
   transition:background .2s,border-color .2s,color .2s,transform .2s;
@@ -147,10 +147,19 @@ body.broken #repairBtn{display:flex}
   color:#1a1a00;
   box-shadow:0 0 28px rgba(230,230,90,.5),0 8px 24px rgba(0,0,0,.5);
 }
-/* Когда замок закрыт — не перехватываем касания на канвасе */
+
+/* Когда замок закрыт — блокируем только 3D-сцену,
+   а кнопки (замок и скелет) остаются рабочими */
+#engineWrap.locked #view3dBox,
 #engineWrap.locked #engine3dCv{
-  touch-action:pan-x !important;
   pointer-events:none !important;
+  touch-action:pan-x !important;
+}
+#engineWrap.locked #lockBtn,
+#engineWrap.locked #ghostBtn{
+  pointer-events:auto !important;
+  z-index:30 !important;
+  cursor:pointer;
 }
 #engineWrap.locked{cursor:grab}
 
@@ -179,6 +188,7 @@ body.broken #repairBtn{display:flex}
   width:6px;height:6px;border-radius:50%;
   background:rgba(255,255,255,.18);
   transition:background .25s,width .25s,border-radius .25s;
+  cursor:pointer;
 }
 .dot.on{background:#f0f0f0;width:22px;border-radius:3px}
 
