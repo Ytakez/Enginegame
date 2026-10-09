@@ -37,12 +37,11 @@ window.addEventListener('blur',pedalReleaseAll);
 document.addEventListener('visibilitychange',function(){if(document.hidden)pedalReleaseAll();});
 
 /* ==================== ПЕРЕДАЧИ ==================== */
-/* Сам S.setGear теперь определён в physics.js — здесь только клики */
 var gearBtns=Array.prototype.slice.call(document.querySelectorAll('.gbtn'));
 gearBtns.forEach(function(b){
   b.addEventListener('click',function(e){
     e.preventDefault();
-    S.setGear(Number(b.dataset.g));
+    if(S.setGear)S.setGear(Number(b.dataset.g));
   });
 });
 
@@ -65,7 +64,6 @@ autoBtns.forEach(function(b){
   });
 });
 
-/* Показать/скрыть кнопки передач согласно числу ступеней у двигателя */
 function updateGearButtons(){
   var E=S.engines[S.engineType];
   if(!E)return;
@@ -87,7 +85,11 @@ var crankStartTime=0;
 var crankNeeded=0;
 var primingStartTime=0;
 
-function setIgnBtn(txt,cls,active){if(!ignBtn)return;ignBtn.textContent=txt;ignBtn.className='ignbtn'+(cls?' '+cls:'')+(active?' on':'');}
+function setIgnBtn(txt,cls,active){
+  if(!ignBtn)return;
+  ignBtn.textContent=txt;
+  ignBtn.className='ignbtn'+(cls?' '+cls:'')+(active?' on':'');
+}
 
 function keyOn(){
   S.ignitionState='priming';
@@ -99,7 +101,11 @@ function keyOn(){
   try{if(navigator.vibrate)navigator.vibrate(20);}catch(e){}
   if(window.DVS_SOUND&&window.DVS_SOUND.fuelPump)window.DVS_SOUND.fuelPump();
 }
-function readyToStart(){S.ignitionState='ready';setIgnBtn('▶ ПУСК','start',false);try{if(navigator.vibrate)navigator.vibrate([30,30]);}catch(e){}}
+function readyToStart(){
+  S.ignitionState='ready';
+  setIgnBtn('▶ ПУСК','start',false);
+  try{if(navigator.vibrate)navigator.vibrate([30,30]);}catch(e){}
+}
 
 function getCrankDuration(){
   var t=S.engineTemp||25;
@@ -153,7 +159,7 @@ function actualStart(){
   if(Math.random()<dieChance){
     setTimeout(function(){
       if(S.running&&S.engineTemp<40){
-        S.stalled=true;S.running=false;S.rpm=0;
+        S.stalled=true;S.running=false;
         S.ignitionState='ready';
         setIgnBtn('ЗАГЛОХ...','',false);
         setTimeout(function(){if(S.ignitionState==='ready')setIgnBtn('▶ ПУСК','start',false);},1000);
@@ -162,17 +168,50 @@ function actualStart(){
   }
 }
 
+/* ==================== ПЛАВНОЕ ГЛУШЕНИЕ ==================== */
 function stopEngine(){
   stopCranking();
-  S.running=false;S.stalled=true;S.rpm=0;
-  S.ignitionState='off';S.startAttempts=0;
-  setIgnBtn('ЗАЖИГАНИЕ','',false);
+
+  /* Если уже останавливаемся — ничего не делаем */
+  if(S.ignitionState==='stopping')return;
+
+  /* Отключаем топливо — мотор глохнет, но обороты падают плавно */
+  S.running = false;
+  S.stalled = true;
+  S.ignitionState = 'stopping';
+  S.startAttempts = 0;
+
+  setIgnBtn('ГЛОХНЕТ...','',false);
   try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
+  if(window.DVS_SOUND && window.DVS_SOUND.stall){
+    try{window.DVS_SOUND.stall();}catch(e){}
+  }
+
+  /* Проверяем каждые 100мс — не упали ли обороты в 0 */
+  var check = setInterval(function(){
+    if(!S || S.rpm < 30){
+      clearInterval(check);
+      S.rpm = 0;
+      S.ignitionState = 'off';
+      setIgnBtn('ЗАЖИГАНИЕ','',false);
+    }
+  }, 100);
+
+  /* Страховка — через 4 секунды точно OFF */
+  setTimeout(function(){
+    try{clearInterval(check);}catch(e){}
+    if(S && S.ignitionState==='stopping'){
+      S.rpm = 0;
+      S.ignitionState = 'off';
+      setIgnBtn('ЗАЖИГАНИЕ','',false);
+    }
+  }, 4000);
 }
 
 function onIgnDown(e){
   e.preventDefault();
   if(ignLock)return;
+
   if(S.seized){
     setIgnBtn('КЛИН 🔒','',false);
     try{if(navigator.vibrate)navigator.vibrate([40,60,40]);}catch(e){}
@@ -182,16 +221,33 @@ function onIgnDown(e){
     setIgnBtn('СЛОМАН 🔧','',false);
     return;
   }
+
   var st=S.ignitionState;
-  if(st==='off'){ignLock=true;keyOn();setTimeout(function(){ignLock=false;},500);return;}
+
+  /* Если глохнет — не мешаем */
+  if(st==='stopping')return;
+
+  if(st==='off'){
+    ignLock=true;
+    keyOn();
+    setTimeout(function(){ignLock=false;},500);
+    return;
+  }
   if(st==='priming'){return;}
   if(st==='ready'){startCranking();return;}
-  if(st==='running'){ignLock=true;stopEngine();setTimeout(function(){ignLock=false;},500);return;}
+  if(st==='running'){
+    ignLock=true;
+    stopEngine();
+    setTimeout(function(){ignLock=false;},500);
+    return;
+  }
 }
+
 function onIgnUp(){
   ignLock=false;
   if(cranking)stopCranking();
 }
+
 if(ignBtn){
   ignBtn.addEventListener('pointerdown',onIgnDown);
   ignBtn.addEventListener('pointerup',onIgnUp);
@@ -226,17 +282,27 @@ function updateEngineUI(){
   if(lastEngine===S.engineType)return;
   lastEngine=S.engineType;
 
-  /* Обновить видимость кнопок передач (5 или 6 ступеней) */
   updateGearButtons();
 
   var clutch=document.getElementById('pClutch');
   var pedals=document.querySelector('.pedals');
-  if(E.auto){document.body.classList.add('auto-mode');if(clutch)clutch.style.display='none';if(pedals)pedals.style.gridTemplateColumns='1fr 1fr';}
-  else{document.body.classList.remove('auto-mode');if(clutch)clutch.style.display='';if(pedals)pedals.style.gridTemplateColumns='';}
+  if(E.auto){
+    document.body.classList.add('auto-mode');
+    if(clutch)clutch.style.display='none';
+    if(pedals)pedals.style.gridTemplateColumns='1fr 1fr';
+  } else {
+    document.body.classList.remove('auto-mode');
+    if(clutch)clutch.style.display='';
+    if(pedals)pedals.style.gridTemplateColumns='';
+  }
   if(E.auto){autoBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.ag)===S.gear);});}
   else{gearBtns.forEach(function(b){b.classList.toggle('on',Number(b.dataset.g)===S.gear);});}
+
   var gv=document.getElementById('gearVal');
-  if(gv){if(E.auto)gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':'D'));else gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':String(S.gear)));}
+  if(gv){
+    if(E.auto)gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':'D'));
+    else gv.textContent=(S.gear===0?'N':(S.gear===-1?'R':String(S.gear)));
+  }
 }
 
 function loop(now){
@@ -244,6 +310,7 @@ function loop(now){
   if(frame>0.25)frame=0.25;
   if(frame<0)frame=0;
   updateEngineUI();
+
   if(S.ignitionState==='priming'){
     if(primingStartTime===0)primingStartTime=Date.now();
     if(Date.now()-primingStartTime>=(S.primingDuration||1500)){
@@ -251,6 +318,7 @@ function loop(now){
       readyToStart();
     }
   }
+
   if(cranking&&S.ignitionState==='ready'){
     var crankTime=(Date.now()-crankStartTime)/1000;
     if(crankTime>=crankNeeded){
@@ -258,6 +326,7 @@ function loop(now){
       actualStart();
     }
   }
+
   tSm=smoothStep(tSm,S.pressed.gas?1:0,4.5,7.0,frame);
   bSm=smoothStep(bSm,S.pressed.brake?1:0,5.0,7.0,frame);
   cSm=smoothStep(cSm,S.pressed.clutch?1:0,7.0,1.6,frame);
@@ -268,18 +337,25 @@ function loop(now){
   }
 
   S.throttle=tSm;S.brakePedal=bSm;S.clutchPedal=cSm;
-  var pg=document.getElementById('pGas');var pb=document.getElementById('pBrake');var pc=document.getElementById('pClutch');
+
+  var pg=document.getElementById('pGas');
+  var pb=document.getElementById('pBrake');
+  var pc=document.getElementById('pClutch');
   if(pg)pg.querySelector('.bar').style.width=(tSm*100)+'%';
   if(pb)pb.querySelector('.bar').style.width=(bSm*100)+'%';
   if(pc)pc.querySelector('.bar').style.width=(cSm*100)+'%';
+
   acc+=frame;
   var steps=0;
   while(acc>=FIXED&&steps<12){S.physics(FIXED);acc-=FIXED;steps++;}
   if(steps>=12)acc=0;
+
   if(window.DVS_RENDER)window.DVS_RENDER.draw();
   if(spdEl)spdEl.textContent=String(Math.round(S.speed));
   requestAnimationFrame(loop);
 }
 if(S.engines[S.engineType].auto)S.gear=1;
 requestAnimationFrame(loop);
+
+console.log('engine.js: загружено');
 })();
