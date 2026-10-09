@@ -33,24 +33,75 @@ function injectStyles(){
   if(document.getElementById('settingsStyle'))return;
   var st=document.createElement('style');
   st.id='settingsStyle';
-  st.textContent='.settings-btn{position:fixed;top:8px;left:8px;z-index:99998;width:44px;height:44px;border-radius:50%;border:1px solid #263547;background:rgba(20,28,38,.9);color:#8fd8ff;font-size:20px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;padding:0}'+
-  '.settings-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,10,15,.94);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit}'+
-  '.settings-modal{width:100%;max-width:400px;max-height:92vh;overflow-y:auto;background:linear-gradient(180deg,#151d27,#0d131a);border:1px solid #22303f;border-radius:16px;padding:18px;color:#dbe4ee;box-shadow:0 20px 60px rgba(0,0,0,.7)}'+
-  '.settings-modal h2{font-size:14px;letter-spacing:3px;color:#8fd8ff;text-transform:uppercase;margin:0 0 16px;font-weight:800;text-align:center}'+
-  '.settings-item{width:100%;min-height:54px;margin-bottom:8px;border-radius:10px;border:1px solid #2c3e52;background:linear-gradient(180deg,#1a2430,#0e161e);color:#8ea4bd;font:700 13px/1.3 inherit;cursor:pointer;padding:10px 14px;text-align:left;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;gap:10px}'+
+  st.textContent=
+  /* Кнопка настроек — стеклянная, матовая */
+  '.settings-btn{position:fixed;top:8px;left:8px;z-index:99998;width:44px;height:44px;border-radius:50%;'+
+  'border:1px solid rgba(255,255,255,.08);background:rgba(20,20,20,.55);'+
+  'backdrop-filter:blur(40px) saturate(140%);-webkit-backdrop-filter:blur(40px) saturate(140%);'+
+  'color:#c0c0c0;font-size:20px;cursor:pointer;touch-action:manipulation;'+
+  'display:flex;align-items:center;justify-content:center;padding:0;'+
+  'box-shadow:0 8px 24px rgba(0,0,0,.5);transition:background .2s,border-color .2s,color .2s}'+
+  '.settings-btn:hover{border-color:rgba(255,255,255,.16);color:#ffffff}'+
+
+  /* Затемнение фона — с блюром */
+  '.settings-overlay{position:fixed;top:0;left:0;right:0;bottom:0;'+
+  'background:rgba(0,0,0,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);'+
+  'z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit}'+
+
+  /* Модальное окно — матовое стекло */
+  '.settings-modal{width:100%;max-width:400px;max-height:92vh;overflow-y:auto;'+
+  'background:rgba(15,15,15,.6);backdrop-filter:blur(50px) saturate(140%);'+
+  '-webkit-backdrop-filter:blur(50px) saturate(140%);'+
+  'border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:18px;'+
+  'color:#e8e8e8;box-shadow:0 24px 70px rgba(0,0,0,.7)}'+
+
+  /* Заголовок */
+  '.settings-modal h2{font-size:12px;letter-spacing:5px;color:#f0f0f0;'+
+  'text-transform:uppercase;margin:0 0 16px;font-weight:600;text-align:center}'+
+
+  /* Пункт меню */
+  '.settings-item{width:100%;min-height:54px;margin-bottom:8px;border-radius:14px;'+
+  'border:1px solid rgba(255,255,255,.06);background:rgba(25,25,25,.55);'+
+  'color:#c0c0c0;font:600 13px/1.3 inherit;cursor:pointer;padding:10px 14px;text-align:left;'+
+  'touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;gap:10px;'+
+  'transition:background .2s,border-color .2s,color .2s}'+
+  '.settings-item:hover{border-color:rgba(255,255,255,.12)}'+
   '.settings-item .txt{flex:1 1 auto;min-width:0}'+
-  '.settings-item .lbl{display:block;font-size:14px;color:inherit;font-weight:700}'+
-  '.settings-item .sub{display:block;font-size:10px;color:#5d7189;font-weight:600;margin-top:3px;letter-spacing:.5px}'+
-  '.settings-item .arrow{color:#8ea4bd;font-size:18px;flex:0 0 auto}'+
-  '.settings-item .check{color:#43c98a;font-size:18px;opacity:0;flex:0 0 auto}'+
-  '.settings-item.on{border-color:#43c98a;color:#e6fff3;background:linear-gradient(180deg,#1c3d2e,#0e231a)}'+
-  '.settings-item.on .check{opacity:1}.settings-item.on .sub{color:#7bc9a3}'+
-  '.sound-toggle{flex:0 0 auto;width:64px;height:32px;border-radius:16px;position:relative;border:1px solid #2c3e52;background:#0e161e;cursor:pointer}'+
-  '.sound-toggle.on{border-color:#43c98a;background:#1c3d2e}'+
-  '.sound-toggle .knob{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:#5d7189;transition:left .15s,background .15s}'+
-  '.sound-toggle.on .knob{left:34px;background:#43c98a}'+
-  '.settings-close{width:100%;height:46px;border-radius:10px;border:1px solid #2c3e52;background:linear-gradient(180deg,#1a2430,#0e161e);color:#8ea4bd;font:800 12px/1 inherit;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;touch-action:manipulation;margin-top:12px}'+
-  '.settings-back{width:100%;height:42px;border-radius:10px;border:1px solid #2c3e52;background:rgba(15,22,30,.8);color:#8ea4bd;font:700 12px/1 inherit;letter-spacing:1.5px;cursor:pointer;text-transform:uppercase;touch-action:manipulation;margin-bottom:14px}';
+  '.settings-item .lbl{display:block;font-size:14px;color:inherit;font-weight:600}'+
+  '.settings-item .sub{display:block;font-size:10px;color:#6a6a6a;font-weight:500;margin-top:3px;letter-spacing:.5px}'+
+  '.settings-item .arrow{color:#6a6a6a;font-size:18px;flex:0 0 auto}'+
+  '.settings-item .check{color:#f0f0f0;font-size:18px;opacity:0;flex:0 0 auto}'+
+
+  /* Активный пункт — белый */
+  '.settings-item.on{border-color:rgba(255,255,255,.22);color:#ffffff;background:rgba(255,255,255,.10)}'+
+  '.settings-item.on .check{opacity:1}.settings-item.on .sub{color:#a0a0a0}'+
+
+  /* Переключатель звука */
+  '.sound-toggle{flex:0 0 auto;width:64px;height:32px;border-radius:16px;position:relative;'+
+  'border:1px solid rgba(255,255,255,.08);background:rgba(40,40,40,.8);cursor:pointer;'+
+  'transition:background .2s,border-color .2s}'+
+  '.sound-toggle.on{border-color:#f0f0f0;background:#f0f0f0}'+
+  '.sound-toggle .knob{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;'+
+  'background:#6a6a6a;transition:left .15s,background .15s}'+
+  '.sound-toggle.on .knob{left:34px;background:#0a0a0a}'+
+
+  /* Кнопка Закрыть */
+  '.settings-close{width:100%;height:46px;border-radius:14px;border:1px solid rgba(255,255,255,.06);'+
+  'background:rgba(25,25,25,.55);color:#c0c0c0;font:600 12px/1 inherit;letter-spacing:2.5px;'+
+  'cursor:pointer;text-transform:uppercase;touch-action:manipulation;margin-top:12px;'+
+  'transition:background .2s,border-color .2s,color .2s}'+
+  '.settings-close:hover{border-color:rgba(255,255,255,.16);color:#ffffff}'+
+
+  /* Кнопка Назад */
+  '.settings-back{width:100%;height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.06);'+
+  'background:rgba(20,20,20,.5);color:#c0c0c0;font:600 12px/1 inherit;letter-spacing:2px;'+
+  'cursor:pointer;text-transform:uppercase;touch-action:manipulation;margin-bottom:14px;'+
+  'transition:background .2s,border-color .2s,color .2s}'+
+  '.settings-back:hover{border-color:rgba(255,255,255,.16);color:#ffffff}'+
+
+  /* Скрыть скроллбар внутри модалки */
+  '.settings-modal::-webkit-scrollbar{width:0;display:none}'+
+  '.settings-modal{scrollbar-width:none;-ms-overflow-style:none}';
   document.head.appendChild(st);
 }
 
