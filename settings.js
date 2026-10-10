@@ -17,8 +17,7 @@ var ENGINES_INFO=[
   {id:'wankel',label:'🏎️ Mazda RX-8',sub:'2-роторный Ванкель · 13B-MSP Renesis'},
   {id:'r4',label:'🚗 R4',sub:'4 цилиндра · в ряд'},
   {id:'v8',label:'🏎️ V12',sub:'12 цилиндров · V-образный'},
-  {id:'v16',label:'🔥 V22',sub:'22 цилиндра · монстр'},
-  {id:'shahed',label:'💥 Shahed-136 (MD-550)',sub:'4 цилиндра · оппозитный · 2-тактный · 50 л.с.'}
+  {id:'v16',label:'🔥 V22',sub:'22 цилиндра · монстр'}
 ];
 var WEATHERS=[
   {id:'summer',label:'☀️ Лето',sub:'+25°C · легко заводится'},
