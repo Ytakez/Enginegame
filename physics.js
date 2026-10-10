@@ -13,7 +13,8 @@ galant6:{name:'2.0 V6',cyls:6,maxTorque:179,idle:850,redline:7000,breakRpm:7800,
 wankel:{name:'13B Renesis',cyls:2,maxTorque:211,idle:900,redline:9000,breakRpm:10000,stallRpm:400,fireDiv:20,lpBase:800,lpRpm:0.10,subGain:0.4,sawGain:1.2,sqGain:0.15,noiseBase:0.008,mass:1400,gears:6},
 r4:{name:'R4',cyls:4,maxTorque:250,idle:900,redline:6800,breakRpm:8000,stallRpm:350,fireDiv:30,lpBase:700,lpRpm:0.15,subGain:0.9,sawGain:0.5,sqGain:0.15,noiseBase:0.015,mass:1250,gears:6},
 v8:{name:'V12',cyls:12,maxTorque:560,idle:900,redline:7600,breakRpm:9000,stallRpm:350,fireDiv:10,lpBase:400,lpRpm:0.11,subGain:1.8,sawGain:0.65,sqGain:0.07,noiseBase:0.038,mass:1500,gears:6},
-v16:{name:'V22',cyls:22,maxTorque:900,idle:900,redline:8200,breakRpm:9600,stallRpm:350,fireDiv:5.5,lpBase:230,lpRpm:0.07,subGain:2.6,sawGain:0.75,sqGain:0.04,noiseBase:0.065,mass:1800,gears:6}
+v16:{name:'V22',cyls:22,maxTorque:900,idle:900,redline:8200,breakRpm:9600,stallRpm:350,fireDiv:5.5,lpBase:230,lpRpm:0.07,subGain:2.6,sawGain:0.75,sqGain:0.04,noiseBase:0.065,mass:1800,gears:6},
+shahed:{name:'Shahed MD-550',cyls:4,maxTorque:48,idle:1800,redline:7500,breakRpm:8200,stallRpm:900,fireDiv:20,lpBase:1400,lpRpm:0.08,subGain:0.6,sawGain:0.9,sqGain:0.3,noiseBase:0.35,mass:200,gears:1}
 };
 var AMB={summer:25,autumn:8,winter:-15};
 var OVERHEAT_LIMIT=145;
@@ -21,7 +22,13 @@ var OVERHEAT_LIMIT=145;
 /* Передаточные числа */
 var RATIOS_5=[0, 3.40, 2.00, 1.40, 1.00, 0.80];
 var RATIOS_6=[0, 3.40, 2.10, 1.55, 1.20, 0.95, 0.78];
-function ratiosFor(E){return (E&&E.gears===6)?RATIOS_6:RATIOS_5;}
+var RATIOS_1=[0, 1.00];
+function ratiosFor(E){
+  if(!E) return RATIOS_5;
+  if(E.gears===6) return RATIOS_6;
+  if(E.gears===1) return RATIOS_1;
+  return RATIOS_5;
+}
 
 var savedEng='r4';
 try{savedEng=localStorage.getItem(STORAGE_KEY)||'r4';}catch(e){}
@@ -67,6 +74,8 @@ function torqueCurve(r,E){
   if(hi<=lo)hi=lo+1;
   var x=Math.max(lo,Math.min(hi,r));
   if(E.diesel)return 0.9+0.1*Math.sin(Math.PI*(x-lo)/(hi-lo));
+  /* Двухтактный Shahed — узкая полка момента */
+  if(E.gears===1 && E.idle>1500)return 0.5+0.5*Math.sin(Math.PI*(x-lo)/(hi-lo));
   return 0.55+0.45*Math.sin(Math.PI*(x-lo)/(hi-lo));
 }
 
@@ -172,20 +181,16 @@ S.setGear=function(g){
   var rpm=S.rpm||0;
   var running=S.running&&!S.stalled;
 
-  /* УСЛОВИЕ ХРУСТА: быстро + без сцепления + мотор работает */
   var isFast=delta<250;
   var willGrind=false;
 
   if(running && rpm>700){
-    /* Резко втыкаешь передачу без сцепления */
     if(!clutchIn && isFast && g>0 && rpm>800){
       willGrind=true;
     }
-    /* Прыжок через 2+ передачи без сцепления */
     if(!clutchIn && Math.abs(g - S._lastGearValue) >= 2 && rpm>800){
       willGrind=true;
     }
-    /* Очень быстрое двойное нажатие */
     if(!clutchIn && delta<150){
       willGrind=true;
     }
@@ -193,7 +198,6 @@ S.setGear=function(g){
 
   S._lastGearValue=g;
 
-  /* === ХРУСТ === */
   if(willGrind){
     if(window.DVS_SOUND && window.DVS_SOUND.gearCrunch){
       try{ window.DVS_SOUND.gearCrunch(); }catch(e){}
@@ -211,18 +215,15 @@ S.setGear=function(g){
       setTimeout(function(){activeBtn.classList.remove('grind');}, 450);
     }
 
-    /* На очень высоких — мотор глохнет */
     if(rpm>3000 && running){
       S.stalled=true;
       S.running=false;
     }
 
-    /* Рычаг возвращается на текущую передачу */
     if(window.DVS_GEARSTICK)try{window.DVS_GEARSTICK.moveTo(S.gear,true);}catch(e){}
-    return; /* передача НЕ включается */
+    return;
   }
 
-  /* === ОБЫЧНОЕ ПЕРЕКЛЮЧЕНИЕ === */
   S.gear=g;
 
   if(clutchIn && window.DVS_SOUND && window.DVS_SOUND.gearClick){
@@ -246,7 +247,6 @@ S.physics=function(dt){
   var mass=safeNum(E.mass,1250);
   var Iwheel=mass*wheelRadius*wheelRadius;
 
-  /* КЛИН */
   if(S.seized){
     S.rpm=0;S.throttle=0;
     S.speed*=Math.max(0,1-2.5*dt);
@@ -280,6 +280,8 @@ S.physics=function(dt){
     if(S.engineTemp<85)S.engineTemp+=dt*0.8;
     else if(S.engineTemp<95)S.engineTemp+=dt*0.3;
     if(S.rpm>E.redline*0.9&&S.throttle>0.7)S.engineTemp+=dt*0.5;
+    /* Двухтактный Shahed греется быстрее */
+    if(E.gears===1 && E.idle>1500) S.engineTemp += dt*0.6;
   } else {
     if(S.engineTemp>S.ambientTemp){
       var coolRate=(S.engineTemp-S.ambientTemp)*0.15;
@@ -335,7 +337,7 @@ S.physics=function(dt){
   var omegaDirect=omegaWheel*ratio;
   var omegaEngine=S.rpm*Math.PI/30;
 
-  /* КРУТЯЩИЙ МОМЕНТ ДВИГАТЕЛЯ */
+  /* КРУТЯЩИЙ МОМЕНТ */
   var Te=0;
   if(S.running&&!S.stalled){
     var thr=safeNum(S.throttle,0);
@@ -371,7 +373,6 @@ S.physics=function(dt){
       if(S.rpm<E.idle*0.7)Te+=(E.idle*0.7-S.rpm)*0.5;
     }
 
-    /* АНТИ-СТОЛЛ */
     if(eng>0.3 && S.rpm<E.idle*0.85){
       var guard=(E.idle*0.85-S.rpm)*0.5;
       if(guard>150)guard=150;
@@ -379,7 +380,6 @@ S.physics=function(dt){
     }
   }
 
-  /* СЦЕПЛЕНИЕ / ПЕРЕДАЧА МОМЕНТА */
   var slip=omegaEngine-omegaDirect;
   var Tc;
   if(E.cvt){
@@ -428,7 +428,6 @@ S.physics=function(dt){
     if(Math.abs(nW)<0.6)S.speed=0;
   }
 
-  /* Заглох: только если сцепление включено И обороты низкие */
   if(!S.stalled && S.running && S.rpm<E.stallRpm){
     if(eng>0.25 && S._shiftTimer<=0){
       S.stalled=true;S.running=false;
@@ -437,7 +436,7 @@ S.physics=function(dt){
     }
   }
 
-  /* ПЛАВНОЕ ЗАТУХАНИЕ — поршни/звук замедляются */
+  /* ПЛАВНОЕ ЗАТУХАНИЕ */
   if(S.stalled){
     var decayRate=E.idle*2.5;
     if(S.rpm>3000)decayRate=E.idle*4.5;
