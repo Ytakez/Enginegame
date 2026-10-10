@@ -74,6 +74,7 @@ function waitRef(){
       pin.rotation.z=Math.PI/2;pin.position.set(cxx,Math.sin(o1)*0.55,0);cg.add(pin);
     }
     root.add(cg);sCr(cg);
+
     var fw=new THREE.Group();
     var fwD=new THREE.Mesh(new THREE.CylinderGeometry(fwR,fwR,0.4,36),MAT.crank);
     fwD.rotation.z=Math.PI/2;fw.add(fwD);
@@ -84,6 +85,25 @@ function waitRef(){
       th.rotation.x=-a;fw.add(th);
     }
     fw.position.set(blockLen/2+0.7,y,0);root.add(fw);sF(fw);
+  }
+
+  /* Распредвал без шкивов — только вал с кулачками */
+  function makeCamshaft(root,blockLen,perRow,totalWidth,camY){
+    var cam=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.24,blockLen+0.4,16),MAT.crank);
+    cam.rotation.z=Math.PI/2;
+    cam.position.set(0,camY,0);
+    root.add(cam);sCam(cam);
+
+    for(var cc=0;cc<perRow*2;cc++){
+      var cg2=new THREE.Group();
+      var cd=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.32,0.26,16),MAT.head);
+      cd.rotation.z=Math.PI/2;cg2.add(cd);
+      var nb=new THREE.Mesh(new THREE.CylinderGeometry(0.12,0.12,0.28,10),MAT.rib);
+      nb.rotation.z=Math.PI/2;nb.position.y=0.30;cg2.add(nb);
+      var cx2=-totalWidth/2+0.5+cc*(totalWidth-1)/Math.max(1,perRow*2-1);
+      cg2.position.set(cx2,0,0);
+      cam.add(cg2);
+    }
   }
 
   /* R4 */
@@ -103,9 +123,9 @@ function waitRef(){
     var bk=new THREE.Mesh(new THREE.BoxGeometry(blockLen,blockH,blockD),MAT.blockG);
     bk.position.y=blockY;root.add(bk);pB(bk);
 
-    for(var rr=0;rr<6;rr++){
+    for(var rr=0;rr<8;rr++){
       var rb=new THREE.Mesh(new THREE.BoxGeometry(blockLen+0.04,0.05,blockD+0.04),MAT.rib);
-      rb.position.y=blockY-blockH/2+0.5+rr*(blockH-1)/5;root.add(rb);pR(rb);
+      rb.position.y=blockY-blockH/2+0.4+rr*(blockH-0.8)/7;root.add(rb);pR(rb);
     }
 
     var headY=blockY+blockH/2+0.6;
@@ -116,20 +136,35 @@ function waitRef(){
     var cv=new THREE.Mesh(new THREE.BoxGeometry(blockLen,0.6,blockD-0.5),MAT.cover);
     cv.position.y=covY;root.add(cv);pC(cv);
 
+    /* Болты на крышке */
     for(var b=0;b<=n;b++){
       var bx2=-blockLen/2+0.5+b*(blockLen-1)/n;
       root.add(bolt(bx2,covY+0.4,-(blockD/2-0.7),0.055));
       root.add(bolt(bx2,covY+0.4,(blockD/2-0.7),0.055));
     }
 
+    /* Распредвал внутри головки */
+    makeCamshaft(root,blockLen,n,totalWidth,headY-0.3);
+
+    /* Впускной коллектор с патрубками */
     var inMan=new THREE.Mesh(new THREE.CylinderGeometry(0.30,0.30,blockLen*0.9,14),MAT.intake);
     inMan.rotation.z=Math.PI/2;
     inMan.position.set(0,headY+0.2,blockD/2+0.35);root.add(inMan);
 
+    for(var ip=0;ip<n;ip++){
+      var ipx=-totalWidth/2+spacing/2+ip*spacing;
+      var pipe=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,0.5,10),MAT.intake);
+      pipe.position.set(ipx,headY+0.2,blockD/2+0.65);
+      pipe.rotation.x=Math.PI/2;
+      root.add(pipe);
+    }
+
+    /* Выпускной коллектор */
     var exMan=new THREE.Mesh(new THREE.CylinderGeometry(0.36,0.36,blockLen*0.9,14),MAT.exhaust);
     exMan.rotation.z=Math.PI/2;
     exMan.position.set(0,blockY-blockH/2-0.3,-blockD/2-0.35);root.add(exMan);
 
+    /* Поршни */
     var arr=[];
     for(var i=0;i<n;i++){
       var xx=-totalWidth/2+spacing/2+i*spacing;
@@ -138,10 +173,13 @@ function waitRef(){
     }
     sA(arr);
 
+    /* Свечи */
     for(var sp=0;sp<n;sp++){
       var spx=-totalWidth/2+spacing/2+sp*spacing;
-      var plug=new THREE.Mesh(new THREE.CylinderGeometry(0.11,0.11,0.35,10),MAT.chrome);
+      var plug=new THREE.Mesh(new THREE.CylinderGeometry(0.10,0.10,0.35,10),MAT.chrome);
       plug.position.set(spx,headY+0.35,-0.5);root.add(plug);
+      var plugTop=new THREE.Mesh(new THREE.CylinderGeometry(0.07,0.07,0.15,8),MAT.rib);
+      plugTop.position.set(spx,headY+0.6,-0.5);root.add(plugTop);
     }
   }
 
@@ -167,9 +205,9 @@ function waitRef(){
       bk.position.set(0,blockY,sign*bankDist);
       bk.rotation.x=sign*half;root.add(bk);pB(bk);
 
-      for(var rr=0;rr<5;rr++){
+      for(var rr=0;rr<6;rr++){
         var rb=new THREE.Mesh(new THREE.BoxGeometry(blockLen+0.04,0.05,2.65),MAT.rib);
-        rb.position.set(0,blockY-blockH/2+0.5+rr*(blockH-1)/4,sign*bankDist);
+        rb.position.set(0,blockY-blockH/2+0.4+rr*(blockH-0.8)/5,sign*bankDist);
         rb.rotation.x=sign*half;root.add(rb);pR(rb);
       }
 
@@ -182,15 +220,39 @@ function waitRef(){
       cv.position.set(0,headY+0.85,sign*(bankDist+1.5));
       cv.rotation.x=sign*half;root.add(cv);pC(cv);
 
+      /* Болты */
+      for(var b2=0;b2<=perRow;b2++){
+        var bx3=-blockLen/2+0.5+b2*(blockLen-1)/perRow;
+        root.add(bolt(bx3,headY+1.15,sign*(bankDist+1.85),0.05));
+      }
+
+      /* Распредвал каждого ряда */
+      var cam=new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,blockLen+0.3,14),MAT.crank);
+      cam.rotation.z=Math.PI/2;
+      cam.rotation.x=sign*half;
+      cam.position.set(0,headY-0.3,sign*(bankDist+0.9));
+      root.add(cam);sCam(cam);
+
+      /* Впуск с патрубками */
       var inMan=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.28,blockLen*0.9,12),MAT.intake);
       inMan.rotation.z=Math.PI/2;
       inMan.position.set(0,headY+0.3,sign*(bankDist+2.3));root.add(inMan);
 
+      for(var ip=0;ip<perRow;ip++){
+        var ipx=-totalWidth/2+spacing/2+ip*spacing;
+        var pipe=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.14,0.5,10),MAT.intake);
+        pipe.position.set(ipx,headY+0.3,sign*(bankDist+2.55));
+        pipe.rotation.x=Math.PI/2;
+        root.add(pipe);
+      }
+
+      /* Выпуск */
       var exMan=new THREE.Mesh(new THREE.CylinderGeometry(0.33,0.33,blockLen*0.9,12),MAT.exhaust);
       exMan.rotation.z=Math.PI/2;
       exMan.position.set(0,0.6,sign*0.4);root.add(exMan);
     }
 
+    /* Поршни */
     var arr=[];
     for(var s2=0;s2<2;s2++){
       var sg=s2===0?-1:1;
@@ -222,9 +284,9 @@ function waitRef(){
     var bk=new THREE.Mesh(new THREE.BoxGeometry(blockLen,blockH,blockD),MAT.blockGD);
     bk.position.y=blockY;root.add(bk);pB(bk);
 
-    for(var rr=0;rr<6;rr++){
+    for(var rr=0;rr<8;rr++){
       var rb=new THREE.Mesh(new THREE.BoxGeometry(blockLen+0.04,0.05,blockD+0.04),MAT.rib);
-      rb.position.y=blockY-blockH/2+0.5+rr*(blockH-1)/5;root.add(rb);pR(rb);
+      rb.position.y=blockY-blockH/2+0.4+rr*(blockH-0.8)/7;root.add(rb);pR(rb);
     }
 
     var headY=blockY+blockH/2+0.6;
@@ -235,26 +297,63 @@ function waitRef(){
     var cv=new THREE.Mesh(new THREE.BoxGeometry(blockLen,0.6,blockD-0.5),MAT.cover);
     cv.position.y=covY;root.add(cv);pC(cv);
 
+    /* Болты */
+    for(var b=0;b<=n;b++){
+      var bx2=-blockLen/2+0.5+b*(blockLen-1)/n;
+      root.add(bolt(bx2,covY+0.4,-(blockD/2-0.7),0.055));
+      root.add(bolt(bx2,covY+0.4,(blockD/2-0.7),0.055));
+    }
+
+    /* Распредвал */
+    makeCamshaft(root,blockLen,n,totalWidth,headY-0.3);
+
+    /* Впуск */
     var inMan=new THREE.Mesh(new THREE.CylinderGeometry(0.30,0.30,blockLen*0.9,14),MAT.intake);
     inMan.rotation.z=Math.PI/2;
     inMan.position.set(0,headY+0.2,blockD/2+0.35);root.add(inMan);
 
+    for(var ip=0;ip<n;ip++){
+      var ipx=-totalWidth/2+spacing/2+ip*spacing;
+      var pipe=new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.15,0.5,10),MAT.intake);
+      pipe.position.set(ipx,headY+0.2,blockD/2+0.65);
+      pipe.rotation.x=Math.PI/2;
+      root.add(pipe);
+    }
+
+    /* Выпуск */
     var exMan=new THREE.Mesh(new THREE.CylinderGeometry(0.38,0.38,blockLen*0.9,14),MAT.exhaust);
     exMan.rotation.z=Math.PI/2;
     exMan.position.set(0,blockY-blockH/2-0.3,-blockD/2-0.35);root.add(exMan);
 
+    /* Турбина с улиткой */
     var turbo=new THREE.Group();
     var tb=new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,0.65,20),MAT.turbo);
     tb.rotation.z=Math.PI/2;turbo.add(tb);
     var snail=new THREE.Mesh(new THREE.TorusGeometry(0.7,0.15,8,20),MAT.turbo);
     snail.rotation.y=Math.PI/2;turbo.add(snail);
+    var coldSide=new THREE.Mesh(new THREE.CylinderGeometry(0.55,0.55,0.5,16),MAT.crank);
+    coldSide.rotation.z=Math.PI/2;coldSide.position.set(0.6,0,0);turbo.add(coldSide);
     turbo.position.set(blockLen/2+0.35,blockY-blockH/2-0.3,-blockD/2-0.35);
     root.add(turbo);
     window._dciParts={turbo:turbo};
 
+    /* ТНВД */
     var pump=new THREE.Mesh(new THREE.BoxGeometry(1.7,1.4,1.6),MAT.turbo);
     pump.position.set(blockLen/2+0.5,headY+1.2,-blockD/2-0.3);root.add(pump);
 
+    /* Rail */
+    var rail=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,blockLen*0.85,14),MAT.chrome);
+    rail.rotation.z=Math.PI/2;
+    rail.position.set(0,headY+0.45,-blockD/2+0.2);root.add(rail);
+
+    /* Форсунки */
+    for(var t=0;t<n;t++){
+      var tx=-totalWidth/2+spacing/2+t*spacing;
+      var inj=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,0.5,10),MAT.rib);
+      inj.position.set(tx,headY+0.4,-0.5);root.add(inj);
+    }
+
+    /* Поршни */
     var arr=[];
     for(var i=0;i<n;i++){
       var xx=-totalWidth/2+spacing/2+i*spacing;
@@ -281,9 +380,9 @@ function waitRef(){
     var bk=new THREE.Mesh(new THREE.BoxGeometry(blockLen,blockH,blockD),MAT.blockGD);
     bk.position.y=blockY;root.add(bk);pB(bk);
 
-    for(var rr=0;rr<7;rr++){
+    for(var rr=0;rr<9;rr++){
       var rb=new THREE.Mesh(new THREE.BoxGeometry(blockLen+0.05,0.06,blockD+0.05),MAT.rib);
-      rb.position.y=blockY-blockH/2+0.5+rr*(blockH-1)/6;root.add(rb);pR(rb);
+      rb.position.y=blockY-blockH/2+0.5+rr*(blockH-1)/8;root.add(rb);pR(rb);
     }
 
     var headY=blockY+blockH/2+0.7;
@@ -294,21 +393,45 @@ function waitRef(){
     var cv=new THREE.Mesh(new THREE.BoxGeometry(blockLen,0.8,blockD-0.5),MAT.cover);
     cv.position.y=covY;root.add(cv);pC(cv);
 
+    /* Болты */
+    for(var b=0;b<=n;b++){
+      var bx2=-blockLen/2+0.5+b*(blockLen-1)/n;
+      root.add(bolt(bx2,covY+0.5,-(blockD/2-0.7),0.07));
+      root.add(bolt(bx2,covY+0.5,(blockD/2-0.7),0.07));
+    }
+
+    /* Распредвал */
+    makeCamshaft(root,blockLen,n,totalWidth,headY-0.3);
+
+    /* Впуск/выпуск */
+    var inMan=new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.32,blockLen*0.9,14),MAT.intake);
+    inMan.rotation.z=Math.PI/2;
+    inMan.position.set(0,headY+0.25,blockD/2+0.4);root.add(inMan);
+
+    var exMan=new THREE.Mesh(new THREE.CylinderGeometry(0.38,0.38,blockLen*0.9,14),MAT.exhaust);
+    exMan.rotation.z=Math.PI/2;
+    exMan.position.set(0,blockY-blockH/2-0.3,-blockD/2-0.4);root.add(exMan);
+
+    /* Топливный бак */
     var tank=new THREE.Mesh(new THREE.BoxGeometry(blockLen*0.6,2.0,1.8),MAT.turbo);
     tank.position.set(-blockLen/2-1.6,2.5,0);root.add(tank);
 
+    /* ТНВД */
     var pump=new THREE.Mesh(new THREE.BoxGeometry(2.2,2.0,2.0),MAT.turbo);
     pump.position.set(blockLen/2+0.9,covY+0.5,blockD/2-0.3);root.add(pump);
 
+    /* Воздушный фильтр */
     var af=new THREE.Mesh(new THREE.CylinderGeometry(0.95,0.95,2.4,18),MAT.turbo);
     af.rotation.z=Math.PI/2;
     af.position.set(-blockLen/2+1.5,covY+2.3,0);root.add(af);
 
+    /* Выхлопная труба вверх */
     var ex=new THREE.Mesh(new THREE.CylinderGeometry(0.36,0.36,7.0,14),MAT.turbo);
     ex.position.set(blockLen/2-1.3,covY+3.3,0);root.add(ex);
     var exC=new THREE.Mesh(new THREE.CylinderGeometry(0.52,0.52,0.4,14),MAT.rib);
     exC.position.set(blockLen/2-1.3,covY+6.8,0);root.add(exC);
 
+    /* Поршни */
     var arr=[];
     for(var i=0;i<n;i++){
       var xx=-totalWidth/2+spacing/2+i*spacing;
@@ -363,8 +486,8 @@ function waitRef(){
       var caseMesh=new THREE.Mesh(epiGeo,caseMat);
       unit.add(caseMesh);pB(caseMesh);
 
-      for(var rb=0;rb<14;rb++){
-        var ang=(rb/14)*Math.PI*2;
+      for(var rb=0;rb<16;rb++){
+        var ang=(rb/16)*Math.PI*2;
         var rr=Rr+0.32;
         var rib=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.35,0.22),MAT.rib);
         rib.position.set(Math.cos(ang)*rr,Math.sin(ang)*rr,depth/2+0.12);
@@ -392,61 +515,6 @@ function waitRef(){
       var hub=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.95,20),MAT.rib);
       hub.rotation.x=Math.PI/2;rotorMesh.add(hub);
 
-      var inPipe=new THREE.Mesh(new THREE.CylinderGeometry(0.30,0.30,0.9,12),MAT.intake);
-      inPipe.rotation.z=Math.PI/2;inPipe.position.set(Rr+0.4,0,0);unit.add(inPipe);
-      var exPipe=new THREE.Mesh(new THREE.CylinderGeometry(0.36,0.36,1.0,12),MAT.exhaust);
-      exPipe.rotation.z=Math.PI/2;exPipe.position.set(-Rr-0.5,0,0);unit.add(exPipe);
-
-      window._dvsWankelRotors.push({mesh:rotorMesh,ecc:ecc});
-      root.add(unit);
-    }
-
-    var fw=new THREE.Group();
-    var fwDisc=new THREE.Mesh(new THREE.CylinderGeometry(1.5,1.5,0.35,36),MAT.crank);
-    fwDisc.rotation.z=Math.PI/2;fw.add(fwDisc);
-    fw.position.set(space+2.0,0,0);root.add(fw);sF(fw);
-
-    var base=new THREE.Mesh(new THREE.BoxGeometry(space+2.5,0.4,5.0),MAT.pan);
-    base.position.y=-2.3;root.add(base);
-  }
-
-  window.DVS_3D_REBUILD=function(){
-    var scene=R.getScene();
-    if(!scene)return;
-    var cfg=R.getCfg(S.engineType)||{n:4,v:false};
-
-    var old=R.getRoot();
-    if(old){
-      scene.remove(old);
-      try{
-        old.traverse(function(ch){
-          if(ch.geometry)try{ch.geometry.dispose();}catch(e){}
-          if(ch.material){
-            if(Array.isArray(ch.material))ch.material.forEach(function(mm){try{mm.dispose();}catch(e){}});
-            else try{ch.material.dispose();}catch(e){}
-          }
-        });
-      }catch(e){}
-    }
-    if(R.clearAll)R.clearAll();
-    window._dvsWankelRotors=[];
-    window._dciParts=null;
-    window._shahedProp=null;
-
-    var root=new THREE.Group();scene.add(root);R.setRoot(root);
-
-    var t=S.engineType;
-    try{
-      if(t==='wankel')        buildWankel(root);
-      else if(t==='tdi')      buildDiesel(root,cfg);
-      else if(t==='dci')      buildDiesel(root,cfg);
-      else if(t==='mt82')     buildTractor(root,cfg);
-      else if(cfg.v)          buildV(root,cfg);
-      else                    buildInline(root,cfg);
-    }catch(e){console.warn('build crash:',e);}
-  };
-
-  console.log('view3d-build.js: загружено');
-}
-waitRef();
-})();
+      /* Свечи */
+      for(var s=0;s<2;s++){
+        var sAng=Math.PI/2+(s===0?-0.55:0.55
