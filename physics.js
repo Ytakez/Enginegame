@@ -13,22 +13,14 @@ galant6:{name:'2.0 V6',cyls:6,maxTorque:179,idle:850,redline:7000,breakRpm:7800,
 wankel:{name:'13B Renesis',cyls:2,maxTorque:211,idle:900,redline:9000,breakRpm:10000,stallRpm:400,fireDiv:20,lpBase:800,lpRpm:0.10,subGain:0.4,sawGain:1.2,sqGain:0.15,noiseBase:0.008,mass:1400,gears:6},
 r4:{name:'R4',cyls:4,maxTorque:250,idle:900,redline:6800,breakRpm:8000,stallRpm:350,fireDiv:30,lpBase:700,lpRpm:0.15,subGain:0.9,sawGain:0.5,sqGain:0.15,noiseBase:0.015,mass:1250,gears:6},
 v8:{name:'V12',cyls:12,maxTorque:560,idle:900,redline:7600,breakRpm:9000,stallRpm:350,fireDiv:10,lpBase:400,lpRpm:0.11,subGain:1.8,sawGain:0.65,sqGain:0.07,noiseBase:0.038,mass:1500,gears:6},
-v16:{name:'V22',cyls:22,maxTorque:900,idle:900,redline:8200,breakRpm:9600,stallRpm:350,fireDiv:5.5,lpBase:230,lpRpm:0.07,subGain:2.6,sawGain:0.75,sqGain:0.04,noiseBase:0.065,mass:1800,gears:6},
-shahed:{name:'Shahed MD-550',cyls:4,maxTorque:48,idle:1800,redline:7500,breakRpm:8200,stallRpm:900,fireDiv:20,lpBase:1400,lpRpm:0.08,subGain:0.6,sawGain:0.9,sqGain:0.3,noiseBase:0.35,mass:200,gears:1}
+v16:{name:'V22',cyls:22,maxTorque:900,idle:900,redline:8200,breakRpm:9600,stallRpm:350,fireDiv:5.5,lpBase:230,lpRpm:0.07,subGain:2.6,sawGain:0.75,sqGain:0.04,noiseBase:0.065,mass:1800,gears:6}
 };
 var AMB={summer:25,autumn:8,winter:-15};
 var OVERHEAT_LIMIT=145;
 
-/* Передаточные числа */
 var RATIOS_5=[0, 3.40, 2.00, 1.40, 1.00, 0.80];
 var RATIOS_6=[0, 3.40, 2.10, 1.55, 1.20, 0.95, 0.78];
-var RATIOS_1=[0, 1.00];
-function ratiosFor(E){
-  if(!E) return RATIOS_5;
-  if(E.gears===6) return RATIOS_6;
-  if(E.gears===1) return RATIOS_1;
-  return RATIOS_5;
-}
+function ratiosFor(E){return (E&&E.gears===6)?RATIOS_6:RATIOS_5;}
 
 var savedEng='r4';
 try{savedEng=localStorage.getItem(STORAGE_KEY)||'r4';}catch(e){}
@@ -74,8 +66,6 @@ function torqueCurve(r,E){
   if(hi<=lo)hi=lo+1;
   var x=Math.max(lo,Math.min(hi,r));
   if(E.diesel)return 0.9+0.1*Math.sin(Math.PI*(x-lo)/(hi-lo));
-  /* Двухтактный Shahed — узкая полка момента */
-  if(E.gears===1 && E.idle>1500)return 0.5+0.5*Math.sin(Math.PI*(x-lo)/(hi-lo));
   return 0.55+0.45*Math.sin(Math.PI*(x-lo)/(hi-lo));
 }
 
@@ -165,7 +155,6 @@ S.setEngine=function(type){
   try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
 };
 
-/* ==================== ПЕРЕКЛЮЧЕНИЕ ПЕРЕДАЧ + ХРУСТ ==================== */
 S.setGear=function(g){
   var E=curE();
   if(E.auto)return;
@@ -185,15 +174,9 @@ S.setGear=function(g){
   var willGrind=false;
 
   if(running && rpm>700){
-    if(!clutchIn && isFast && g>0 && rpm>800){
-      willGrind=true;
-    }
-    if(!clutchIn && Math.abs(g - S._lastGearValue) >= 2 && rpm>800){
-      willGrind=true;
-    }
-    if(!clutchIn && delta<150){
-      willGrind=true;
-    }
+    if(!clutchIn && isFast && g>0 && rpm>800){willGrind=true;}
+    if(!clutchIn && Math.abs(g - S._lastGearValue) >= 2 && rpm>800){willGrind=true;}
+    if(!clutchIn && delta<150){willGrind=true;}
   }
 
   S._lastGearValue=g;
@@ -203,23 +186,11 @@ S.setGear=function(g){
       try{ window.DVS_SOUND.gearCrunch(); }catch(e){}
     }
     try{ if(navigator.vibrate) navigator.vibrate([40,30,40,30,80]); }catch(e){}
-
     var targetBtn=document.querySelector('.gbtn[data-g="'+g+'"]');
-    if(targetBtn){
-      targetBtn.classList.add('grind');
-      setTimeout(function(){targetBtn.classList.remove('grind');}, 450);
-    }
+    if(targetBtn){targetBtn.classList.add('grind');setTimeout(function(){targetBtn.classList.remove('grind');}, 450);}
     var activeBtn=document.querySelector('.gbtn.on');
-    if(activeBtn){
-      activeBtn.classList.add('grind');
-      setTimeout(function(){activeBtn.classList.remove('grind');}, 450);
-    }
-
-    if(rpm>3000 && running){
-      S.stalled=true;
-      S.running=false;
-    }
-
+    if(activeBtn){activeBtn.classList.add('grind');setTimeout(function(){activeBtn.classList.remove('grind');}, 450);}
+    if(rpm>3000 && running){S.stalled=true;S.running=false;}
     if(window.DVS_GEARSTICK)try{window.DVS_GEARSTICK.moveTo(S.gear,true);}catch(e){}
     return;
   }
@@ -241,7 +212,6 @@ S.setGear=function(g){
   try{if(navigator.vibrate)navigator.vibrate(6);}catch(e){}
 };
 
-/* ==================== ФИЗИКА ==================== */
 S.physics=function(dt){
   var E=curE();
   var mass=safeNum(E.mass,1250);
@@ -263,7 +233,6 @@ S.physics=function(dt){
   S.rpm=safeNum(S.rpm,0);
   S.speed=safeNum(S.speed,0);
 
-  /* Авто-сцепление при смене передачи */
   if(S._prevGear!==S.gear){
     S._shiftTimer=0.35;
     S._prevGear=S.gear;
@@ -275,13 +244,10 @@ S.physics=function(dt){
   var shiftSlip=1;
   if(S._shiftTimer>0)shiftSlip=0.15;
 
-  /* ТЕМПЕРАТУРА */
   if(S.running&&!S.stalled){
     if(S.engineTemp<85)S.engineTemp+=dt*0.8;
     else if(S.engineTemp<95)S.engineTemp+=dt*0.3;
     if(S.rpm>E.redline*0.9&&S.throttle>0.7)S.engineTemp+=dt*0.5;
-    /* Двухтактный Shahed греется быстрее */
-    if(E.gears===1 && E.idle>1500) S.engineTemp += dt*0.6;
   } else {
     if(S.engineTemp>S.ambientTemp){
       var coolRate=(S.engineTemp-S.ambientTemp)*0.15;
@@ -291,7 +257,6 @@ S.physics=function(dt){
     }
   }
 
-  /* ПЕРЕГРЕВ = КЛИН */
   if(S.engineTemp >= OVERHEAT_LIMIT && S.running){
     S.seized=true;
     S.throttle=0;
@@ -300,7 +265,6 @@ S.physics=function(dt){
     return;
   }
 
-  /* ПЕРЕДАТОЧНОЕ ЧИСЛО */
   var ratio=0;
   if(E.cvt){
     var vv=Math.abs(S.speed);
@@ -320,7 +284,6 @@ S.physics=function(dt){
   }
   ratio=safeNum(ratio,0);
 
-  /* СЦЕПЛЕНИЕ */
   var eng;
   if(E.auto){
     if(S.gear===0||S.stalled||!S.running){eng=0;}
@@ -337,7 +300,6 @@ S.physics=function(dt){
   var omegaDirect=omegaWheel*ratio;
   var omegaEngine=S.rpm*Math.PI/30;
 
-  /* КРУТЯЩИЙ МОМЕНТ */
   var Te=0;
   if(S.running&&!S.stalled){
     var thr=safeNum(S.throttle,0);
@@ -436,7 +398,6 @@ S.physics=function(dt){
     }
   }
 
-  /* ПЛАВНОЕ ЗАТУХАНИЕ */
   if(S.stalled){
     var decayRate=E.idle*2.5;
     if(S.rpm>3000)decayRate=E.idle*4.5;
