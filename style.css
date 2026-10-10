@@ -423,3 +423,65 @@ body.broken #breakBanner{display:block !important}
   .pedal .icon{font-size:20px}
   .pedal .sub{display:none}
 }
+/* ==================== МАКСИМАЛЬНЫЙ БЛЮР НА КНОПКЕ ПУСК/СТОП/ЗАЖИГАНИЕ ==================== */
+
+/* Все состояния кнопки — сильный блюр */
+#engineWrap #ignBtn,
+.ignbtn,
+#ignBtn{
+  backdrop-filter:blur(160px) saturate(220%) brightness(.75) !important;
+  -webkit-backdrop-filter:blur(160px) saturate(220%) brightness(.75) !important;
+  background:rgba(10,10,10,.35) !important;
+  border:1.5px solid rgba(255,255,255,.20) !important;
+  box-shadow:
+    0 14px 44px rgba(0,0,0,.8),
+    0 0 0 1px rgba(255,255,255,.05),
+    inset 0 1px 0 rgba(255,255,255,.22),
+    inset 0 -1px 0 rgba(0,0,0,.5),
+    inset 0 0 40px rgba(0,0,0,.35) !important;
+}
+
+/* ЗАЖИГАНИЕ — тёмное стекло */
+#engineWrap #ignBtn{
+  color:#e0e8f2 !important;
+}
+
+/* ПУСК — янтарный со свечением + тот же стеклянный блюр */
+#engineWrap #ignBtn.start,
+#ignBtn.start,
+.ignbtn.start{
+  backdrop-filter:blur(160px) saturate(240%) !important;
+  -webkit-backdrop-filter:blur(160px) saturate(240%) !important;
+  background:linear-gradient(180deg,rgba(232,168,48,.55),rgba(200,120,20,.45)) !important;
+  border:1.5px solid rgba(255,215,130,.75) !important;
+  color:#fff8e0 !important;
+  box-shadow:
+    0 0 50px rgba(255,180,60,.7),
+    0 14px 44px rgba(0,0,0,.8),
+    inset 0 1px 0 rgba(255,255,255,.5),
+    inset 0 0 40px rgba(255,180,60,.3) !important;
+}
+
+/* СТОП — чёрное стекло с сильным блюром */
+#engineWrap #ignBtn.on,
+#ignBtn.on,
+.ignbtn.on{
+  backdrop-filter:blur(180px) saturate(220%) brightness(.7) !important;
+  -webkit-backdrop-filter:blur(180px) saturate(220%) brightness(.7) !important;
+  background:rgba(0,0,0,.28) !important;
+  border:1.5px solid rgba(255,255,255,.28) !important;
+  color:#ffffff !important;
+  font-weight:800 !important;
+  box-shadow:
+    0 16px 50px rgba(0,0,0,.9),
+    inset 0 1px 0 rgba(255,255,255,.28),
+    inset 0 -1px 0 rgba(0,0,0,.5),
+    inset 0 0 50px rgba(0,0,0,.45) !important;
+}
+
+/* ГЛОХНЕТ... */
+#engineWrap #ignBtn.on:active,
+#ignBtn.on:active,
+.ignbtn.on:active{
+  background:rgba(0,0,0,.5) !important;
+}
