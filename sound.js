@@ -3,7 +3,6 @@
 var S = window.S;
 if(!S) return;
 
-/* ==================== СОСТОЯНИЕ ==================== */
 var ctx = null;
 var masterGain = null;
 var muted = false;
@@ -17,7 +16,6 @@ var shaper=null;
 var shaperGain=null;
 var postGain=null;
 
-/* ==================== ПРОФИЛИ ДВИГАТЕЛЕЙ ==================== */
 var PROFILES = {
   scooter:  { pitch:1.55, sub:0.12, saw:0.20, sq:0.08, noise:0.020, drive:5.5,  filter:2000, q:2.6, wave:'sawtooth', detune:28 },
   tdi:      { pitch:0.68, sub:0.30, saw:0.26, sq:0.14, noise:0.070, drive:11.0, filter:850,  q:4.0, wave:'square',   detune:60 },
@@ -29,9 +27,7 @@ var PROFILES = {
   wankel:   { pitch:1.30, sub:0.14, saw:0.28, sq:0.14, noise:0.024, drive:7.0,  filter:2400, q:3.4, wave:'sawtooth', detune:44 },
   r4:       { pitch:0.98, sub:0.20, saw:0.24, sq:0.10, noise:0.020, drive:6.0,  filter:1600, q:2.8, wave:'sawtooth', detune:30 },
   v8:       { pitch:1.08, sub:0.22, saw:0.22, sq:0.09, noise:0.028, drive:5.6,  filter:1800, q:2.6, wave:'sawtooth', detune:16 },
-  v16:      { pitch:0.86, sub:0.34, saw:0.28, sq:0.14, noise:0.044, drive:8.0,  filter:1400, q:3.2, wave:'sawtooth', detune:70 },
-  /* Shahed — резкий, как бензопила */
-  shahed:   { pitch:1.85, sub:0.10, saw:0.35, sq:0.20, noise:0.150, drive:8.0,  filter:2800, q:3.5, wave:'sawtooth', detune:55 }
+  v16:      { pitch:0.86, sub:0.34, saw:0.28, sq:0.14, noise:0.044, drive:8.0,  filter:1400, q:3.2, wave:'sawtooth', detune:70 }
 };
 var DEFAULT_PROFILE = PROFILES.r4;
 
@@ -40,7 +36,6 @@ function getProfile(){
   return PROFILES[t] || DEFAULT_PROFILE;
 }
 
-/* ==================== DRIVE CURVE ==================== */
 function makeDriveCurve(amount){
   var n = 2048;
   var curve = new Float32Array(n);
@@ -52,7 +47,6 @@ function makeDriveCurve(amount){
   return curve;
 }
 
-/* ==================== ИНИЦИАЛИЗАЦИЯ ==================== */
 function initAudio(){
   if(ctx) return true;
   try{
@@ -88,16 +82,14 @@ function initAudio(){
     oscSub.frequency.value = 40;
     subGain = ctx.createGain();
     subGain.gain.value = 0;
-    oscSub.connect(subGain);
-    subGain.connect(shaper);
+    oscSub.connect(subGain); subGain.connect(shaper);
 
     oscSaw1 = ctx.createOscillator();
     oscSaw1.type = 'sawtooth';
     oscSaw1.frequency.value = 80;
     saw1Gain = ctx.createGain();
     saw1Gain.gain.value = 0;
-    oscSaw1.connect(saw1Gain);
-    saw1Gain.connect(shaper);
+    oscSaw1.connect(saw1Gain); saw1Gain.connect(shaper);
 
     oscSaw2 = ctx.createOscillator();
     oscSaw2.type = 'sawtooth';
@@ -105,16 +97,14 @@ function initAudio(){
     oscSaw2.detune.value = 40;
     saw2Gain = ctx.createGain();
     saw2Gain.gain.value = 0;
-    oscSaw2.connect(saw2Gain);
-    saw2Gain.connect(shaper);
+    oscSaw2.connect(saw2Gain); saw2Gain.connect(shaper);
 
     oscSq = ctx.createOscillator();
     oscSq.type = 'square';
     oscSq.frequency.value = 20;
     sqGain = ctx.createGain();
     sqGain.gain.value = 0;
-    oscSq.connect(sqGain);
-    sqGain.connect(shaper);
+    oscSq.connect(sqGain); sqGain.connect(shaper);
 
     var bufSize = 2 * ctx.sampleRate;
     var buffer = ctx.createBuffer(1, bufSize, ctx.sampleRate);
@@ -131,8 +121,7 @@ function initAudio(){
 
     noiseGain = ctx.createGain();
     noiseGain.gain.value = 0;
-    noiseNode.connect(noiseFilter);
-    noiseFilter.connect(noiseGain);
+    noiseNode.connect(noiseFilter); noiseFilter.connect(noiseGain);
     noiseGain.connect(shaper);
 
     console.log('sound.js: готово');
@@ -155,24 +144,19 @@ function startOscillators(){
 
 function unlockAudio(){
   if(!ctx) initAudio();
-  if(ctx && ctx.state === 'suspended'){
-    ctx.resume().catch(function(){});
-  }
+  if(ctx && ctx.state === 'suspended'){ctx.resume().catch(function(){});}
 }
 document.addEventListener('touchstart', unlockAudio, {passive:true});
 document.addEventListener('click', unlockAudio);
 document.addEventListener('keydown', unlockAudio);
 
-/* ==================== ОСНОВНОЙ ЦИКЛ ==================== */
 function updateSound(){
   if(!ctx || !masterGain) return;
-
   var rpm = S.rpm || 0;
   var thr = S.throttle || 0;
   var running = S.running && !S.stalled;
   var stopping = S.ignitionState === 'stopping';
 
-  /* ТИШИНА когда мотор не работает */
   if(!running && !stopping){
     if(oscStarted){
       try{ subGain.gain.value = 0; }catch(e){}
@@ -216,8 +200,7 @@ function updateSound(){
         noiseFilter.Q.value = 1.0;
         noiseGain = ctx.createGain();
         noiseGain.gain.value = 0;
-        noiseNode.connect(noiseFilter);
-        noiseFilter.connect(noiseGain);
+        noiseNode.connect(noiseFilter); noiseFilter.connect(noiseGain);
         noiseGain.connect(shaper);
       }catch(e){}
       oscStarted = false;
@@ -289,7 +272,6 @@ function updateSound(){
 }
 setInterval(updateSound, 30);
 
-/* ==================== ТОПЛИВНЫЙ НАСОС ==================== */
 function fuelPump(){
   if(!initAudio()) return;
   try{
@@ -308,7 +290,6 @@ function fuelPump(){
   }catch(e){}
 }
 
-/* ==================== СТАРТЕР ==================== */
 function startCrank(){
   if(!initAudio()) return;
   try{
@@ -376,7 +357,6 @@ function stall(){
   }catch(e){}
 }
 
-/* ==================== ХРУСТ КОРОБКИ ==================== */
 function gearCrunch(){
   if(!initAudio()) return;
   if(!ctx) return;
@@ -421,30 +401,6 @@ function gearCrunch(){
     og2.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
     o2.connect(og2); og2.connect(ctx.destination);
     o2.start(t); o2.stop(t + 0.15);
-
-    setTimeout(function(){
-      if(!ctx) return;
-      try{
-        var t2 = ctx.currentTime;
-        var b2 = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.12), ctx.sampleRate);
-        var d2 = b2.getChannelData(0);
-        for(var j = 0; j < d2.length; j++){
-          var env2 = Math.exp(-j / (d2.length * 0.4));
-          d2[j] = (Math.random() * 2 - 1) * env2;
-        }
-        var n2 = ctx.createBufferSource();
-        n2.buffer = b2;
-        var f2 = ctx.createBiquadFilter();
-        f2.type = 'bandpass';
-        f2.frequency.value = 4200;
-        f2.Q.value = 10;
-        var g2 = ctx.createGain();
-        g2.gain.setValueAtTime(0.15, t2);
-        g2.gain.exponentialRampToValueAtTime(0.001, t2 + 0.14);
-        n2.connect(f2); f2.connect(g2); g2.connect(ctx.destination);
-        n2.start(t2);
-      }catch(e){}
-    }, 60);
   }catch(e){}
 }
 
@@ -465,7 +421,6 @@ function gearClick(){
   }catch(e){}
 }
 
-/* ==================== УПРАВЛЕНИЕ ==================== */
 function toggleMute(){
   muted = !muted;
   try{ localStorage.setItem('dvs_muted', muted ? '1' : '0'); }catch(e){}
@@ -493,5 +448,5 @@ window.DVS_SOUND = {
 document.addEventListener('touchstart', function(){ if(!ctx) initAudio(); }, {once:true, passive:true});
 document.addEventListener('click', function(){ if(!ctx) initAudio(); }, {once:true});
 
-console.log('sound.js: загружено (11 профилей)');
+console.log('sound.js: загружено (10 профилей)');
 })();
