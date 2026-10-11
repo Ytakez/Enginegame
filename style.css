@@ -34,23 +34,23 @@ header{
 .eng-badge{
   position:fixed;top:6px;right:8px;z-index:30;
   padding:3px 8px;border-radius:10px;
-  border:1px solid rgba(255,255,255,.10);
-  background:rgba(12,12,12,.5);
-  backdrop-filter:blur(60px) saturate(180%);
-  -webkit-backdrop-filter:blur(60px) saturate(180%);
-  color:#b8b8b8;font:600 9px/1 inherit;letter-spacing:1px;
-  box-shadow:0 4px 14px rgba(0,0,0,.5);
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(20,20,20,.35);
+  backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
+  -webkit-backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
+  color:#e0e8f0;font:600 9px/1 inherit;letter-spacing:1px;
+  box-shadow:0 4px 14px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.25);
 }
 #repairBtn{
   position:fixed;top:56px;left:10px;z-index:1001;
   width:46px;height:46px;border-radius:50%;
-  border:1px solid rgba(230,130,130,.4);
-  background:rgba(140,30,30,.5);
-  backdrop-filter:blur(60px) saturate(180%);
-  -webkit-backdrop-filter:blur(60px) saturate(180%);
+  border:1px solid rgba(230,130,130,.5);
+  background:rgba(140,30,30,.35);
+  backdrop-filter:blur(40px) saturate(180%);
+  -webkit-backdrop-filter:blur(40px) saturate(180%);
   color:#fff;font-size:20px;cursor:pointer;
   align-items:center;justify-content:center;
-  box-shadow:0 0 20px rgba(200,80,80,.35);
+  box-shadow:0 8px 22px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.25),0 0 20px rgba(200,80,80,.35);
   display:none;
 }
 body.broken #repairBtn{display:flex}
@@ -64,13 +64,13 @@ main{
 }
 .panel{
   position:relative;
-  background:rgba(10,10,10,.5);
-  backdrop-filter:blur(100px) saturate(200%);
-  -webkit-backdrop-filter:blur(100px) saturate(200%);
-  border:1px solid rgba(255,255,255,.10);
+  background:rgba(15,15,15,.28);
+  backdrop-filter:blur(50px) saturate(180%) brightness(1.05);
+  -webkit-backdrop-filter:blur(50px) saturate(180%) brightness(1.05);
+  border:1px solid rgba(255,255,255,.14);
   border-radius:16px;
   padding:6px;
-  box-shadow:0 14px 40px rgba(0,0,0,.65);
+  box-shadow:0 14px 40px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.18);
   overflow:hidden;
 }
 
@@ -93,99 +93,111 @@ main{
 #view3dBtn{
   position:absolute;top:8px;right:8px;z-index:20;
   padding:7px 14px;border-radius:20px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(12,12,12,.5);
-  backdrop-filter:blur(60px) saturate(180%);
-  -webkit-backdrop-filter:blur(60px) saturate(180%);
-  color:#c0c0c0;font:600 10px/1 inherit;letter-spacing:1px;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(20,20,20,.35);
+  backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
+  -webkit-backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
+  color:#e0e8f0;font:600 10px/1 inherit;letter-spacing:1px;
   cursor:pointer;
-  box-shadow:0 8px 24px rgba(0,0,0,.55);
+  box-shadow:0 8px 24px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.25);
 }
-#view3dBtn:hover{border-color:rgba(255,255,255,.24);color:#fff}
+#view3dBtn:hover{border-color:rgba(255,255,255,.35);color:#fff}
 
 #ghostBtn{
   position:absolute;top:8px;right:96px;z-index:20;
   padding:7px 14px;border-radius:20px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(12,12,12,.5);
-  backdrop-filter:blur(60px) saturate(180%);
-  -webkit-backdrop-filter:blur(60px) saturate(180%);
-  color:#c0c0c0;font:600 10px/1 inherit;letter-spacing:1px;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(20,20,20,.35);
+  backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
+  -webkit-backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
+  color:#e0e8f0;font:600 10px/1 inherit;letter-spacing:1px;
   cursor:pointer;
-  box-shadow:0 8px 24px rgba(0,0,0,.55);
+  box-shadow:0 8px 24px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.25);
   display:none;
 }
-#ghostBtn:hover{border-color:rgba(255,255,255,.24);color:#fff}
+#ghostBtn:hover{border-color:rgba(255,255,255,.35);color:#fff}
 
-/* ==================== КНОПКА ПУСК / СТОП / ЗАЖИГАНИЕ — ЖИДКОЕ СТЕКЛО ==================== */
+/* ==================== КНОПКА ПУСК / СТОП / ЗАЖИГАНИЕ — LIQUID GLASS ==================== */
 .ignbtn{
   width:100%;
   height:48px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.18);
-  background:rgba(255,255,255,.04);
-  backdrop-filter:blur(200px) saturate(280%) brightness(1.05);
-  -webkit-backdrop-filter:blur(200px) saturate(280%) brightness(1.05);
-  color:#f0f4f8;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.30);
+  background:rgba(255,255,255,.06);
+  backdrop-filter:blur(40px) saturate(200%) brightness(1.15);
+  -webkit-backdrop-filter:blur(40px) saturate(200%) brightness(1.15);
+  color:#ffffff;
   font:600 12px/1 inherit;
   letter-spacing:2.5px;
   text-transform:uppercase;
   cursor:pointer;
   touch-action:manipulation;
-  text-shadow:0 1px 3px rgba(0,0,0,.5);
-  transition:all .35s cubic-bezier(.4,0,.2,1);
+  text-shadow:0 1px 4px rgba(0,0,0,.7);
+  transition:all .3s cubic-bezier(.4,0,.2,1);
   box-shadow:
-    0 20px 60px rgba(0,0,0,.65),
-    0 4px 12px rgba(0,0,0,.4),
-    inset 0 1px 0 rgba(255,255,255,.30),
-    inset 0 -1px 0 rgba(0,0,0,.20),
-    inset 0 0 60px rgba(255,255,255,.04);
+    inset 0 1px 0 rgba(255,255,255,.45),
+    inset 0 -1px 0 rgba(0,0,0,.25),
+    inset 0 0 0 1px rgba(255,255,255,.05),
+    0 12px 40px rgba(0,0,0,.55),
+    0 4px 14px rgba(0,0,0,.35);
 }
-.ignbtn:hover{border-color:rgba(255,255,255,.28);color:#ffffff}
+.ignbtn:hover{
+  background:rgba(255,255,255,.10);
+  border-color:rgba(255,255,255,.40);
+}
 
-/* ПУСК — янтарное стекло */
+/* ПУСК — янтарное жидкое стекло */
 #ignBtn.start,
 .ignbtn.start{
-  backdrop-filter:blur(200px) saturate(300%) brightness(1.1);
-  -webkit-backdrop-filter:blur(200px) saturate(300%) brightness(1.1);
-  background:linear-gradient(180deg,rgba(255,200,90,.35),rgba(255,160,40,.25));
-  border:1px solid rgba(255,220,140,.55);
-  color:#fffaf0;
+  background:linear-gradient(180deg,rgba(255,190,70,.32),rgba(255,150,30,.22));
+  border:1px solid rgba(255,220,140,.60);
+  color:#fff8e0;
   font-weight:700;
   letter-spacing:5px;
-  text-shadow:0 0 12px rgba(255,180,60,.8),0 1px 3px rgba(0,0,0,.5);
+  backdrop-filter:blur(40px) saturate(240%) brightness(1.2);
+  -webkit-backdrop-filter:blur(40px) saturate(240%) brightness(1.2);
+  text-shadow:0 0 14px rgba(255,190,60,.9),0 1px 4px rgba(0,0,0,.7);
   box-shadow:
-    0 0 60px rgba(255,180,60,.55),
-    0 20px 60px rgba(0,0,0,.7),
-    inset 0 1px 0 rgba(255,255,255,.55),
-    inset 0 -1px 0 rgba(0,0,0,.15),
-    inset 0 0 80px rgba(255,200,100,.15);
+    inset 0 1px 0 rgba(255,255,255,.65),
+    inset 0 -1px 0 rgba(0,0,0,.20),
+    0 0 40px rgba(255,180,60,.55),
+    0 12px 40px rgba(0,0,0,.55);
   animation:startPulse 2s ease-in-out infinite;
 }
 @keyframes startPulse{
-  0%,100%{box-shadow:0 0 40px rgba(255,180,60,.5),0 20px 60px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(0,0,0,.15),inset 0 0 80px rgba(255,200,100,.15)}
-  50%{box-shadow:0 0 90px rgba(255,180,60,.95),0 20px 60px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.65),inset 0 -1px 0 rgba(0,0,0,.15),inset 0 0 100px rgba(255,200,100,.25)}
+  0%,100%{
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.65),
+      inset 0 -1px 0 rgba(0,0,0,.20),
+      0 0 30px rgba(255,180,60,.45),
+      0 12px 40px rgba(0,0,0,.55);
+  }
+  50%{
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.75),
+      inset 0 -1px 0 rgba(0,0,0,.20),
+      0 0 70px rgba(255,180,60,.9),
+      0 12px 40px rgba(0,0,0,.55);
+  }
 }
 
-/* СТОП — чёрное стекло */
+/* СТОП — тёмное жидкое стекло */
 #ignBtn.on,
 .ignbtn.on{
-  backdrop-filter:blur(220px) saturate(240%) brightness(.9);
-  -webkit-backdrop-filter:blur(220px) saturate(240%) brightness(.9);
-  background:rgba(0,0,0,.12);
-  border:1px solid rgba(255,255,255,.28);
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.35);
   color:#ffffff;
   font-weight:800;
-  text-shadow:0 0 8px rgba(255,255,255,.3),0 1px 3px rgba(0,0,0,.6);
+  backdrop-filter:blur(50px) saturate(200%) brightness(.85);
+  -webkit-backdrop-filter:blur(50px) saturate(200%) brightness(.85);
+  text-shadow:0 0 10px rgba(255,255,255,.4),0 1px 4px rgba(0,0,0,.8);
   box-shadow:
-    0 20px 60px rgba(0,0,0,.75),
-    0 4px 14px rgba(0,0,0,.5),
-    inset 0 1px 0 rgba(255,255,255,.35),
-    inset 0 -1px 0 rgba(0,0,0,.3),
-    inset 0 0 80px rgba(0,0,0,.20);
+    inset 0 1px 0 rgba(255,255,255,.45),
+    inset 0 -1px 0 rgba(0,0,0,.35),
+    0 12px 40px rgba(0,0,0,.65);
 }
 
-/* Кнопка ПУСК в 3D-панели */
+/* Позиция внутри 3D */
 #engineWrap #ignBtn{
   position:absolute;
   bottom:12px;
@@ -216,16 +228,16 @@ main{
   position:relative;
   width:100%;
   height:140px;
-  background:rgba(6,6,6,.5);
-  backdrop-filter:blur(80px) saturate(180%);
-  -webkit-backdrop-filter:blur(80px) saturate(180%);
-  border:1px solid rgba(255,255,255,.10);
+  background:rgba(15,15,15,.30);
+  backdrop-filter:blur(50px) saturate(180%) brightness(1.05);
+  -webkit-backdrop-filter:blur(50px) saturate(180%) brightness(1.05);
+  border:1px solid rgba(255,255,255,.14);
   border-radius:12px;
   padding:4px;overflow:hidden;
-  box-shadow:0 10px 30px rgba(0,0,0,.6);
+  box-shadow:0 10px 30px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.15);
 }
 .gb-lines{position:absolute;top:4px;left:4px;width:calc(100% - 8px);height:calc(100% - 8px);pointer-events:none}
-.gb-lines line{stroke:rgba(255,255,255,.10);stroke-width:2.5;stroke-linecap:round}
+.gb-lines line{stroke:rgba(255,255,255,.14);stroke-width:2.5;stroke-linecap:round}
 .gb-grid{
   position:relative;display:grid;
   grid-template-columns:1fr 1fr 1fr 1fr;
@@ -235,39 +247,39 @@ main{
 }
 .gb-grid .gbtn{
   width:36px;height:36px;border-radius:50%;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(12,12,12,.5);
-  backdrop-filter:blur(60px) saturate(180%);
-  -webkit-backdrop-filter:blur(60px) saturate(180%);
-  color:#c0c0c0;font:600 13px/1 inherit;cursor:pointer;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(20,20,20,.35);
+  backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
+  -webkit-backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
+  color:#e0e8f0;font:600 13px/1 inherit;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   align-self:center;justify-self:center;
   padding:0;margin:0;
   transition:all .2s;
-  box-shadow:0 8px 22px rgba(0,0,0,.55);
-  opacity:.55;
+  box-shadow:0 8px 22px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.22);
+  opacity:.7;
 }
-.gb-grid .gbtn:hover{opacity:.85;border-color:rgba(255,255,255,.26);color:#e0e0e0}
+.gb-grid .gbtn:hover{opacity:.95;border-color:rgba(255,255,255,.35);color:#fff}
 .gb-grid .gbtn.on{
   opacity:1;
-  background:rgba(240,240,240,.95);
-  border-color:rgba(255,255,255,.9);
+  background:rgba(255,255,255,.95);
+  border-color:rgba(255,255,255,.95);
   color:#000;font-weight:700;
-  box-shadow:0 0 22px rgba(255,255,255,.45);
+  box-shadow:0 0 22px rgba(255,255,255,.55),inset 0 1px 0 rgba(255,255,255,.5);
   transform:scale(1.06);
 }
 .gb-grid .gbtn.gb-n.on{
   background:linear-gradient(180deg,rgba(232,232,90,.95),rgba(200,200,60,.85));
   border-color:rgba(240,240,144,.9);
   color:#000;
-  box-shadow:0 0 26px rgba(230,230,90,.7);
+  box-shadow:0 0 26px rgba(230,230,90,.7),inset 0 1px 0 rgba(255,255,255,.5);
 }
-.gb-grid .gbtn.gb-r{color:#c08080;border-color:rgba(180,80,80,.4)}
+.gb-grid .gbtn.gb-r{color:#e0a0a0;border-color:rgba(180,80,80,.5)}
 .gb-grid .gbtn.gb-r.on{
   background:linear-gradient(180deg,rgba(200,80,80,.95),rgba(160,50,50,.85));
   border-color:rgba(220,112,112,.9);
   color:#fff;
-  box-shadow:0 0 22px rgba(200,80,80,.6);
+  box-shadow:0 0 22px rgba(200,80,80,.6),inset 0 1px 0 rgba(255,255,255,.35);
 }
 .gb-r{grid-area:r}.gb-n{grid-area:n}
 .gbtn[data-g="1"]{grid-area:g1}.gbtn[data-g="2"]{grid-area:g2}
@@ -279,9 +291,10 @@ main{
   position:absolute;
   width:30px;height:30px;border-radius:50%;
   background:radial-gradient(circle at 30% 25%, #ffffff 0%, #d8d8d8 25%, #888888 60%, #2a2a2a 100%);
-  border:2px solid rgba(255,255,255,.45);
+  border:2px solid rgba(255,255,255,.55);
   box-shadow:
     0 6px 18px rgba(0,0,0,.75),
+    0 0 0 1px rgba(255,255,255,.10),
     inset 0 2px 4px rgba(255,255,255,.55),
     inset 0 -2px 4px rgba(0,0,0,.4);
   z-index:10;touch-action:none;cursor:grab;
@@ -293,7 +306,7 @@ main{
   transform:translate(-50%,-50%) scale(1.25);
   box-shadow:
     0 8px 26px rgba(0,0,0,.85),
-    0 0 30px rgba(232,232,90,.7),
+    0 0 30px rgba(232,232,90,.75),
     inset 0 2px 4px rgba(255,255,255,.7);
 }
 
@@ -316,23 +329,24 @@ main{
 /* Авто-КПП */
 .gears-auto{
   display:none;gap:5px;
-  background:rgba(6,6,6,.5);
-  backdrop-filter:blur(80px) saturate(180%);
-  -webkit-backdrop-filter:blur(80px) saturate(180%);
-  border:1px solid rgba(255,255,255,.10);
+  background:rgba(15,15,15,.30);
+  backdrop-filter:blur(50px) saturate(180%);
+  -webkit-backdrop-filter:blur(50px) saturate(180%);
+  border:1px solid rgba(255,255,255,.14);
   border-radius:12px;padding:5px;
 }
 body.auto-mode .gears-auto{display:grid;grid-template-columns:repeat(3,1fr)}
 body.auto-mode #gearsManual{display:none}
 .agbtn{
   height:44px;border-radius:10px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(12,12,12,.5);
-  backdrop-filter:blur(60px) saturate(180%);
-  -webkit-backdrop-filter:blur(60px) saturate(180%);
-  color:#8a8a8a;font:600 14px/1 inherit;cursor:pointer;
+  border:1px solid rgba(255,255,255,.20);
+  background:rgba(20,20,20,.35);
+  backdrop-filter:blur(40px) saturate(180%);
+  -webkit-backdrop-filter:blur(40px) saturate(180%);
+  color:#e0e8f0;font:600 14px/1 inherit;cursor:pointer;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.20);
 }
-.agbtn.on{background:rgba(240,240,240,.95);color:#000;font-weight:700}
+.agbtn.on{background:rgba(255,255,255,.95);color:#000;font-weight:700}
 .agbtn.neu.on{background:linear-gradient(180deg,rgba(232,232,90,.95),rgba(200,200,60,.85));color:#000}
 .agbtn.rev.on{background:linear-gradient(180deg,rgba(200,80,80,.95),rgba(160,50,50,.85));color:#fff}
 
@@ -345,32 +359,32 @@ body.auto-mode #gearsManual{display:none}
 }
 .pedal{
   position:relative;height:82px;border-radius:16px;
-  border:1px solid rgba(255,255,255,.10);
-  background:rgba(10,10,10,.5);
-  backdrop-filter:blur(100px) saturate(200%);
-  -webkit-backdrop-filter:blur(100px) saturate(200%);
-  color:#a8a8a8;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(15,15,15,.28);
+  backdrop-filter:blur(50px) saturate(180%) brightness(1.05);
+  -webkit-backdrop-filter:blur(50px) saturate(180%) brightness(1.05);
+  color:#d0dae4;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:3px;font:600 11px/1 inherit;letter-spacing:1px;
   overflow:hidden;touch-action:none;
-  box-shadow:0 14px 40px rgba(0,0,0,.6);
+  box-shadow:0 14px 40px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.18);
 }
 .pedal .bar{
   position:absolute;left:0;bottom:0;height:100%;width:0%;
-  background:rgba(255,255,255,.10);
+  background:rgba(255,255,255,.12);
   pointer-events:none;transition:width .04s linear;
 }
-.pedal.brake .bar{background:rgba(220,80,80,.18)}
-.pedal.clutch .bar{background:rgba(220,180,80,.18)}
-.pedal .icon{font-size:24px;line-height:1;z-index:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.6))}
-.pedal .sub{font-size:8px;color:#6a6a6a;font-weight:500;z-index:1}
+.pedal.brake .bar{background:rgba(220,80,80,.20)}
+.pedal.clutch .bar{background:rgba(220,180,80,.20)}
+.pedal .icon{font-size:24px;line-height:1;z-index:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.7))}
+.pedal .sub{font-size:8px;color:#8a99a8;font-weight:500;z-index:1}
 .pedal span{position:relative;z-index:1}
 .pedal.active{
-  border-color:rgba(255,255,255,.28);color:#fff;transform:translateY(-2px);
-  box-shadow:0 0 26px rgba(255,255,255,.18);
+  border-color:rgba(255,255,255,.35);color:#fff;transform:translateY(-2px);
+  box-shadow:0 0 30px rgba(255,255,255,.25),inset 0 1px 0 rgba(255,255,255,.28);
 }
-.pedal.brake.active{border-color:rgba(230,100,100,.55);color:#ffe8e8}
-.pedal.clutch.active{border-color:rgba(230,200,100,.55);color:#fff6e0}
+.pedal.brake.active{border-color:rgba(230,100,100,.65);color:#ffe8e8;box-shadow:0 0 30px rgba(220,80,80,.4)}
+.pedal.clutch.active{border-color:rgba(230,200,100,.65);color:#fff6e0;box-shadow:0 0 30px rgba(220,180,80,.4)}
 
 /* ==================== ОШИБКИ ==================== */
 #err{display:none !important}
