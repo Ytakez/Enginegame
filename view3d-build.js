@@ -1,12 +1,10 @@
 (function(){
 "use strict";
 var S=window.S;if(!S)return;
-
 function waitRef(){
   if(!window.DVS_3D_REF||!window.DVS_3D_BUILD){setTimeout(waitRef,150);return;}
   var R=window.DVS_3D_REF, B=window.DVS_3D_BUILD;
   var cy=B.cy,bx=B.bx;
-
   function M(c,mt,rg,op,tr){
     var o={color:c,metalness:mt===undefined?0.8:mt,roughness:rg===undefined?0.4:rg};
     if(op!==undefined){o.transparent=true;o.opacity=op;}
@@ -15,23 +13,22 @@ function waitRef(){
     m2.userData={baseOp:op!==undefined?op:1};
     return m2;
   }
-  /* СТИЛЬ "СТЕКЛО + МЕТАЛЛ" как на референсе */
   var MAT={
-    glass:  M(0x9ecfff,0.1,0.05,0.22,true),   // прозрачный блок/цилиндры
-    glassD: M(0x6aaeff,0.2,0.1,0.35,true),    // стенки цилиндров
-    dark:   M(0x1a1d22,0.4,0.75),             // тёмные поршни
-    darkB:  M(0x25292f,0.5,0.6),              // чуть светлее
-    ring:   M(0xc8d8e8,0.9,0.15),             // блестящие кольца поршня
-    rod:    M(0x8a95a2,0.92,0.15),            // шатун
-    crank:  M(0x6a7580,0.95,0.12),            // коленвал
-    crankJ: M(0x9aa5b0,1.0,0.1),              // шейки
-    cw:     M(0x4a535e,0.7,0.4),              // противовесы
-    fly:    M(0x707a85,0.9,0.2),              // маховик
-    metal:  M(0xb0b8c0,0.95,0.2),             // общая сталь
-    bolt:   M(0xd0d8e0,1.0,0.15),
-    rail:   M(0x3a424a,0.85,0.3),             // верхняя рельса (распредвал)
-    oil:    M(0xb08050,0.5,0.55),             // поддон (золотистый)
-    yellow: M(0xd8b840,0.6,0.4)
+    glass:M(0x9ecfff,0.1,0.05,0.22,true),
+    glassD:M(0x6aaeff,0.2,0.1,0.35,true),
+    dark:M(0x1a1d22,0.4,0.75),
+    darkB:M(0x25292f,0.5,0.6),
+    ring:M(0xc8d8e8,0.9,0.15),
+    rod:M(0x8a95a2,0.92,0.15),
+    crank:M(0x6a7580,0.95,0.12),
+    crankJ:M(0x9aa5b0,1.0,0.1),
+    cw:M(0x4a535e,0.7,0.4),
+    fly:M(0x707a85,0.9,0.2),
+    metal:M(0xb0b8c0,0.95,0.2),
+    bolt:M(0xd0d8e0,1.0,0.15),
+    rail:M(0x3a424a,0.85,0.3),
+    oil:M(0xb08050,0.5,0.55),
+    yellow:M(0xd8b840,0.6,0.4)
   };
   function cyl(r1,r2,h,s,mat){return new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,s||22),mat);}
   function box(w,h,d,mat){return new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);}
@@ -44,109 +41,69 @@ function waitRef(){
   function sCr(x){if(R.setCrank)R.setCrank(x);}
   function sF(x){if(R.setFly)R.setFly(x);}
 
-  /* ПОРШЕНЬ — как на референсе: чёрный толстый диск с 3 блестящими кольцами */
   function makePiston(r,h){
     var g=new THREE.Group();
-    // Основное тело поршня
     g.add(cyl(r,r,h,26,MAT.dark));
-    // Юбка (низ поршня)
     var skirt=cyl(r*0.98,r*0.9,h*0.35,26,MAT.darkB);
     skirt.position.y=-h*0.3;g.add(skirt);
-    // 3 блестящих кольца
     for(var k=0;k<3;k++){
       var rg=tor(r*0.99,0.045,6,26,MAT.ring);
       rg.rotation.x=Math.PI/2;
       rg.position.y=h*0.32-k*h*0.13;
       g.add(rg);
     }
-    // Плоский верх (тень)
     var top=cyl(r*0.99,r*0.99,0.04,26,MAT.darkB);
     top.position.y=h*0.5;g.add(top);
     return g;
   }
-
-  /* ШАТУН — тонкий, как на референсе */
   function makeRod(len){
     var g=new THREE.Group();
-    // Тело шатуна
     g.add(box(0.11,len*0.9,0.18,MAT.rod));
-    // Верхняя головка
     var sm=cyl(0.14,0.14,0.26,14,MAT.metal);
     sm.rotation.z=Math.PI/2;sm.position.y=len/2;g.add(sm);
-    // Нижняя головка
     var bg=tor(0.19,0.075,10,20,MAT.metal);
     bg.rotation.y=Math.PI/2;bg.position.y=-len/2;g.add(bg);
     return g;
   }
-
-  /* ЦИЛИНДР — прозрачная гильза, поршень внутри, шатун уходит вниз */
   function makeCyl(cfg){
     var g=new THREE.Group();
     g.position.set(cfg.x,0,cfg.z);
-    // Прозрачная гильза
     var sleeve=new THREE.Mesh(
       new THREE.CylinderGeometry(cfg.r,cfg.r,cfg.cylH,24,1,true),
       MAT.glassD);
-    sleeve.position.y=cfg.cylY;
-    g.add(sleeve);pB(sleeve);
-    // Верхнее кольцо цилиндра
+    sleeve.position.y=cfg.cylY;g.add(sleeve);pB(sleeve);
     var topRing=tor(cfg.r*1.02,0.06,8,24,MAT.metal);
     topRing.rotation.x=Math.PI/2;
-    topRing.position.y=cfg.cylY+cfg.cylH/2;
-    g.add(topRing);
-    // Нижнее кольцо
+    topRing.position.y=cfg.cylY+cfg.cylH/2;g.add(topRing);
     var botRing=tor(cfg.r*1.02,0.06,8,24,MAT.metal);
     botRing.rotation.x=Math.PI/2;
-    botRing.position.y=cfg.cylY-cfg.cylH/2;
-    g.add(botRing);
-    // Поршень
-    var piston=makePiston(cfg.r*0.92,cfg.pH);
-    g.add(piston);
-    // Шатун
-    var rod=makeRod(cfg.rodLen);
-    g.add(rod);
-    return {
-      g:g,p:piston,rod:rod,
-      off:cfg.off||0,
-      crankR:cfg.crankR,
-      rodLen:cfg.rodLen,
-      crankY:cfg.crankY
-    };
+    botRing.position.y=cfg.cylY-cfg.cylH/2;g.add(botRing);
+    var piston=makePiston(cfg.r*0.92,cfg.pH);g.add(piston);
+    var rod=makeRod(cfg.rodLen);g.add(rod);
+    return {g:g,p:piston,rod:rod,off:cfg.off||0,crankR:cfg.crankR,rodLen:cfg.rodLen,crankY:cfg.crankY};
   }
-
-  /* КОЛЕНВАЛ — с противовесами и шейками, как на референсе */
   function makeCrank(root,length,crankY,n,crankR,fwR){
     var cg=new THREE.Group();cg.position.y=crankY;
-    // Главная ось
     var ax=cyl(0.22,0.22,length+1.4,24,MAT.crank);
     ax.rotation.z=Math.PI/2;cg.add(ax);
-    // Коренные шейки (широкие диски)
     for(var mi=0;mi<=n;mi++){
       var mx=-length/2+0.5+mi*(length-1)/n;
       var mn=cyl(0.42,0.42,0.32,22,MAT.crankJ);
       mn.rotation.z=Math.PI/2;mn.position.x=mx;cg.add(mn);
     }
-    // Шатунные шейки + противовесы
     for(var ci=0;ci<n;ci++){
       var cxx=-length/2+0.85+ci*(length-1.7)/Math.max(1,n-1);
       var o1=ci*Math.PI*2/n;
       var pinG=new THREE.Group();
       var pin=cyl(0.2,0.2,0.42,18,MAT.crankJ);
       pin.rotation.z=Math.PI/2;pinG.add(pin);
-      pinG.position.set(cxx,Math.sin(o1)*crankR,0);
-      cg.add(pinG);
-      // Противовес — плоский, широкий
+      pinG.position.set(cxx,Math.sin(o1)*crankR,0);cg.add(pinG);
       var cwG=new THREE.Group();
       var cwBody=cyl(0.52,0.52,0.28,18,MAT.cw);
-      cwBody.rotation.z=Math.PI/2;
-      cwBody.scale.set(1,1,0.7);
-      cwG.add(cwBody);
-      cwG.position.set(cxx,-Math.sin(o1)*crankR,0);
-      cg.add(cwG);
+      cwBody.rotation.z=Math.PI/2;cwBody.scale.set(1,1,0.7);cwG.add(cwBody);
+      cwG.position.set(cxx,-Math.sin(o1)*crankR,0);cg.add(cwG);
     }
     root.add(cg);sCr(cg);
-
-    // Маховик — зубчатый
     var fw=new THREE.Group();
     var fwD=cyl(fwR,fwR,0.28,32,MAT.fly);
     fwD.rotation.z=Math.PI/2;fw.add(fwD);
@@ -161,65 +118,41 @@ function waitRef(){
     fw.position.set(length/2+fwR+0.15,crankY,0);
     root.add(fw);sF(fw);
   }
-
-  /* ПРОЗРАЧНЫЙ БЛОК (контур) */
   function makeGlassBox(root,length,blockH,blockD,blockY){
     var bk=box(length,blockH,blockD,MAT.glass);
     bk.position.y=blockY;root.add(bk);pB(bk);
-    // Верхняя рельса (голова)
     var rail=box(length+0.2,0.5,blockD+0.15,MAT.rail);
     rail.position.y=blockY+blockH/2+0.35;root.add(rail);pH(rail);
-    // 4 болта
     for(var b=0;b<4;b++){
       var bolt=cyl(0.07,0.07,0.5,10,MAT.bolt);
-      bolt.position.set(
-        (b<2?-1:1)*(length/2+0.02),
-        blockY+blockH/2+0.4,
-        (b%2===0?-1:1)*(blockD/2+0.02)
-      );
+      bolt.position.set((b<2?-1:1)*(length/2+0.02),blockY+blockH/2+0.4,(b%2===0?-1:1)*(blockD/2+0.02));
       root.add(bolt);
     }
-    // Поддон — золотистый (как на референсе)
     var pan=box(length+0.2,0.6,blockD+0.15,MAT.oil);
     pan.position.y=blockY-blockH/2-0.5;root.add(pan);
     return {blockY:blockY,blockH:blockH,blockD:blockD,length:length};
   }
-
-  /* РЯДНЫЙ — универсальная база */
   function inlineBase(root,opt){
     var n=opt.n||4, sp=opt.spacing||2.2;
     var tw=n*sp;
     var length=tw+1.6;
-    var blockH=opt.h||4.5;
-    var blockD=opt.d||3.2;
-    var blockY=opt.y||3.6;
-    var pistonR=opt.pR||0.85;
-    var pH2=opt.pH||0.75;
-    var crankR=opt.crankR||0.75;
-    var rodLen=opt.rodLen||3.0;
+    var blockH=opt.h||4.5, blockD=opt.d||3.2, blockY=opt.y||3.6;
+    var pistonR=opt.pR||0.85, pH2=opt.pH||0.75;
+    var crankR=opt.crankR||0.75, rodLen=opt.rodLen||3.0;
     var cylH=opt.cylH||(blockH-0.5);
     var cylY=blockY+0.1;
     var crankY=blockY+blockH/2-crankR-rodLen-pH2/2+0.05;
     var fwR=opt.fwR||2.0;
-
     makeCrank(root,length,crankY,n,crankR,fwR);
     var B=makeGlassBox(root,length,blockH,blockD,blockY);
-
     var arr=[];
     for(var i=0;i<n;i++){
       var xx=-tw/2+sp/2+i*sp;
-      var a=makeCyl({
-        x:xx,z:0,
-        r:pistonR,pH:pH2,
-        cylH:cylH,cylY:cylY,
-        off:i*Math.PI,crankR:crankR,rodLen:rodLen,crankY:crankY
-      });
+      var a=makeCyl({x:xx,z:0,r:pistonR,pH:pH2,cylH:cylH,cylY:cylY,off:i*Math.PI,crankR:crankR,rodLen:rodLen,crankY:crankY});
       root.add(a.g);arr.push(a);
     }
-    sA(arr);
-    return B;
+    sA(arr);return B;
   }
-
   function buildR4(root){inlineBase(root,{n:4});}
   function buildTDI(root){inlineBase(root,{n:4});}
   function buildDCi(root){inlineBase(root,{n:4,pH:0.8,pR:0.88});}
@@ -227,47 +160,28 @@ function waitRef(){
   function buildBluebird(root){inlineBase(root,{n:4});}
   function buildScooter(root){inlineBase(root,{n:1,spacing:1.5,d:2.4,h:3.2,y:2.9,pR:0.75,pH:0.65,rodLen:2.4,crankR:0.6,fwR:1.2});}
   function buildI6(root){inlineBase(root,{n:6,spacing:1.9,d:3.4,h:4.8,y:3.8,pR:0.9,pH:0.8,rodLen:3.3,crankR:0.8,fwR:2.2});}
-
-  /* V-ОБРАЗНЫЕ */
   function buildVBase(root,totalN,half,bankDist){
-    var perRow=Math.floor(totalN/2);
-    var sp=2.0;
-    var tw=perRow*sp;
-    var length=tw+1.8;
-    var blockH=4.2;
-    var blockD=3.0;
-    var blockY=3.6;
-    var pistonR=0.82,pH2=0.72;
-    var crankR=0.78,rodLen=3.0;
+    var perRow=Math.floor(totalN/2), sp=2.0;
+    var tw=perRow*sp, length=tw+1.8;
+    var blockH=4.2, blockD=3.0, blockY=3.6;
+    var pistonR=0.82,pH2=0.72, crankR=0.78, rodLen=3.0;
     var crankY=blockY+blockH/2-crankR-rodLen-pH2/2+0.05;
-
     makeCrank(root,length,crankY,perRow,crankR,2.2);
-
-    // Поддон
     var pan=box(length+0.3,0.6,bankDist*2+3.0,MAT.oil);
     pan.position.y=crankY-1.0;root.add(pan);
-
     var arr=[];
     for(var side=0;side<2;side++){
       var sign=side===0?-1:1;
-      // Прозрачный блок
       var bk=box(length,blockH,blockD,MAT.glass);
       bk.position.set(0,blockY,sign*bankDist);
       bk.rotation.x=sign*half;root.add(bk);pB(bk);
-      // Верхняя рельса
       var rail=box(length+0.1,0.45,blockD+0.1,MAT.rail);
       rail.position.set(0,blockY+blockH/2+0.3,sign*(bankDist+0.4));
       rail.rotation.x=sign*half;root.add(rail);pH(rail);
-      // Цилиндры
       for(var j=0;j<perRow;j++){
         var xx=-tw/2+sp/2+j*sp;
         var off=(side===0?j*Math.PI*2/perRow:(j*Math.PI*2/perRow)+Math.PI);
-        var a=makeCyl({
-          x:xx,z:sign*bankDist,
-          r:pistonR,pH:pH2,
-          cylH:blockH-0.5,cylY:blockY,
-          off:off,crankR:crankR,rodLen:rodLen,crankY:crankY
-        });
+        var a=makeCyl({x:xx,z:sign*bankDist,r:pistonR,pH:pH2,cylH:blockH-0.5,cylY:blockY,off:off,crankR:crankR,rodLen:rodLen,crankY:crankY});
         a.g.rotation.x=sign*half;
         root.add(a.g);arr.push(a);
       }
@@ -279,25 +193,17 @@ function waitRef(){
   function buildV12(root){buildVBase(root,12,Math.PI/6,1.6);}
   function buildV16(root){buildVBase(root,16,Math.PI/6,1.7);}
   function buildV22(root){buildVBase(root,22,Math.PI/4,2.0);}
-
-  /* BOXER */
   function buildBoxer(root){
     var n=2,sp=2.2;
-    var tw=n*sp;
-    var length=tw+1.6;
+    var tw=n*sp, length=tw+1.6;
     var blockH=3.4,blockD=3.4,blockY=3.2;
-    var pH2=0.7,pistonR=0.8;
-    var crankR=0.75,rodLen=2.5;
+    var pH2=0.7,pistonR=0.8, crankR=0.75, rodLen=2.5;
     var crankY=blockY-pH2/2-rodLen+crankR*0.5;
-
     makeCrank(root,length,crankY,n,crankR,2.0);
     var pan=box(length+0.4,0.6,blockD+0.3,MAT.oil);
     pan.position.y=crankY-0.9;root.add(pan);
-
-    // Центральный прозрачный блок
     var bk=box(length,blockH,2.2,MAT.glass);
     bk.position.y=blockY;root.add(bk);pB(bk);
-
     var arr=[];
     for(var s=0;s<2;s++){
       var sign=s===0?-1:1;
@@ -307,43 +213,23 @@ function waitRef(){
       for(var j=0;j<n;j++){
         var xx=-tw/2+sp/2+j*sp;
         var off=(s===0?j*Math.PI:j*Math.PI+Math.PI);
-        var a=makeCyl({
-          x:xx,z:sign*(blockD/2+0.2),
-          r:pistonR,pH:pH2,
-          cylH:blockH-0.4,cylY:blockY,
-          off:off,crankR:crankR,rodLen:rodLen,crankY:crankY
-        });
+        var a=makeCyl({x:xx,z:sign*(blockD/2+0.2),r:pistonR,pH:pH2,cylH:blockH-0.4,cylY:blockY,off:off,crankR:crankR,rodLen:rodLen,crankY:crankY});
         a.g.rotation.x=sign*Math.PI/2;
         root.add(a.g);arr.push(a);
       }
     }
     sA(arr);
   }
-
-  /* RADIAL — 9 цилиндров вокруг картера */
   function buildRadial(root){
-    var n=9;
-    var step=Math.PI*2/n;
-    var R_cyl=3.0;
-    var cylLen=2.6;
+    var n=9, step=Math.PI*2/n, R_cyl=3.0, cylLen=2.6;
     var blockY=3.0;
-    var pH2=0.7,pistonR=0.75;
-    var crankR=0.7,rodLen=1.6;
-
-    // Картер — прозрачное кольцо
-    var carter=new THREE.Mesh(
-      new THREE.TorusGeometry(1.2,0.4,12,28),
-      MAT.glass);
+    var pH2=0.7,pistonR=0.75, crankR=0.7, rodLen=1.6;
+    var carter=new THREE.Mesh(new THREE.TorusGeometry(1.2,0.4,12,28),MAT.glass);
     carter.rotation.x=Math.PI/2;
-    carter.position.set(0,blockY,0);
-    root.add(carter);pB(carter);
-
-    // Коленвал
+    carter.position.set(0,blockY,0);root.add(carter);pB(carter);
     var crank=cyl(0.3,0.3,3.6,22,MAT.crank);
     crank.rotation.x=Math.PI/2;crank.position.set(0,blockY,0);
     root.add(crank);sCr(crank);
-
-    // Маховик
     var fw=new THREE.Group();
     var fwD=cyl(1.9,1.9,0.3,28,MAT.fly);
     fwD.rotation.x=Math.PI/2;fw.add(fwD);
@@ -354,55 +240,32 @@ function waitRef(){
       th.rotation.z=a;fw.add(th);
     }
     fw.position.set(0,blockY,3.0);root.add(fw);sF(fw);
-
     var arr=[];
     for(var i=0;i<n;i++){
       var a2=i*step-Math.PI/2;
-      var cx2=Math.cos(a2)*R_cyl;
-      var cyy=blockY+Math.sin(a2)*R_cyl;
+      var cx2=Math.cos(a2)*R_cyl, cyy=blockY+Math.sin(a2)*R_cyl;
       var grp=new THREE.Group();
       grp.position.set(cx2,cyy,0);
       grp.rotation.z=a2-Math.PI/2;
       root.add(grp);
-
-      // Прозрачная гильза
-      var shell=new THREE.Mesh(
-        new THREE.CylinderGeometry(pistonR+0.05,pistonR+0.05,cylLen,24,1,true),
-        MAT.glassD);
+      var shell=new THREE.Mesh(new THREE.CylinderGeometry(pistonR+0.05,pistonR+0.05,cylLen,24,1,true),MAT.glassD);
       shell.position.y=cylLen/2;grp.add(shell);pB(shell);
-      // Кольца гильзы
       var r1=tor(pistonR+0.08,0.05,8,24,MAT.metal);
       r1.rotation.x=Math.PI/2;r1.position.y=cylLen;grp.add(r1);
       var r2=tor(pistonR+0.08,0.05,8,24,MAT.metal);
       r2.rotation.x=Math.PI/2;r2.position.y=0;grp.add(r2);
-
-      // Поршень
-      var piston=makePiston(pistonR,pH2);
-      grp.add(piston);
-      // Шатун
-      var rod=makeRod(rodLen);
-      grp.add(rod);
-
-      arr.push({
-        g:grp,p:piston,rod:rod,
-        off:0,crankR:crankR,rodLen:rodLen,
-        crankY:cylLen*0.5-crankR-rodLen-pH2/2
-      });
+      var piston=makePiston(pistonR,pH2);grp.add(piston);
+      var rod=makeRod(rodLen);grp.add(rod);
+      arr.push({g:grp,p:piston,rod:rod,off:0,crankR:crankR,rodLen:rodLen,crankY:cylLen*0.5-crankR-rodLen-pH2/2});
     }
     sA(arr);
   }
-
-  /* ТРАКТОР */
   function buildTractor(root){
     var n=4,sp=2.6;
-    var tw=n*sp;
-    var length=tw+2.0;
+    var tw=n*sp, length=tw+2.0;
     var B=inlineBase(root,{n:4,spacing:2.6,d:4.5,h:5.2,y:4.0,pR:1.0,pH:0.9,rodLen:3.6,crankR:0.85,fwR:2.8});
-
-    // Бак
     var tank=box(length*0.55,1.6,1.8,MAT.yellow);
     tank.position.set(-length/2-1.8,B.blockY+1.6,0);root.add(tank);
-    // Радиатор
     var rad=box(3.0,2.6,0.5,MAT.metal);
     rad.position.set(length/2+2.4,B.blockY,0);root.add(rad);
     for(var rf=0;rf<12;rf++){
@@ -410,16 +273,11 @@ function waitRef(){
       fin.position.set(length/2+2.4,B.blockY-1.2+rf*0.2,0);root.add(fin);
     }
   }
-
-  /* ВАНКЕЛЬ — треугольный ротор */
   function makeEpiShape(Rr,e){
     var pts=[];
     for(var i=0;i<=120;i++){
       var t=(i/120)*Math.PI*2;
-      pts.push(new THREE.Vector2(
-        Rr*Math.cos(t)+e*Math.cos(3*t),
-        Rr*Math.sin(t)+e*Math.sin(3*t)
-      ));
+      pts.push(new THREE.Vector2(Rr*Math.cos(t)+e*Math.cos(3*t),Rr*Math.sin(t)+e*Math.sin(3*t)));
     }
     return new THREE.Shape(pts);
   }
@@ -440,63 +298,65 @@ function waitRef(){
     window._dvsWankelRotors=window._dvsWankelRotors||[];
     window._dvsWankelPins=window._dvsWankelPins||[];
     window._dvsWankelFlashes=window._dvsWankelFlashes||[];
-    var Rr=2.0,e=0.45;
-
-    // Корпус — прозрачная эпитрохоида
-    var hGeo=new THREE.ExtrudeGeometry(makeEpiShape(Rr,e),{depth:2.0,bevelEnabled:false});
-    hGeo.center();
-    var housing=new THREE.Mesh(hGeo,MAT.glass);
-    housing.position.y=3;root.add(housing);pB(housing);
-
-    // Внутренняя стенка
-    var iGeo=new THREE.ExtrudeGeometry(makeEpiShape(Rr*0.94,e*0.94),{depth:1.9,bevelEnabled:false});
-    iGeo.center();
-    var inner=new THREE.Mesh(iGeo,MAT.glassD);
-    inner.position.y=3;inner.scale.set(0.96,0.96,0.95);root.add(inner);
-
-    // Ротор — треугольник
-    var rGeo=new THREE.ExtrudeGeometry(makeRotorShape(1.5),{depth:1.3,bevelEnabled:false});
-    rGeo.center();
-    var rotorMesh=new THREE.Mesh(rGeo,MAT.dark);
-    rotorMesh.position.y=3;root.add(rotorMesh);
-    window._dvsWankelRotors.push({mesh:rotorMesh,ecc:e});
-
-    // Вал
+    var Rr=1.7, ecc=0.5, depth=1.5, gap=0.35, zOff=-1.0, baseY=3.0;
     var shaft=new THREE.Group();
-    shaft.position.y=3;
-    var sh=cyl(0.3,0.3,4.0,14,MAT.crank);
-    sh.rotation.x=Math.PI/2;shaft.add(sh);
-    var ec=cyl(0.65,0.65,0.4,22,MAT.crankJ);
-    ec.rotation.x=Math.PI/2;ec.position.z=0.4;shaft.add(ec);
+    shaft.position.y=baseY;
+    var shaftBody=cyl(0.28,0.28,5.0,20,MAT.crank);
+    shaftBody.rotation.x=Math.PI/2;shaft.add(shaftBody);
+    var e1=new THREE.Group();
+    var e1body=cyl(0.55,0.55,0.45,22,MAT.crankJ);
+    e1body.rotation.x=Math.PI/2;e1.add(e1body);
+    e1.position.set(0,0,zOff);shaft.add(e1);
+    var e2=new THREE.Group();
+    var e2body=cyl(0.55,0.55,0.45,22,MAT.crankJ);
+    e2body.rotation.x=Math.PI/2;e2.add(e2body);
+    e2.position.set(0,0,zOff+depth+gap);shaft.add(e2);
     root.add(shaft);sCr(shaft);
     window._dvsWankelPins.push({grp:shaft});
-
-    // Маховик
-    var fw=new THREE.Group();fw.position.y=3;
-    var fwD=cyl(1.8,1.8,0.32,28,MAT.fly);
+    var fw=new THREE.Group();
+    fw.position.y=baseY;
+    var fwD=cyl(1.7,1.7,0.3,28,MAT.fly);
     fwD.rotation.x=Math.PI/2;fw.add(fwD);
     for(var ft=0;ft<32;ft++){
-      var th=box(0.26,0.16,0.11,MAT.crank);
+      var th=box(0.24,0.16,0.11,MAT.crank);
       var a=(ft/32)*Math.PI*2;
-      th.position.set(Math.cos(a)*1.9,Math.sin(a)*1.9,0);
+      th.position.set(Math.cos(a)*1.8,Math.sin(a)*1.8,0);
       th.rotation.z=a;fw.add(th);
     }
-    fw.position.z=2.6;root.add(fw);sF(fw);
-
-    // Вспышки
-    for(var fp=0;fp<3;fp++){
-      var fm=new THREE.Mesh(new THREE.SphereGeometry(0.42,14,10),
-        new THREE.MeshBasicMaterial({color:0xffaa44,transparent:true,opacity:0}));
-      var fa=fp*(Math.PI*2/3)-Math.PI/2;
-      fm.position.set(Math.cos(fa)*Rr*0.7,3+Math.sin(fa)*Rr*0.7,0.5);
-      root.add(fm);
-      var lt=new THREE.PointLight(0xffaa44,0,8);
-      lt.position.copy(fm.position);root.add(lt);
-      window._dvsWankelFlashes.push({mesh:fm,light:lt,phase:fa});
+    fw.position.z=zOff+depth*2+gap+0.7;
+    root.add(fw);sF(fw);
+    for(var rIdx=0;rIdx<2;rIdx++){
+      var zC=zOff + rIdx*(depth+gap);
+      var phase=rIdx*Math.PI;
+      var hGeo=new THREE.ExtrudeGeometry(makeEpiShape(Rr,ecc),{depth:depth,bevelEnabled:false});
+      hGeo.center();
+      var housing=new THREE.Mesh(hGeo,MAT.glass);
+      housing.position.set(0,baseY,zC);
+      root.add(housing);pB(housing);
+      var iGeo=new THREE.ExtrudeGeometry(makeEpiShape(Rr*0.95,ecc*0.95),{depth:depth-0.05,bevelEnabled:false});
+      iGeo.center();
+      var inner=new THREE.Mesh(iGeo,MAT.glassD);
+      inner.position.set(0,baseY,zC);
+      inner.scale.set(0.97,0.97,0.97);
+      root.add(inner);
+      var rGeo=new THREE.ExtrudeGeometry(makeRotorShape(Rr*0.72),{depth:depth-0.25,bevelEnabled:false});
+      rGeo.center();
+      var rotorMesh=new THREE.Mesh(rGeo,MAT.dark);
+      rotorMesh.position.set(0,baseY,zC);
+      root.add(rotorMesh);
+      window._dvsWankelRotors.push({mesh:rotorMesh,ecc:ecc,phase:phase,baseX:0,baseY:baseY});
+      for(var fp=0;fp<3;fp++){
+        var fm=new THREE.Mesh(new THREE.SphereGeometry(0.28,12,10),
+          new THREE.MeshBasicMaterial({color:0xffaa44,transparent:true,opacity:0}));
+        var fa=fp*(Math.PI*2/3)+phase;
+        fm.position.set(Math.cos(fa)*Rr*0.7,baseY+Math.sin(fa)*Rr*0.7,zC);
+        root.add(fm);
+        var lt=new THREE.PointLight(0xffaa44,0,6);
+        lt.position.copy(fm.position);root.add(lt);
+        window._dvsWankelFlashes.push({mesh:fm,light:lt,phase:fa});
+      }
     }
   }
-
-  /* ЭКСПОРТ */
   window.DVS_3D_BUILDERS={
     r4:buildR4,tdi:buildTDI,dci:buildDCi,
     scooter:buildScooter,passatb3:buildPassatB3,bluebird:buildBluebird,
