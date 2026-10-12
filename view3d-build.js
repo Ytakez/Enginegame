@@ -581,4 +581,55 @@ function waitRef(){
     radial:  {builder:'radial',n:9, brand:{text:'WRIGHT', bg:'#1A1A1A', fg:'#FFD700'}},
     tractor: {builder:'tractor',n:4, brand:{text:'TRACTOR',bg:'#222222',fg:'#FFDD00'}},
     mt82:    {builder:'tractor',n:4, brand:{text:'TRACTOR',bg:'#222222',fg:'#FFDD00'}},
-    wankel:  {builder:'wankel',n:2, brand:{text:'MAZDA', bg:'#10
+    wankel:  {builder:'wankel',n:2, brand:{text: 'MAZDA', bg:'#101010', fg:'#FFFFFF'}},
+    renesis: {builder:'wankel',n:2, brand:{text:'MAZDA', bg:'#101010', fg:'#FFFFFF'}}
+  };
+
+  /* ============ REBUILD ============ */
+  window.DVS_3D_REBUILD=function(){
+    var scene=R.getScene();
+    if(!scene)return;
+
+    var old=R.getRoot();
+    if(old){
+      scene.remove(old);
+      try{
+        old.traverse(function(ch){
+          if(ch.geometry)try{ch.geometry.dispose();}catch(e){}
+          if(ch.material){
+            if(Array.isArray(ch.material))ch.material.forEach(function(mm){try{mm.dispose();}catch(e){}});
+            else try{ch.material.dispose();}catch(e){}
+          }
+        });
+      }catch(e){}
+    }
+    if(R.clearAll)R.clearAll();
+    window._dvsWankelRotors=[];
+    window._dciParts=null;
+
+    var root=new THREE.Group();scene.add(root);R.setRoot(root);
+
+    var raw=(S.engineType||S.engine||'r4').toString().toLowerCase().replace(/\s+/g,'');
+    var cfg=ENGINE_CFG[raw];
+    if(!cfg){
+      for(var k in ENGINE_CFG){
+        if(raw.indexOf(k)>=0){cfg=ENGINE_CFG[k];break;}
+      }
+    }
+    if(!cfg)cfg=ENGINE_CFG.r4;
+
+    try{
+      if(cfg.builder==='wankel')      buildWankel(root,cfg,cfg.brand);
+      else if(cfg.builder==='tractor') buildTractor(root,cfg,cfg.brand);
+      else if(cfg.builder==='scooter') buildScooter(root,cfg,cfg.brand);
+      else if(cfg.builder==='v')       buildV(root,cfg,cfg.brand);
+      else if(cfg.builder==='boxer')   buildBoxer(root,cfg,cfg.brand);
+      else if(cfg.builder==='radial')  buildRadial(root,cfg,cfg.brand);
+      else                             buildInline(root,cfg,cfg.brand);
+    }catch(e){console.warn('build crash:',e);}
+  };
+
+  console.log('view3d-build: OK, двигателей:',Object.keys(ENGINE_CFG).length);
+}
+waitRef();
+})();
