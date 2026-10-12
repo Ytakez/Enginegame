@@ -516,5 +516,18 @@ function waitRef(){
     }
   }
 
-  window.DVS_3D_BUILDERS={
-    r4:bui
+   window.DVS_3D_BUILDERS={
+    r4:buildR4,tdi:buildTDI,dci:buildDCi,
+    scooter:buildScooter,passatb3:buildPassatB3,bluebird:buildBluebird,
+    i6:buildI6,galant6:buildV6,v6:buildV6,v8:buildV8,v12:buildV12,v16:buildV16,v22:buildV22,
+    boxer:buildBoxer,radial:buildRadial,tractor:buildTractor,wankel:buildWankel
+  };
+
+  if(window.DVS_3D && window.DVS_3D.isActive && window.DVS_3D.isActive()){
+    try{ window.DVS_3D_REBUILD(); }catch(e){}
+  }
+
+  console.log('view3d-build.js: билдеров =', Object.keys(window.DVS_3D_BUILDERS).length);
+}
+waitRef();
+})();
