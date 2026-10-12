@@ -198,4 +198,100 @@ function openOther(){
 function openPicker(){
   closeAll();
   var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
-  var h=document.createElement('h2');h.textContent='🏁 '+t('engine');m.appendChild
+  var h=document.createElement('h2');h.textContent='🏁 '+t('engine');m.appendChild(h);
+  var back=document.createElement('button');
+  back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
+  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
+  var S=window.S;var cur=S?S.engineType:'r4';
+  ENGINES_INFO.forEach(function(E){
+    var b=document.createElement('button');
+    b.type='button';b.className='settings-item'+(E.id===cur?' on':'');
+    b.innerHTML='<div class="txt"><span class="lbl">'+E.label+'</span><span class="sub">'+E.sub+'</span></div><span class="check">✓</span>';
+    b.addEventListener('click',function(){
+      if(S&&S.setEngine)S.setEngine(E.id);
+      var all=m.querySelectorAll('.settings-item');
+      for(var i=0;i<all.length;i++)all[i].classList.remove('on');
+      b.classList.add('on');
+      try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
+    });
+    m.appendChild(b);
+  });
+  var cb=document.createElement('button');
+  cb.type='button';cb.className='settings-close';cb.textContent=t('close');
+  cb.addEventListener('click',closeAll);m.appendChild(cb);
+  document.body.appendChild(ov);
+}
+
+function openWeatherPicker(){
+  closeAll();
+  var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
+  var h=document.createElement('h2');h.textContent='🌦 '+t('weather');m.appendChild(h);
+  var back=document.createElement('button');
+  back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
+  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
+  var S=window.S;var cur=S?S.weather:'summer';
+  WEATHERS.forEach(function(W){
+    var b=document.createElement('button');
+    b.type='button';b.className='settings-item'+(W.id===cur?' on':'');
+    b.innerHTML='<div class="txt"><span class="lbl">'+W.label+'</span><span class="sub">'+W.sub+'</span></div><span class="check">✓</span>';
+    b.addEventListener('click',function(){
+      if(S&&S.setWeather)S.setWeather(W.id);
+      var all=m.querySelectorAll('.settings-item');
+      for(var i=0;i<all.length;i++)all[i].classList.remove('on');
+      b.classList.add('on');
+      try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
+    });
+    m.appendChild(b);
+  });
+  var cb=document.createElement('button');
+  cb.type='button';cb.className='settings-close';cb.textContent=t('close');
+  cb.addEventListener('click',closeAll);m.appendChild(cb);
+  document.body.appendChild(ov);
+}
+
+function openLangPicker(){
+  closeAll();
+  var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
+  var h=document.createElement('h2');h.textContent='🌐 '+t('language');m.appendChild(h);
+  var back=document.createElement('button');
+  back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
+  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
+  Object.keys(LANGS).forEach(function(code){
+    var b=document.createElement('button');
+    b.type='button';b.className='settings-item'+(code===curLang?' on':'');
+    b.innerHTML='<div class="txt"><span class="lbl">'+LANGS[code].label+'</span></div><span class="check">✓</span>';
+    b.addEventListener('click',function(){
+      curLang=code;
+      try{localStorage.setItem(LANG_KEY,code);}catch(e){}
+      applyLang();
+      var all=m.querySelectorAll('.settings-item');
+      for(var i=0;i<all.length;i++)all[i].classList.remove('on');
+      b.classList.add('on');
+      h.textContent='🌐 '+t('language');
+      back.textContent='‹ '+t('back');
+      try{if(navigator.vibrate)navigator.vibrate(10);}catch(e){}
+    });
+    m.appendChild(b);
+  });
+  var cb=document.createElement('button');
+  cb.type='button';cb.className='settings-close';cb.textContent=t('close');
+  cb.addEventListener('click',closeAll);m.appendChild(cb);
+  document.body.appendChild(ov);
+}
+
+function init(){
+  injectStyles();
+  injectTimerStyles();
+  addSettingsButton();
+  try{applyLang();}catch(e){}
+  var b=document.getElementById('engBadge');
+  var S=window.S;
+  if(b&&S&&S.engines&&S.engines[S.engineType])b.textContent=S.engines[S.engineType].name;
+}
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}
+else{init();}
+setTimeout(init,500);
+setTimeout(init,1500);
+
+console.log('settings.js: 14 двигателей');
+})();
