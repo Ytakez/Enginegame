@@ -570,4 +570,13 @@ function waitRef(){
     tractor:function(root){buildTractor(root,{n:4},{text:'TRACTOR',bg:'#222222',fg:'#FFDD00'});},
     mt82:function(root){buildTractor(root,{n:4},{text:'TRACTOR',bg:'#222222',fg:'#FFDD00'});},
     wankel:function(root){buildWankel(root,{n:2},{text:'MAZDA',bg:'#101010',fg:'#FFFFFF'});},
-    renesis:
+        renesis:function(root){buildWankel(root,{n:2},{text:'MAZDA',bg:'#101010',fg:'#FFFFFF'});}
+  };
+
+  if(window.DVS_3D&&window.DVS_3D.isActive&&window.DVS_3D.isActive()){
+    try{window.DVS_3D_REBUILD();}catch(e){}
+  }
+  console.log('view3d-build.js: билдеров =',Object.keys(window.DVS_3D_BUILDERS).length);
+}
+waitRef();
+})();
