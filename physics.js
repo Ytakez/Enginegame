@@ -13,14 +13,23 @@ galant6:{name:'2.0 V6',cyls:6,maxTorque:179,idle:850,redline:7000,breakRpm:7800,
 wankel:{name:'13B Renesis',cyls:2,maxTorque:211,idle:900,redline:9000,breakRpm:10000,stallRpm:400,fireDiv:20,lpBase:800,lpRpm:0.10,subGain:0.4,sawGain:1.2,sqGain:0.15,noiseBase:0.008,mass:1400,gears:6},
 r4:{name:'R4',cyls:4,maxTorque:250,idle:900,redline:6800,breakRpm:8000,stallRpm:350,fireDiv:30,lpBase:700,lpRpm:0.15,subGain:0.9,sawGain:0.5,sqGain:0.15,noiseBase:0.015,mass:1250,gears:6},
 v8:{name:'V12',cyls:12,maxTorque:560,idle:900,redline:7600,breakRpm:9000,stallRpm:350,fireDiv:10,lpBase:400,lpRpm:0.11,subGain:1.8,sawGain:0.65,sqGain:0.07,noiseBase:0.038,mass:1500,gears:6},
-v16:{name:'V22',cyls:22,maxTorque:900,idle:900,redline:8200,breakRpm:9600,stallRpm:350,fireDiv:5.5,lpBase:230,lpRpm:0.07,subGain:2.6,sawGain:0.75,sqGain:0.04,noiseBase:0.065,mass:1800,gears:6}
+v16:{name:'V22',cyls:22,maxTorque:900,idle:900,redline:8200,breakRpm:9600,stallRpm:350,fireDiv:5.5,lpBase:230,lpRpm:0.07,subGain:2.6,sawGain:0.75,sqGain:0.04,noiseBase:0.065,mass:1800,gears:6},
+boxer4:{name:'EJ25 Boxer',cyls:4,maxTorque:230,idle:800,redline:7000,breakRpm:7800,stallRpm:350,fireDiv:30,lpBase:550,lpRpm:0.12,subGain:2.2,sawGain:0.55,sqGain:0.10,noiseBase:0.030,mass:1400,gears:5},
+i6:{name:'2JZ I6',cyls:6,maxTorque:440,idle:800,redline:7200,breakRpm:8000,stallRpm:350,fireDiv:20,lpBase:480,lpRpm:0.11,subGain:2.0,sawGain:0.60,sqGain:0.08,noiseBase:0.022,mass:1500,gears:6},
+radial9:{name:'Wright R-1820',cyls:9,maxTorque:1200,idle:600,redline:2500,breakRpm:2800,stallRpm:300,fireDiv:9,lpBase:150,lpRpm:0.04,subGain:4.5,sawGain:0.8,sqGain:0.15,noiseBase:0.090,mass:2500,gears:1}
 };
 var AMB={summer:25,autumn:8,winter:-15};
 var OVERHEAT_LIMIT=145;
 
 var RATIOS_5=[0, 3.40, 2.00, 1.40, 1.00, 0.80];
 var RATIOS_6=[0, 3.40, 2.10, 1.55, 1.20, 0.95, 0.78];
-function ratiosFor(E){return (E&&E.gears===6)?RATIOS_6:RATIOS_5;}
+var RATIOS_1=[0, 1.00];
+function ratiosFor(E){
+  if(!E) return RATIOS_5;
+  if(E.gears===6) return RATIOS_6;
+  if(E.gears===1) return RATIOS_1;
+  return RATIOS_5;
+}
 
 var savedEng='r4';
 try{savedEng=localStorage.getItem(STORAGE_KEY)||'r4';}catch(e){}
@@ -66,6 +75,7 @@ function torqueCurve(r,E){
   if(hi<=lo)hi=lo+1;
   var x=Math.max(lo,Math.min(hi,r));
   if(E.diesel)return 0.9+0.1*Math.sin(Math.PI*(x-lo)/(hi-lo));
+  if(E.gears===1 && E.idle>1500)return 0.5+0.5*Math.sin(Math.PI*(x-lo)/(hi-lo));
   return 0.55+0.45*Math.sin(Math.PI*(x-lo)/(hi-lo));
 }
 
