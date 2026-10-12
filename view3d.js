@@ -33,56 +33,74 @@ window.DVS_3D_REF={
   clearAll:function(){
     _blockM=[];_headM=[];_coverM=[];_ribM=[];_asm=[];_cams=[];
     _cranks=[];_flies=[];_camSingles=[];_beltT=null;_beltB=null;
-  },
-  getCfg:function(t){
-    var CFG={
-      scooter:{n:1,v:false},
-      tdi:{n:4,v:false},
-      dci:{n:4,v:false,model:'dci'},
-      mt82:{n:4,v:false},
-      passatb3:{n:4,v:false},
-      bluebird:{n:4,v:false},
-      galant6:{n:6,v:true},
-      wankel:{n:2,v:false,model:'wankel'},
-      r4:{n:4,v:false},
-      v8:{n:12,v:true},
-      v16:{n:22,v:true}
-    };
-    return CFG[t]||CFG.r4;
   }
 };
 
-/* ===== ЗАПАСНОЙ REBUILD ===== */
-function fallbackRebuild(){
+/* ============ УМНАЯ ПЕРЕСБОРКА ============ */
+/* Вызывает нужный билдер из window.DVS_3D_BUILDERS по типу двигателя */
+function smartRebuild(){
   var R=window.DVS_3D_REF;
   var sc=R.getScene(); if(!sc)return;
+
+  // Удаляем старый корень
   var old=R.getRoot();
-  if(old){while(old.children.length){var c=old.children.pop();if(c.geometry)try{c.geometry.dispose();}catch(e){}if(c.material)try{c.material.dispose();}catch(e){};}
-    sc.remove(old);}
+  if(old){
+    while(old.children.length){
+      var c=old.children.pop();
+      if(c.geometry)try{c.geometry.dispose();}catch(e){}
+      if(c.material)try{c.material.dispose();}catch(e){}
+    }
+    sc.remove(old);
+  }
   R.clearAll();
-  window._dvsWankelRotors=[];window._dvsWankelPins=[];window._dvsWankelFlashes=[];window._dciPartsArr=[];
+  window._dvsWankelRotors=[];window._dvsWankelPins=[];window._dvsWankelFlashes=[];
+  window._dciPartsArr=[];
+
+  // Новый корень
   var root=new THREE.Group();sc.add(root);R.setRoot(root);
-  var block=bx(4.2,1.5,1.6,0x2a2d33,0.75,0.55);root.add(block);R.pushBlock(block);
-  for(var i=0;i<5;i++){var rib=bx(0.06,1.4,1.66,0x1e2126,0.85,0.55);rib.position.x=-1.7+i*0.85;root.add(rib);R.pushRib(rib);}
-  var head=bx(4.2,0.6,1.5,0x3a3d44,0.7,0.5);head.position.y=1.05;root.add(head);R.pushHead(head);
-  var cover=bx(4.0,0.35,1.35,0x1a1d22,0.6,0.6);cover.position.y=1.5;root.add(cover);R.pushCover(cover);
-  var pan=bx(4.0,0.5,1.4,0x3a3d44,0.7,0.5);pan.position.y=-1.0;root.add(pan);
+
+  // Определяем тип
+  var B=window.DVS_3D_BUILDERS;
+  if(!B){ fallbackRebuild(root); return; }
+
+  var raw=(S.engineType||S.engine||S.engineKey||'r4').toString().toLowerCase().replace(/\s+/g,'');
+  var fn=null;
+  // Прямое совпадение
+  for(var k in B){ if(k.toLowerCase()===raw){ fn=B[k]; break; } }
+  // Частичное совпадение
+  if(!fn){ for(var k2 in B){ if(raw.indexOf(k2.toLowerCase())>=0){ fn=B[k2]; break; } } }
+  // Алиасы
+  if(!fn){
+    var A={r4:'r4',2jz:'i6',inline6:'i6',v6:'v6',v8:'v8',v12:'v12',v16:'v16',v22:'v22',subaru:'boxer',boxer:'boxer',rotary:'wankel',wankel:'wankel',tdi:'tdi',dci:'dci',scooter:'scooter',tractor:'tractor'};
+    for(var a in A){ if(raw.indexOf(a)>=0){ fn=B[A[a]]; break; } }
+  }
+  if(!fn) fn=B.r4||null;
+
+  if(fn){
+    try{ fn(root); }
+    catch(e){ console.warn('Builder failed:',e); fallbackRebuild(root); }
+  } else {
+    fallbackRebuild(root);
+  }
+}
+
+/* ============ ЗАПАСНОЙ ============ */
+function fallbackRebuild(root){
+  if(!root){ var R=window.DVS_3D_REF; root=new THREE.Group();R.getScene().add(root);R.setRoot(root); }
+  var blk=bx(4.2,1.5,1.6,0x2a2d33,0.75,0.55);root.add(blk);
   var asm=[];
   for(var c2=0;c2<4;c2++){
     var cx=-1.55+c2*1.03;
-    var plug=cy(0.11,0.4,10,0x8a8f96,0.9,0.3);plug.position.set(cx,1.6,0);root.add(plug);
-    var cyl=cy(0.42,1.1,16,0x4a4d54,0.85,0.4);cyl.position.set(cx,0.2,0);root.add(cyl);
     var piston=cy(0.38,0.5,16,0xdde5ee,0.95,0.15);piston.position.set(cx,0.2,0);root.add(piston);
-    var rod=bx(0.14,1.1,0.14,0xc8d4e0,0.95,0.2);rod.position.set(cx,-0.6,0);root.add(rod);
-    asm.push({p:piston,rod:rod,off:c2*Math.PI,h:0.7,vv:[]});
+    asm.push({p:piston,rod:null,off:c2*Math.PI,h:0.7,vv:[]});
   }
-  R.setAsm(asm);
-  var crank=cy(0.28,4.4,16,0x8a95a3,0.95,0.25);crank.rotation.z=Math.PI/2;crank.position.y=-1.0;root.add(crank);R.setCrank(crank);
-  var fly=cy(1.5,0.3,28,0x6a6f78,0.9,0.3);fly.rotation.z=Math.PI/2;fly.position.set(2.5,-1.0,0);root.add(fly);R.setFly(fly);
+  window.DVS_3D_REF.setAsm(asm);
+  var crank=cy(0.28,4.4,16,0x8a95a3,0.95,0.25);
+  crank.rotation.z=Math.PI/2;crank.position.y=-1.0;root.add(crank);
+  window.DVS_3D_REF.setCrank(crank);
 }
 
-window.DVS_3D_REBUILD=fallbackRebuild;
-window._dvsFallbackRebuild=true;
+window.DVS_3D_REBUILD=smartRebuild;
 
 window.DVS_3D={
   show3D:function(){try{show3D();}catch(e){console.warn(e);}},
@@ -209,13 +227,6 @@ function animate(){
     if(A.p)A.p.position.y=py;
     var cpX=CR*s,cpY=d;
     if(A.rod){A.rod.position.set(cpX/2,(py+cpY)/2,0);A.rod.rotation.z=Math.atan2(cpX,-(cpY-py+0.01));}
-    var cycle=((ang+A.off)%(Math.PI*4)+Math.PI*4)%(Math.PI*4);
-    var idx=Math.floor(cycle/Math.PI);
-    var vIn=0,vEx=0;
-    if(idx===0)vIn=Math.max(0,Math.sin(cycle%Math.PI))*0.28;
-    if(idx===3)vEx=Math.max(0,Math.sin(cycle-3*Math.PI))*0.28;
-    if(A.vv&&A.vv[0])A.vv[0].position.y=A.h+0.05-vIn;
-    if(A.vv&&A.vv[1])A.vv[1].position.y=A.h+0.05-vEx;
   }
   var wR=window._dvsWankelRotors||[];
   for(var wr=0;wr<wR.length;wr++){
@@ -230,7 +241,7 @@ function animate(){
   for(var f=0;f<fl.length;f++){
     var F=fl[f];
     var cyc=((ang*1.5+F.phase)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
-    var inten=Math.max(0,1-Math.abs(cyc-Math.PI)*1.8);if(inten<0)inten=0;
+    var inten=Math.max(0,1-Math.abs(cyc-Math.PI)*1.8);
     F.mesh.material.opacity=inten*0.85;
     F.light.intensity=inten*4;
     var sc=0.4+inten*0.9;
@@ -279,7 +290,7 @@ function show3D(){
   resize();
   setTimeout(resize,150);
   setTimeout(resize,400);
-  if(window.DVS_3D_REBUILD){try{window.DVS_3D_REBUILD();}catch(e){}}
+  if(window.DVS_3D_REBUILD){try{window.DVS_3D_REBUILD();}catch(e){console.warn(e);}}
   if(!animId)animate();
   try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
 }
@@ -310,18 +321,12 @@ function attachBtn(){
   var vb=document.getElementById('view3dBtn');
   if(vb)vb.addEventListener('click',function(e){e.preventDefault();if(active)hide3D();else show3D();});
   var gb=document.getElementById('ghostBtn');
-  if(gb){
-    gb.style.display='none';
-    gb.addEventListener('click',function(e){e.preventDefault();setGhost(!ghost);});
-  }
+  if(gb){gb.style.display='none';gb.addEventListener('click',function(e){e.preventDefault();setGhost(!ghost);});}
   var lb=document.getElementById('lockBtn');
-  if(lb){
-    lb.style.display='none';
-    lb.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();toggleLock();});
-  }
+  if(lb){lb.style.display='none';lb.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();toggleLock();});}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachBtn);
 else attachBtn();
 
-console.log('view3d.js: загружен (multi-engine fix)');
+console.log('view3d.js: загружен (smart rebuild)');
 })();
