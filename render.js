@@ -20,18 +20,14 @@ function drawEngine(){
   else if(S.weather==='autumn'){bg.addColorStop(0,'#1a1210');bg.addColorStop(1,'#080404');}
   else{bg.addColorStop(0,'#0e151d');bg.addColorStop(1,'#070a0e');}
   c.fillStyle=bg;c.fillRect(0,0,W,H);
-  var t=S.engineType;var drawn=false;
+
+  var drawn=false;
   try{
-    if(t==='scooter'&&typeof RE.drawScooter==='function'){RE.drawScooter(c,S);drawn=true;}
-    else if(t==='tdi'&&typeof RE.drawTDI==='function'){RE.drawTDI(c,S);drawn=true;}
-    else if(t==='mt82'&&typeof RE.drawMTZ==='function'){RE.drawMTZ(c,S);drawn=true;}
-    else if(t==='passatb3'&&typeof RE.drawPassatB3==='function'){RE.drawPassatB3(c,S);drawn=true;}
-    else if(t==='bluebird'&&typeof RE.drawBluebird==='function'){RE.drawBluebird(c,S);drawn=true;}
-    else if(t==='galant6'&&typeof RE.drawGalant6==='function'){RE.drawGalant6(c,S);drawn=true;}
-    else if(t==='wankel'&&typeof RE.drawWankel==='function'){RE.drawWankel(c,S);drawn=true;}
-    else if(t==='v8'&&typeof RE.drawV==='function'){RE.drawV(c,S,12);drawn=true;}
-    else if(t==='v16'&&typeof RE.drawV==='function'){RE.drawV(c,S,22);drawn=true;}
+    if(typeof RE.render==='function'){
+      RE.render(c,S);drawn=true;
+    }
   }catch(err){console.log('draw error:',err);}
+
   if(!drawn){
     if(typeof RE.drawR4==='function'){try{RE.drawR4(c,S);}catch(e){}}
     else{c.fillStyle='#5d7189';c.font='bold 14px Segoe UI';c.textAlign='center';c.fillText('Двигатель не загружен',W/2,H/2);}
@@ -204,7 +200,6 @@ function drawDash(){
   var blinkOn=Math.floor(now/350)%2===0;
   c.clearRect(0,0,W,H);
 
-  /* === ЧЁРНЫЙ ФОН ПРИБОРКИ === */
   var bg=c.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#000000');
   bg.addColorStop(1,'#050505');
