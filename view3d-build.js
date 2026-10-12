@@ -7,7 +7,6 @@ function waitRef(){
   var R=window.DVS_3D_REF, B=window.DVS_3D_BUILD;
   var cy=B.cy,bx=B.bx;
 
-  /* ============ МАТЕРИАЛЫ ============ */
   function M(c,mt,rg,op,tr){
     var o={color:c,metalness:mt===undefined?0.8:mt,roughness:rg===undefined?0.35:rg};
     if(op!==undefined){o.transparent=true;o.opacity=op;}
@@ -15,28 +14,19 @@ function waitRef(){
     return new THREE.MeshStandardMaterial(o);
   }
   var MAT={
-    cast:  M(0x2a2f36,0.55,0.7),
-    block: M(0x3e4650,0.72,0.42,0.38,true),
-    head:  M(0x565f6c,0.78,0.35),
-    cover: M(0x262c34,0.5,0.55),
-    rib:   M(0x1a1e24,0.6,0.65),
-    alu:   M(0xa4acb6,0.9,0.22),
-    aluD:  M(0x6a727c,0.85,0.35),
-    chrome:M(0xe2e8ee,1.0,0.08),
-    piston:M(0xdde5ee,0.95,0.1),
-    rod:   M(0x8a95a2,0.9,0.22),
-    exhaust:M(0x6a4a30,0.6,0.65),
-    intake:M(0x546070,0.7,0.4),
-    belt:  M(0x14171a,0.2,0.9),
-    rubber:M(0x1a1d22,0.05,0.92),
-    bolt:  M(0xb8c0c8,0.95,0.2),
-    plug:  M(0x2a2d33,0.6,0.5)
+    cast:M(0x2a2f36,0.55,0.7), block:M(0x3e4650,0.72,0.42,0.38,true),
+    head:M(0x565f6c,0.78,0.35), cover:M(0x262c34,0.5,0.55),
+    rib:M(0x1a1e24,0.6,0.65), alu:M(0xa4acb6,0.9,0.22),
+    aluD:M(0x6a727c,0.85,0.35), chrome:M(0xe2e8ee,1.0,0.08),
+    piston:M(0xdde5ee,0.95,0.1), rod:M(0x8a95a2,0.9,0.22),
+    exhaust:M(0x6a4a30,0.6,0.65), intake:M(0x546070,0.7,0.4),
+    belt:M(0x14171a,0.2,0.9), rubber:M(0x1a1d22,0.05,0.92),
+    bolt:M(0xb8c0c8,0.95,0.2), plug:M(0x2a2d33,0.6,0.5)
   };
 
   function cyl(r1,r2,h,seg,mat){return new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,seg||20),mat);}
   function box(w,h,d,mat){return new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);}
   function tor(rad,tube,seg,tseg,mat){return new THREE.Mesh(new THREE.TorusGeometry(rad,tube,seg||8,tseg||20),mat);}
-  function sph(r,mat){return new THREE.Mesh(new THREE.SphereGeometry(r,14,10),mat);}
 
   function pB(x){if(x&&R.pushBlock)R.pushBlock(x);}
   function pH(x){if(x&&R.pushHead)R.pushHead(x);}
@@ -48,7 +38,6 @@ function waitRef(){
 
   var PY_MEAN=2.9, ROD_LEN=4.3;
 
-  /* ============ ПОРШЕНЬ ============ */
   function makePiston(r,h){
     var g=new THREE.Group();
     g.add(cyl(r,r,h,20,MAT.piston));
@@ -62,7 +51,6 @@ function waitRef(){
     return g;
   }
 
-  /* ============ ШАТУН ============ */
   function makeRod(len){
     var g=new THREE.Group();
     g.add(box(0.14,len*0.8,0.22,MAT.rod));
@@ -73,7 +61,6 @@ function waitRef(){
     return g;
   }
 
-  /* ============ СБОРКА ЦИЛИНДРА ============ */
   function makeCylAss(o){
     var g=new THREE.Group();
     g.position.set(o.x, o.y-PY_MEAN, o.z);
@@ -84,10 +71,9 @@ function waitRef(){
     return {g:g,p:p,rod:rod,vv:[],off:o.off||0,h:o.h,r:o.r};
   }
 
-  /* ============ КОЛЕНВАЛ + МАХОВИК ============ */
   function makeCrankAndFly(root,blockLen,y,perRow,fwR){
     var cg=new THREE.Group();cg.position.y=y;
-    cg.add((function(){var a=cyl(0.32,0.32,blockLen+1.2,20,MAT.alu);a.rotation.z=Math.PI/2;return a;})());
+    var ax=cyl(0.32,0.32,blockLen+1.2,20,MAT.alu);ax.rotation.z=Math.PI/2;cg.add(ax);
     for(var mi=0;mi<=perRow;mi++){
       var mx=-blockLen/2+0.5+mi*(blockLen-1)/perRow;
       var mn=cyl(0.5,0.5,0.4,18,MAT.aluD);
@@ -97,7 +83,8 @@ function waitRef(){
       var cxx=-blockLen/2+0.85+ci*(blockLen-1.7)/Math.max(1,perRow-1);
       var o1=ci*Math.PI*2/perRow;
       var p1=new THREE.Group();
-      p1.add((function(){var x=cyl(0.26,0.26,0.5,14,MAT.chrome);x.rotation.z=Math.PI/2;return x;})());
+      var pin1=cyl(0.26,0.26,0.5,14,MAT.chrome);
+      pin1.rotation.z=Math.PI/2;p1.add(pin1);
       p1.position.set(cxx,Math.sin(o1)*0.58,0);cg.add(p1);
       var cw=new THREE.Group();
       var cwb=cyl(0.68,0.68,0.34,16,MAT.cast);
@@ -119,10 +106,9 @@ function waitRef(){
     root.add(fw);sF(fw);
   }
 
-  /* ============ БЛОК + ГОЛОВКА + КРЫШКА ============ */
   function makeBlock(root,blockLen,blockH,blockD,blockY,diesel){
-    root.add((function(){var p=box(blockLen+0.3,1.1,blockD+0.2,MAT.cast);p.position.y=-1.0;return p;})());
-    root.add((function(){var l=box(blockLen+0.4,0.14,blockD+0.3,MAT.rib);l.position.y=-0.45;return l;})());
+    var pan=box(blockLen+0.3,1.1,blockD+0.2,MAT.cast);pan.position.y=-1.0;root.add(pan);
+    var lip=box(blockLen+0.4,0.14,blockD+0.3,MAT.rib);lip.position.y=-0.45;root.add(lip);
 
     var bk=box(blockLen,blockH,blockD,MAT.block);
     bk.position.y=blockY;root.add(bk);pB(bk);
@@ -132,7 +118,8 @@ function waitRef(){
       rb.position.y=blockY-blockH/2+0.4+rr*(blockH-0.8)/9;root.add(rb);pR(rb);
     }
 
-    root.add((function(){var g=box(blockLen+0.16,0.09,blockD+0.18,MAT.rib);g.position.y=blockY+blockH/2+0.08;return g;})());
+    var gk=box(blockLen+0.16,0.09,blockD+0.18,MAT.rib);
+    gk.position.y=blockY+blockH/2+0.08;root.add(gk);
 
     var headY=blockY+blockH/2+0.75;
     var hd=box(blockLen+0.15,1.35,blockD+0.18,MAT.head);
@@ -140,11 +127,7 @@ function waitRef(){
 
     for(var b=0;b<4;b++){
       var bolt=cyl(0.08,0.08,0.16,8,MAT.bolt);
-      bolt.position.set(
-        (b<2?-1:1)*(blockLen/2+0.02),
-        headY+0.7,
-        (b%2===0?-1:1)*(blockD/2+0.02)
-      );
+      bolt.position.set((b<2?-1:1)*(blockLen/2+0.02),headY+0.7,(b%2===0?-1:1)*(blockD/2+0.02));
       root.add(bolt);
     }
 
@@ -152,14 +135,16 @@ function waitRef(){
     var cv=box(blockLen-0.1,0.85,blockD-0.5,MAT.cover);
     cv.position.y=covY;root.add(cv);pC(cv);
 
-    root.add((function(){var c=cyl(0.22,0.22,0.22,12,MAT.plug);c.position.set(blockLen/2-0.8,covY+0.5,0);return c;})());
-    root.add((function(){var c=cyl(0.14,0.14,0.05,10,MAT.alu);c.position.set(blockLen/2-0.8,covY+0.63,0);return c;})());
-    root.add((function(){var s=cyl(0.05,0.05,0.5,6,MAT.aluD);s.position.set(-blockLen/2+0.5,covY+0.5,blockD/3);return s;})());
+    var cap=cyl(0.22,0.22,0.22,12,MAT.plug);
+    cap.position.set(blockLen/2-0.8,covY+0.5,0);root.add(cap);
+    var cap2=cyl(0.14,0.14,0.05,10,MAT.alu);
+    cap2.position.set(blockLen/2-0.8,covY+0.63,0);root.add(cap2);
+    var dip=cyl(0.05,0.05,0.5,6,MAT.aluD);
+    dip.position.set(-blockLen/2+0.5,covY+0.5,blockD/3);root.add(dip);
 
     return {blockLen:blockLen,blockH:blockH,blockD:blockD,blockY:blockY,headY:headY,covY:covY};
   }
 
-  /* ============ ВПУСК ============ */
   function makeIntake(root,B,n,spacing){
     var tw=n*spacing;
     var plenum=cyl(0.38,0.38,B.blockLen*0.88,16,MAT.intake);
@@ -183,7 +168,6 @@ function waitRef(){
     tb.position.set(-B.blockLen*0.5,B.headY+0.85,B.blockD/2+0.55);root.add(tb);
   }
 
-  /* ============ ВЫПУСК ============ */
   function makeExhaust(root,B,n,spacing){
     var tw=n*spacing;
     for(var i=0;i<n;i++){
@@ -197,7 +181,6 @@ function waitRef(){
     header.position.set(0,-0.5,-B.blockD/2-0.65);root.add(header);
   }
 
-  /* ============ ТУРБИНА ============ */
   function makeTurbo(root,B){
     var g=new THREE.Group();
     var comp=cyl(0.75,0.9,0.8,20,MAT.alu);comp.rotation.z=Math.PI/2;g.add(comp);
@@ -207,8 +190,10 @@ function waitRef(){
     turb.rotation.z=Math.PI/2;turb.position.x=1.05;g.add(turb);
     var turbS=tor(0.7,0.24,10,18,MAT.cast);
     turbS.rotation.y=Math.PI/2;turbS.position.x=1.15;g.add(turbS);
-    g.add((function(){var a=cyl(0.1,0.1,2.6,10,MAT.chrome);a.rotation.z=Math.PI/2;a.position.x=0.45;return a;})());
-    g.add((function(){var w=cyl(0.3,0.3,0.45,12,MAT.aluD);w.position.set(1.05,0.8,0.2);return w;})());
+    var axis=cyl(0.1,0.1,2.6,10,MAT.chrome);
+    axis.rotation.z=Math.PI/2;axis.position.x=0.45;g.add(axis);
+    var wg=cyl(0.3,0.3,0.45,12,MAT.aluD);
+    wg.position.set(1.05,0.8,0.2);g.add(wg);
     g.position.set(B.blockLen/2+0.5,-0.35,-B.blockD/2-0.9);
     root.add(g);
     if(!window._dciPartsArr)window._dciPartsArr=[];
@@ -222,7 +207,6 @@ function waitRef(){
     }
   }
 
-  /* ============ БАЗА РЯДНОГО ============ */
   function inlineBase(root,opt){
     var n=opt.n||4, spacing=opt.spacing||2.2;
     var tw=n*spacing;
@@ -240,7 +224,6 @@ function waitRef(){
       root.add(a.g);arr.push(a);
     }
     sA(arr);
-
     makeIntake(root,B,n,spacing);
     makeExhaust(root,B,n,spacing);
     if(diesel) makeTurbo(root,B);
@@ -253,7 +236,6 @@ function waitRef(){
   function buildPassatB3(root){inlineBase(root,{n:4});}
   function buildBluebird(root){inlineBase(root,{n:4});}
 
-  /* ============ SCOOTER ============ */
   function buildScooter(root){
     var B=inlineBase(root,{n:1,spacing:1.8,d:3.2,h:3.4,y:2.4,fwR:1.3});
     var carb=box(0.7,0.7,0.7,MAT.aluD);
@@ -271,7 +253,6 @@ function waitRef(){
     muf.position.set(-B.blockLen/2-2.2,-0.3,0);root.add(muf);
   }
 
-  /* ============ I6 ============ */
   function buildI6(root){
     var n=6,spacing=2.0;
     var tw=n*spacing;
@@ -299,7 +280,6 @@ function waitRef(){
     makeTurbo(root,B);
   }
 
-  /* ============ V ============ */
   function buildVBase(root,totalN,half,bankDist,scale){
     var perRow=Math.floor(totalN/2);
     var spacing=2.0*scale;
@@ -310,7 +290,8 @@ function waitRef(){
     var blockD=bankDist*2+2.8*scale;
 
     makeCrankAndFly(root,blockLen,0.6,perRow,2.5*scale);
-    root.add((function(){var p=box(blockLen+0.4,1.3,blockD*1.3,MAT.cast);p.position.y=-1.0;return p;})());
+    var pan=box(blockLen+0.4,1.3,blockD*1.3,MAT.cast);
+    pan.position.y=-1.0;root.add(pan);
 
     var arr=[];
     for(var side=0;side<2;side++){
@@ -362,14 +343,14 @@ function waitRef(){
   function buildV16(root){buildVBase(root,16,Math.PI/6,2.0,1.0);}
   function buildV22(root){buildVBase(root,22,Math.PI/4,2.3,1.0);}
 
-  /* ============ BOXER ============ */
   function buildBoxer(root){
     var n=2,spacing=2.6;
     var tw=n*spacing;
     var blockLen=tw+2.0;
     var blockH=4.5,blockD=4.5,blockY=2.8;
     makeCrankAndFly(root,blockLen,0.6,n,2.5);
-    root.add((function(){var p=box(blockLen+0.5,1.2,blockD+0.3,MAT.cast);p.position.y=0.3;return p;})());
+    var pan=box(blockLen+0.5,1.2,blockD+0.3,MAT.cast);
+    pan.position.y=0.3;root.add(pan);
     var bk=box(blockLen,blockH,2.5,MAT.block);
     bk.position.y=blockY;root.add(bk);pB(bk);
     for(var rr=0;rr<6;rr++){
@@ -404,7 +385,6 @@ function waitRef(){
     sA(arr);
   }
 
-  /* ============ RADIAL ============ */
   function buildRadial(root){
     var n=9, step=Math.PI*2/n, R_cyl=3.0, cylLen=3.2;
     var carter=cyl(3.4,3.4,0.9,32,MAT.cast);
@@ -414,7 +394,8 @@ function waitRef(){
     var axis=cyl(0.28,0.28,3.6,16,MAT.alu);
     axis.rotation.x=Math.PI/2;axis.position.z=1.5;root.add(axis);
     var fw=new THREE.Group();
-    fw.add((function(){var d=cyl(2.1,2.1,0.32,28,MAT.aluD);d.rotation.x=Math.PI/2;return d;})());
+    var fwD=cyl(2.1,2.1,0.32,28,MAT.aluD);
+    fwD.rotation.x=Math.PI/2;fw.add(fwD);
     for(var ft=0;ft<30;ft++){
       var th=box(0.28,0.2,0.14,MAT.aluD);
       var a=(ft/30)*Math.PI*2;
@@ -430,20 +411,17 @@ function waitRef(){
       grp.position.set(cx,cyy,0);
       grp.rotation.z=a-Math.PI/2;
       root.add(grp);
-      var shell=new THREE.Mesh(
-        new THREE.CylinderGeometry(0.9,0.9,cylLen,18,1,true),MAT.block);
+      var shell=new THREE.Mesh(new THREE.CylinderGeometry(0.9,0.9,cylLen,18,1,true),MAT.block);
       shell.position.y=cylLen/2;grp.add(shell);
       var hd=cyl(1.0,1.0,0.4,18,MAT.head);
       hd.position.y=cylLen+0.2;grp.add(hd);
-      grp.add(makePiston(0.82,0.8));
-      var rod=makeRod(1.6);
-      rod.position.y=-0.5;grp.add(rod);
-      arr.push({g:grp,p:grp.children[2],rod:rod,off:i*step});
+      var p=makePiston(0.82,0.8);p.position.y=cylLen*0.5;grp.add(p);
+      var rod=makeRod(1.6);rod.position.y=-0.5;grp.add(rod);
+      arr.push({g:grp,p:p,rod:rod,off:i*step});
     }
     sA(arr);
   }
 
-  /* ============ ТРАКТОР ============ */
   function buildTractor(root){
     var n=4,spacing=2.6;
     var tw=n*spacing;
@@ -475,7 +453,6 @@ function waitRef(){
     }
   }
 
-  /* ============ ВАНКЕЛЬ ============ */
   function makeEpiShape(Rr,e){
     var pts=[];
     for(var i=0;i<=96;i++){
@@ -512,4 +489,32 @@ function waitRef(){
     rotorMesh.rotation.x=Math.PI/2;root.add(rotorMesh);
     window._dvsWankelRotors.push({mesh:rotorMesh,ecc:e});
     var shaft=new THREE.Group();
-    shaft.add((function(){var s=cyl(0.28,0.28,3.0,14,MAT
+    var sh=cyl(0.28,0.28,3.0,14,MAT.chrome);sh.rotation.x=Math.PI/2;shaft.add(sh);
+    var ecc=cyl(0.7,0.7,0.35,20,MAT.aluD);
+    ecc.rotation.x=Math.PI/2;ecc.position.z=0.4;shaft.add(ecc);
+    root.add(shaft);sCr(shaft);
+    window._dvsWankelPins.push({grp:shaft});
+    var fw=new THREE.Group();
+    var fwD=cyl(1.8,1.8,0.3,28,MAT.aluD);
+    fwD.rotation.x=Math.PI/2;fw.add(fwD);
+    for(var ft=0;ft<28;ft++){
+      var th=box(0.26,0.18,0.12,MAT.aluD);
+      var a=(ft/28)*Math.PI*2;
+      th.position.set(Math.cos(a)*1.9,Math.sin(a)*1.9,0);
+      th.rotation.z=a;fw.add(th);
+    }
+    fw.position.z=2.5;root.add(fw);sF(fw);
+    for(var fp=0;fp<3;fp++){
+      var fm=new THREE.Mesh(new THREE.SphereGeometry(0.5,12,10),
+        new THREE.MeshBasicMaterial({color:0xffaa44,transparent:true,opacity:0}));
+      var fa=fp*(Math.PI*2/3)-Math.PI/2;
+      fm.position.set(Math.cos(fa)*Rr*0.7,Math.sin(fa)*Rr*0.7,0.6);
+      root.add(fm);
+      var lt=new THREE.PointLight(0xffaa44,0,6);
+      lt.position.copy(fm.position);root.add(lt);
+      window._dvsWankelFlashes.push({mesh:fm,light:lt,phase:fa});
+    }
+  }
+
+  window.DVS_3D_BUILDERS={
+    r4:bui
