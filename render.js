@@ -1,9 +1,10 @@
 (function(){
 "use strict";
-var S=window.S;var RB=window.RB;var RE=window.RE;
+var S=window.S, RB=window.RB, RE=window.RE;
 if(!S||!RB||!RE)return;
 var ecv,ectx,gcv,gctx;
-var MAXR=10500,MAXS=240;
+var MAXS=240;
+
 function init(){
   ecv=document.getElementById('engineCv');
   if(ecv)ectx=ecv.getContext('2d');
@@ -12,6 +13,7 @@ function init(){
 }
 function safe(n){return (typeof n==='number'&&isFinite(n))?n:0;}
 
+/* ====================== ДВИГАТЕЛЬ ====================== */
 function drawEngine(){
   var c=ectx,W=ecv.width,H=ecv.height;
   c.clearRect(0,0,W,H);
@@ -21,15 +23,11 @@ function drawEngine(){
   else{bg.addColorStop(0,'#0e151d');bg.addColorStop(1,'#070a0e');}
   c.fillStyle=bg;c.fillRect(0,0,W,H);
 
-  var drawn=false;
   try{
-    if(typeof RE.render==='function'){RE.render(c,S);drawn=true;}
-  }catch(err){console.log('draw error:',err);}
+    if(typeof RE.render==='function') RE.render(c,S);
+    else if(typeof RE.drawR4==='function') RE.drawR4(c,S);
+  }catch(e){console.log('draw error:',e);}
 
-  if(!drawn){
-    if(typeof RE.drawR4==='function'){try{RE.drawR4(c,S);}catch(e){}}
-    else{c.fillStyle='#5d7189';c.font='bold 14px Segoe UI';c.textAlign='center';c.fillText('Двигатель не загружен',W/2,H/2);}
-  }
   if(S.broken){c.fillStyle='rgba(200,20,20,0.06)';c.fillRect(0,0,W,H);}
 
   var wx=W-40,wy=H-30;
@@ -60,6 +58,7 @@ function drawEngine(){
   c.restore();
 }
 
+/* ====================== ИКОНКИ ====================== */
 function drawOilIcon(c,x,y,color){
   var fill=color==='red'?'#ff5b5b':(color==='yellow'?'#ffc93c':(color==='green'?'#43c98a':'#4a4a4a'));
   c.save();c.translate(x,y);c.fillStyle=fill;
@@ -99,17 +98,10 @@ function drawTempIcon(c,x,y,color){
   c.save();c.translate(x,y);c.fillStyle=fill;
   c.beginPath();c.arc(0,5,4.5,0,7);c.fill();
   c.beginPath();c.rect(-2,-10,4,14);c.fill();
-  if(color!=='dim'){
-    c.fillStyle='#0a0a0a';
-    c.beginPath();c.rect(-0.7,-8,3,1.2);c.fill();
-    c.beginPath();c.rect(-0.7,-5,3,1.2);c.fill();
-    c.beginPath();c.rect(-0.7,-2,3,1.2);c.fill();
-    c.beginPath();c.rect(-0.7,1,3,1.2);c.fill();
-    c.fillStyle=fill;c.beginPath();c.rect(-0.7,3,2.2,3);c.fill();
-  }
   c.restore();
 }
 
+/* ====================== СПИДОМЕТР ====================== */
 function drawGauge(c,cx,cy,R,value,maxV,redline,label,bigNum){
   var a0=Math.PI*0.75,a1=Math.PI*2.25;
   c.lineCap='butt';c.lineWidth=9;
@@ -125,54 +117,53 @@ function drawGauge(c,cx,cy,R,value,maxV,redline,label,bigNum){
   c.beginPath();c.arc(cx,cy,R,a0,curA);c.stroke();
   for(var i=0;i<=8;i++){
     var a=a0+(i/8)*(a1-a0);
-    var x1=cx+Math.cos(a)*(R-5),y1=cy+Math.sin(a)*(R-5);
-    var x2=cx+Math.cos(a)*(R-11),y2=cy+Math.sin(a)*(R-11);
-    c.strokeStyle=(i*maxV/8>=redline)?'#ff6b6b':'#555555';c.lineWidth=1.5;
-    c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();
-    var tx=cx+Math.cos(a)*(R-19),ty=cy+Math.sin(a)*(R-19);
+    c.strokeStyle=(i*maxV/8>=redline)?'#ff6b6b':'#555';
+    c.lineWidth=1.5;
+    c.beginPath();
+    c.moveTo(cx+Math.cos(a)*(R-5),cy+Math.sin(a)*(R-5));
+    c.lineTo(cx+Math.cos(a)*(R-11),cy+Math.sin(a)*(R-11));
+    c.stroke();
     c.fillStyle=(i*maxV/8>=redline)?'#ff8b8b':'#707070';
     c.font='bold 7px Segoe UI, sans-serif';
     c.textAlign='center';c.textBaseline='middle';
     var lbl=Math.round(i*maxV/8);
     if(maxV>=1000)lbl=(lbl/1000).toFixed(0);
-    c.fillText(String(lbl),tx,ty);
+    c.fillText(String(lbl),cx+Math.cos(a)*(R-19),cy+Math.sin(a)*(R-19));
   }
   var na=a0+(rp/maxV)*(a1-a0);
   c.save();c.translate(cx,cy);c.rotate(na);
-  var ng=c.createLinearGradient(0,0,R,0);
-  ng.addColorStop(0,'#ff5b5b');ng.addColorStop(1,'#ffb0b0');
-  c.fillStyle=ng;
+  c.fillStyle='#ff5b5b';
   c.beginPath();
   c.moveTo(-7,-3);c.lineTo(R-12,-1.5);c.lineTo(R-8,0);c.lineTo(R-12,1.5);c.lineTo(-7,3);
   c.closePath();c.fill();c.restore();
   c.fillStyle='#141414';c.beginPath();c.arc(cx,cy,8,0,7);c.fill();
-  c.strokeStyle='#333333';c.lineWidth=1.5;c.stroke();
+  c.strokeStyle='#333';c.lineWidth=1.5;c.stroke();
   var col='#9fe8c0';
   if(value>redline)col='#ff5b5b';
   else if(value>redline*0.85)col='#ffc93c';
   c.fillStyle=col;c.font='bold 14px Segoe UI, sans-serif';
   c.textAlign='center';c.textBaseline='alphabetic';
   c.fillText(bigNum,cx,cy-11);
-  c.fillStyle='#666666';c.font='bold 6px Segoe UI, sans-serif';
+  c.fillStyle='#666';c.font='bold 6px Segoe UI, sans-serif';
   c.fillText(label,cx,cy-2);
 }
 
-function drawIndicatorRing(c,x,y,r,color,blinkOn){
+function drawRing(c,x,y,r,color,blinkOn){
   var g=c.createRadialGradient(x-r*.3,y-r*.3,1,x,y,r);
   if(color==='red'){g.addColorStop(0,'#3a1515');g.addColorStop(1,'#1a0808');}
   else if(color==='yellow'){g.addColorStop(0,'#3a2f10');g.addColorStop(1,'#1a1408');}
   else if(color==='green'){g.addColorStop(0,'#0f2a1c');g.addColorStop(1,'#08160e');}
   else{g.addColorStop(0,'#1a1a1a');g.addColorStop(1,'#0a0a0a');}
   c.fillStyle=g;c.beginPath();c.arc(x,y,r,0,7);c.fill();
-  var ringCol='#333333';
+  var ringCol='#333';
   if(color==='red')ringCol=blinkOn===false?'#4a1010':'#ff5b5b';
   else if(color==='yellow')ringCol=blinkOn===false?'#4a3a10':'#ffc93c';
   else if(color==='green')ringCol='#43c98a';
   c.strokeStyle=ringCol;c.lineWidth=color==='dim'?1.5:2;
-  if(color!=='dim'&&blinkOn===false)c.lineWidth=1;
   c.beginPath();c.arc(x,y,r,0,7);c.stroke();
 }
 
+/* ====================== ПРИБОРКА ====================== */
 function drawDash(){
   if(!gctx)return;
   var c=gctx,W=gcv.width,H=gcv.height;
@@ -182,19 +173,24 @@ function drawDash(){
   bg.addColorStop(0,'#000');bg.addColorStop(1,'#050505');
   c.fillStyle=bg;c.fillRect(0,0,W,H);
   c.strokeStyle='#1a1a1a';c.lineWidth=1;c.strokeRect(0.5,0.5,W-1,H-1);
+
   var E=S.engines[S.engineType]||S.engines.r4;
   var rpm=safe(S.rpm),spd=Math.abs(safe(S.speed));
+
   c.fillStyle='#4a4a4a';c.font='bold 6px Segoe UI, sans-serif';
   c.textAlign='left';c.textBaseline='top';
   c.fillText('ДВС • ПРИБОРНАЯ ПАНЕЛЬ',6,6);
+
   var wI=S.weather==='winter'?'❄':(S.weather==='autumn'?'🍂':'☀');
   var wT=S.weather==='winter'?'ЗИМА':(S.weather==='autumn'?'ОСЕНЬ':'ЛЕТО');
   c.fillStyle='#707070';c.font='bold 7px Segoe UI, sans-serif';
   c.textAlign='right';c.textBaseline='top';
   c.fillText(wI+' '+wT,W-6,6);
+
   var gMax=S.engineType==='wankel'?11000:10500;
   drawGauge(c,78,90,56,rpm,gMax,E.redline,'об/мин ×1000',(rpm/1000).toFixed(1));
   drawGauge(c,262,90,56,spd,MAXS,220,'км/ч',String(Math.round(spd)));
+
   var gv=S.gear;
   var gt=gv===0?'N':(gv===-1?'R':(E.auto?'D':String(gv)));
   var gc='#8fd8ff';
@@ -202,12 +198,13 @@ function drawDash(){
   c.fillStyle=gc;c.font='bold 20px Segoe UI, sans-serif';
   c.textAlign='center';c.textBaseline='middle';
   c.fillText(gt,170,68);
-  c.fillStyle='#666666';c.font='bold 6px Segoe UI, sans-serif';
+  c.fillStyle='#666';c.font='bold 6px Segoe UI, sans-serif';
   c.fillText('ПЕРЕДАЧА',170,84);
   c.fillStyle=S.running?'#43c98a':'#4a4a4a';
   c.font='bold 6px Segoe UI, sans-serif';
   c.fillText('СТАРТ',170,98);
   c.beginPath();c.arc(170,110,3.5,0,7);c.fill();
+
   var pc='dim';
   if(S.ignitionState==='priming')pc='red';
   else if(S.ignitionState==='ready'||S.ignitionState==='running')pc='green';
@@ -218,15 +215,18 @@ function drawDash(){
   else if(et>95){tc='yellow';tb=blinkOn;}
   else if(et>75){tc='green';}
   else if(et<at+5&&S.weather==='winter'){tc='yellow';tb=blinkOn;}
+
   var iy=152,ir=12;
-  drawIndicatorRing(c,52,iy,ir,oc,true);drawOilIcon(c,52,iy,oc);
-  drawIndicatorRing(c,130,iy,ir,ec,true);drawCheckIcon(c,130,iy,ec);
-  drawIndicatorRing(c,208,iy,ir,pc,true);drawFuelIcon(c,208,iy,pc);
-  drawIndicatorRing(c,286,iy,ir,tc,tb);drawTempIcon(c,286,iy,tc);
+  drawRing(c,52,iy,ir,oc,true);drawOilIcon(c,52,iy,oc);
+  drawRing(c,130,iy,ir,ec,true);drawCheckIcon(c,130,iy,ec);
+  drawRing(c,208,iy,ir,pc,true);drawFuelIcon(c,208,iy,pc);
+  drawRing(c,286,iy,ir,tc,tb);drawTempIcon(c,286,iy,tc);
+
   c.fillStyle='#4a4a4a';c.font='bold 6px Segoe UI, sans-serif';
   c.textAlign='center';c.textBaseline='top';
   c.fillText('МАСЛО',52,iy+16);c.fillText('CHECK',130,iy+16);
   c.fillText('НАСОС',208,iy+16);c.fillText('ТЕМП',286,iy+16);
+
   var ttc='#4a4a4a';
   if(et>105)ttc=blinkOn?'#ff5b5b':'#4a1010';
   else if(et>95)ttc=blinkOn?'#ffc93c':'#4a3a10';
@@ -234,6 +234,7 @@ function drawDash(){
   c.fillStyle=ttc;c.font='bold 8px Segoe UI, sans-serif';
   c.textAlign='center';c.textBaseline='top';
   c.fillText('ДВИГ: '+Math.round(et)+'°C   ВОЗДУХ: '+Math.round(at)+'°C',170,H-12);
+
   if(S.weather==='winter'&&et<5&&S.running&&blinkOn){
     c.fillStyle='#8fd8ff';c.font='bold 9px Segoe UI, sans-serif';
     c.textAlign='center';c.textBaseline='middle';
@@ -245,6 +246,7 @@ function drawDash(){
   }
 }
 
+/* ====================== ЦИКЛ ====================== */
 function paint(){
   if(!ecv)init();
   if(!ecv)return;
