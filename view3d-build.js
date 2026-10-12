@@ -199,7 +199,9 @@ function waitRef(){
     var snail=new THREE.Mesh(new THREE.TorusGeometry(0.75,0.16,8,20),m(0x6a7685,0.9,0.3));
     snail.rotation.y=Math.PI/2;turbo.add(snail);
     turbo.position.set(B.blockLen/2+0.3,-0.3,-B.blockD/2-0.35);root.add(turbo);
-    window._dciParts={turbo:turbo};
+    /* ФИКС: массив вместо одиночного объекта */
+    if(!window._dciPartsArr)window._dciPartsArr=[];
+    window._dciPartsArr.push({turbo:turbo});
     var pump=bx(1.6,1.3,1.5,0x3a4654,0.85,0.4);
     pump.position.set(B.blockLen/2+0.5,B.covY+0.4,-B.blockD/2-0.3);root.add(pump);
   }
@@ -216,7 +218,9 @@ function waitRef(){
     var snail=new THREE.Mesh(new THREE.TorusGeometry(0.7,0.15,8,20),m(0x6a7685,0.9,0.3));
     snail.rotation.y=Math.PI/2;turbo.add(snail);
     turbo.position.set(B.blockLen/2+0.4,-0.3,-B.blockD/2-0.35);root.add(turbo);
-    window._dciParts={turbo:turbo};
+    /* ФИКС: массив вместо одиночного объекта */
+    if(!window._dciPartsArr)window._dciPartsArr=[];
+    window._dciPartsArr.push({turbo:turbo});
     var rail=cy(0.13,0.13,B.blockLen*0.85,0xc8d4e0,0.95,0.15);
     rail.rotation.z=Math.PI/2;
     rail.position.set(0,B.covY+0.5,B.blockD/2-0.3);root.add(rail);
@@ -539,11 +543,4 @@ function waitRef(){
         Rr*Math.sin(t)+e*Math.sin(3*t)
       ));
     }
-    return new THREE.Shape(pts);
-  }
-  function makeRotorShape(rotR){
-    var sh=new THREE.Shape();
-    for(var k=0;k<3;k++){
-      var a=k*(Math.PI*2/3)-Math.PI/2;
-      var x=Math.cos(a)*rotR,y=Math.sin(a)*rotR;
-      if(k===
+    ret
