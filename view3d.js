@@ -1,7 +1,6 @@
 (function(){
 "use strict";
 var S=window.S;if(!S)return;
-console.log('view3d.js: стартовал');
 var active=false,scene,camera,renderer,container,animId=null;
 var rotX=0.4,rotY=0.7,dist=14,isDown=false,lastX=0,lastY=0,pinch=0;
 var _ready=false;
@@ -133,8 +132,7 @@ function show3D(){
   active=true;
   container.style.display='block';
   var vb=document.getElementById('view3dBtn');if(vb)vb.textContent='📊 2D';
-  resize();
-  setTimeout(resize,150);setTimeout(resize,400);
+  resize();setTimeout(resize,150);setTimeout(resize,400);
   if(window.DVS_3D_REBUILD){try{window.DVS_3D_REBUILD();}catch(e){}}
   if(!animId)animate();
 }
@@ -149,7 +147,7 @@ function hide3D(){
 function attachBtn(){
   var vb=document.getElementById('view3dBtn');
   if(vb)vb.addEventListener('click',function(e){e.preventDefault();if(active)hide3D();else show3D();});
-  console.log('view3d.js: buttons attached');
+  console.log('view3d.js: кнопки привязаны');
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachBtn);
 else attachBtn();
