@@ -36,21 +36,21 @@ header{
   padding:3px 8px;border-radius:10px;
   border:1px solid rgba(255,255,255,.14);
   background:rgba(20,20,20,.35);
-  backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
-  -webkit-backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
   color:#e0e8f0;font:600 9px/1 inherit;letter-spacing:1px;
-  box-shadow:0 4px 14px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.25);
+  box-shadow:0 4px 14px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.20);
 }
 #repairBtn{
   position:fixed;top:56px;left:10px;z-index:1001;
   width:46px;height:46px;border-radius:50%;
   border:1px solid rgba(230,130,130,.5);
   background:rgba(140,30,30,.35);
-  backdrop-filter:blur(40px) saturate(180%);
-  -webkit-backdrop-filter:blur(40px) saturate(180%);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
   color:#fff;font-size:20px;cursor:pointer;
   align-items:center;justify-content:center;
-  box-shadow:0 8px 22px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.25),0 0 20px rgba(200,80,80,.35);
+  box-shadow:0 8px 22px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.20),0 0 20px rgba(200,80,80,.35);
   display:none;
 }
 body.broken #repairBtn{display:flex}
@@ -64,13 +64,13 @@ main{
 }
 .panel{
   position:relative;
-  background:rgba(15,15,15,.28);
-  backdrop-filter:blur(50px) saturate(180%) brightness(1.05);
-  -webkit-backdrop-filter:blur(50px) saturate(180%) brightness(1.05);
+  background:rgba(15,15,15,.30);
+  backdrop-filter:blur(25px) saturate(160%);
+  -webkit-backdrop-filter:blur(25px) saturate(160%);
   border:1px solid rgba(255,255,255,.14);
   border-radius:16px;
   padding:6px;
-  box-shadow:0 14px 40px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.18);
+  box-shadow:0 14px 40px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.15);
   overflow:hidden;
 }
 
@@ -95,11 +95,11 @@ main{
   padding:7px 14px;border-radius:20px;
   border:1px solid rgba(255,255,255,.22);
   background:rgba(20,20,20,.35);
-  backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
-  -webkit-backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
   color:#e0e8f0;font:600 10px/1 inherit;letter-spacing:1px;
   cursor:pointer;
-  box-shadow:0 8px 24px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.25);
+  box-shadow:0 8px 24px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.20);
 }
 #view3dBtn:hover{border-color:rgba(255,255,255,.35);color:#fff}
 
@@ -108,24 +108,24 @@ main{
   padding:7px 14px;border-radius:20px;
   border:1px solid rgba(255,255,255,.22);
   background:rgba(20,20,20,.35);
-  backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
-  -webkit-backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
   color:#e0e8f0;font:600 10px/1 inherit;letter-spacing:1px;
   cursor:pointer;
-  box-shadow:0 8px 24px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.25);
+  box-shadow:0 8px 24px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.20);
   display:none;
 }
 #ghostBtn:hover{border-color:rgba(255,255,255,.35);color:#fff}
 
-/* ==================== КНОПКА ПУСК / СТОП / ЗАЖИГАНИЕ — LIQUID GLASS ==================== */
+/* ==================== КНОПКА ПУСК / СТОП / ЗАЖИГАНИЕ ==================== */
 .ignbtn{
   width:100%;
   height:48px;
   border-radius:14px;
   border:1px solid rgba(255,255,255,.30);
-  background:rgba(255,255,255,.06);
-  backdrop-filter:blur(40px) saturate(200%) brightness(1.15);
-  -webkit-backdrop-filter:blur(40px) saturate(200%) brightness(1.15);
+  background:rgba(255,255,255,.08);
+  backdrop-filter:blur(20px) saturate(180%);
+  -webkit-backdrop-filter:blur(20px) saturate(180%);
   color:#ffffff;
   font:600 12px/1 inherit;
   letter-spacing:2.5px;
@@ -135,61 +135,59 @@ main{
   text-shadow:0 1px 4px rgba(0,0,0,.7);
   transition:all .3s cubic-bezier(.4,0,.2,1);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.45),
+    inset 0 1px 0 rgba(255,255,255,.40),
     inset 0 -1px 0 rgba(0,0,0,.25),
-    inset 0 0 0 1px rgba(255,255,255,.05),
-    0 12px 40px rgba(0,0,0,.55),
-    0 4px 14px rgba(0,0,0,.35);
+    0 12px 40px rgba(0,0,0,.55);
 }
 .ignbtn:hover{
-  background:rgba(255,255,255,.10);
+  background:rgba(255,255,255,.12);
   border-color:rgba(255,255,255,.40);
 }
 
-/* ПУСК — янтарное жидкое стекло */
+/* ПУСК — янтарное стекло */
 #ignBtn.start,
 .ignbtn.start{
-  background:linear-gradient(180deg,rgba(255,190,70,.32),rgba(255,150,30,.22));
+  background:linear-gradient(180deg,rgba(255,190,70,.30),rgba(255,150,30,.20));
   border:1px solid rgba(255,220,140,.60);
   color:#fff8e0;
   font-weight:700;
   letter-spacing:5px;
-  backdrop-filter:blur(40px) saturate(240%) brightness(1.2);
-  -webkit-backdrop-filter:blur(40px) saturate(240%) brightness(1.2);
+  backdrop-filter:blur(20px) saturate(220%);
+  -webkit-backdrop-filter:blur(20px) saturate(220%);
   text-shadow:0 0 14px rgba(255,190,60,.9),0 1px 4px rgba(0,0,0,.7);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.65),
+    inset 0 1px 0 rgba(255,255,255,.60),
     inset 0 -1px 0 rgba(0,0,0,.20),
-    0 0 40px rgba(255,180,60,.55),
+    0 0 40px rgba(255,180,60,.5),
     0 12px 40px rgba(0,0,0,.55);
   animation:startPulse 2s ease-in-out infinite;
 }
 @keyframes startPulse{
   0%,100%{
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.65),
+      inset 0 1px 0 rgba(255,255,255,.60),
       inset 0 -1px 0 rgba(0,0,0,.20),
       0 0 30px rgba(255,180,60,.45),
       0 12px 40px rgba(0,0,0,.55);
   }
   50%{
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.75),
+      inset 0 1px 0 rgba(255,255,255,.70),
       inset 0 -1px 0 rgba(0,0,0,.20),
       0 0 70px rgba(255,180,60,.9),
       0 12px 40px rgba(0,0,0,.55);
   }
 }
 
-/* СТОП — тёмное жидкое стекло */
+/* СТОП — тёмное стекло */
 #ignBtn.on,
 .ignbtn.on{
-  background:rgba(255,255,255,.08);
+  background:rgba(255,255,255,.10);
   border:1px solid rgba(255,255,255,.35);
   color:#ffffff;
   font-weight:800;
-  backdrop-filter:blur(50px) saturate(200%) brightness(.85);
-  -webkit-backdrop-filter:blur(50px) saturate(200%) brightness(.85);
+  backdrop-filter:blur(25px) saturate(180%);
+  -webkit-backdrop-filter:blur(25px) saturate(180%);
   text-shadow:0 0 10px rgba(255,255,255,.4),0 1px 4px rgba(0,0,0,.8);
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,.45),
@@ -229,8 +227,8 @@ main{
   width:100%;
   height:140px;
   background:rgba(15,15,15,.30);
-  backdrop-filter:blur(50px) saturate(180%) brightness(1.05);
-  -webkit-backdrop-filter:blur(50px) saturate(180%) brightness(1.05);
+  backdrop-filter:blur(25px) saturate(160%);
+  -webkit-backdrop-filter:blur(25px) saturate(160%);
   border:1px solid rgba(255,255,255,.14);
   border-radius:12px;
   padding:4px;overflow:hidden;
@@ -249,14 +247,14 @@ main{
   width:36px;height:36px;border-radius:50%;
   border:1px solid rgba(255,255,255,.22);
   background:rgba(20,20,20,.35);
-  backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
-  -webkit-backdrop-filter:blur(40px) saturate(180%) brightness(1.1);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
   color:#e0e8f0;font:600 13px/1 inherit;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
   align-self:center;justify-self:center;
   padding:0;margin:0;
   transition:all .2s;
-  box-shadow:0 8px 22px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.22);
+  box-shadow:0 8px 22px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.20);
   opacity:.7;
 }
 .gb-grid .gbtn:hover{opacity:.95;border-color:rgba(255,255,255,.35);color:#fff}
@@ -330,8 +328,8 @@ main{
 .gears-auto{
   display:none;gap:5px;
   background:rgba(15,15,15,.30);
-  backdrop-filter:blur(50px) saturate(180%);
-  -webkit-backdrop-filter:blur(50px) saturate(180%);
+  backdrop-filter:blur(25px) saturate(160%);
+  -webkit-backdrop-filter:blur(25px) saturate(160%);
   border:1px solid rgba(255,255,255,.14);
   border-radius:12px;padding:5px;
 }
@@ -341,8 +339,8 @@ body.auto-mode #gearsManual{display:none}
   height:44px;border-radius:10px;
   border:1px solid rgba(255,255,255,.20);
   background:rgba(20,20,20,.35);
-  backdrop-filter:blur(40px) saturate(180%);
-  -webkit-backdrop-filter:blur(40px) saturate(180%);
+  backdrop-filter:blur(20px) saturate(160%);
+  -webkit-backdrop-filter:blur(20px) saturate(160%);
   color:#e0e8f0;font:600 14px/1 inherit;cursor:pointer;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.20);
 }
@@ -360,14 +358,14 @@ body.auto-mode #gearsManual{display:none}
 .pedal{
   position:relative;height:82px;border-radius:16px;
   border:1px solid rgba(255,255,255,.14);
-  background:rgba(15,15,15,.28);
-  backdrop-filter:blur(50px) saturate(180%) brightness(1.05);
-  -webkit-backdrop-filter:blur(50px) saturate(180%) brightness(1.05);
+  background:rgba(15,15,15,.30);
+  backdrop-filter:blur(25px) saturate(160%);
+  -webkit-backdrop-filter:blur(25px) saturate(160%);
   color:#d0dae4;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:3px;font:600 11px/1 inherit;letter-spacing:1px;
   overflow:hidden;touch-action:none;
-  box-shadow:0 14px 40px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.18);
+  box-shadow:0 14px 40px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.15);
 }
 .pedal .bar{
   position:absolute;left:0;bottom:0;height:100%;width:0%;
