@@ -467,4 +467,104 @@ function attachControls(){
   }
   function move(e){
     if(e.touches){
-      if(e.touches.
+            if(e.touches.length===1&&isDown){
+        e.preventDefault();
+        rotY+=(e.touches[0].clientX-lastX)*0.012;
+        rotX+=(e.touches[0].clientY-lastY)*0.012;
+        rotX=Math.max(-1.3,Math.min(1.3,rotX));
+        lastX=e.touches[0].clientX;lastY=e.touches[0].clientY;
+        updCam();
+      }else if(e.touches.length===2&&pinch){
+        e.preventDefault();
+        var dx=e.touches[0].clientX-e.touches[1].clientX;
+        var dy=e.touches[0].clientY-e.touches[1].clientY;
+        var nd=Math.hypot(dx,dy);
+        dist*=pinch/nd;dist=Math.max(7,Math.min(45,dist));
+        pinch=nd;updCam();
+      }
+    }else if(isDown){
+      rotY+=(e.clientX-lastX)*0.012;
+      rotX+=(e.clientY-lastY)*0.012;
+      rotX=Math.max(-1.3,Math.min(1.3,rotX));
+      lastX=e.clientX;lastY=e.clientY;updCam();
+    }
+  }
+  function up(){isDown=false;pinch=0;}
+  el.addEventListener('touchstart',down,{passive:false});
+  el.addEventListener('touchmove',move,{passive:false});
+  el.addEventListener('touchend',up);
+  el.addEventListener('touchcancel',up);
+  el.addEventListener('mousedown',down);
+  el.addEventListener('mousemove',move);
+  el.addEventListener('mouseup',up);
+  el.addEventListener('mouseleave',up);
+}
+function animate(){
+  if(!active||!scene){animId=null;return;}
+  animId=requestAnimationFrame(animate);
+  var ang=S.crankAngle||0;
+  for(var i=0;i<_asm.length;i++){
+    var A=_asm[i];
+    if(!A||!A.p)continue;
+    var ph=ang+(A.off||0);
+    var Rc=0.8,L=3.5,cyA=1.0;
+    var sinT=Math.sin(ph),cosT=Math.cos(ph);
+    var sq=L*L-Rc*Rc*sinT*sinT;if(sq<0)sq=0;
+    var pinY=cyA+Rc*cosT+Math.sqrt(sq);
+    A.p.position.y=pinY;
+    if(A.rod){
+      var cpX=Rc*sinT,cpY=cyA+Rc*cosT;
+      A.rod.position.x=cpX/2;
+      A.rod.position.y=(pinY+cpY)/2;
+      A.rod.rotation.z=-Math.atan2(cpX,pinY-cpY);
+    }
+  }
+  for(var wr=0;wr<_wankelRotors.length;wr++){
+    var W=_wankelRotors[wr];
+    W.mesh.rotation.z=-ang/3;
+    W.mesh.position.x=Math.cos(ang)*W.ecc;
+    W.mesh.position.y=Math.sin(ang)*W.ecc;
+  }
+  if(_dciTurbo)_dciTurbo.rotation.x=ang*2.5;
+  for(var ci=0;ci<_cranks.length;ci++)_cranks[ci].rotation.x=-ang;
+  for(var fi=0;fi<_flies.length;fi++)_flies[fi].rotation.x=-ang;
+  renderer.render(scene,camera);
+}
+function resize(){
+  if(!renderer||!camera)return;
+  var ecv=document.getElementById('engineCv');if(!ecv)return;
+  var wrap=ecv.parentNode;
+  var w=wrap.clientWidth,h=wrap.clientHeight;
+  if(w&&h){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
+}
+function show3D(){
+  if(!setup())return;
+  active=true;
+  container.style.display='block';
+  var gb=document.getElementById('ghostBtn');if(gb)gb.style.display='inline-block';
+  var vb=document.getElementById('view3dBtn');if(vb)vb.textContent='📊 2D';
+  resize();setTimeout(resize,150);setTimeout(resize,400);
+  smartRebuild();
+  if(!animId)animate();
+}
+function hide3D(){
+  active=false;
+  if(container)container.style.display='none';
+  if(animId){cancelAnimationFrame(animId);animId=null;}
+  var gb=document.getElementById('ghostBtn');if(gb)gb.style.display='none';
+  var vb=document.getElementById('view3dBtn');if(vb)vb.textContent='🎥 3D';
+}
+function attachBtn(){
+  var vb=document.getElementById('view3dBtn');
+  if(vb)vb.addEventListener('click',function(e){e.preventDefault();if(active)hide3D();else show3D();});
+  var gb=document.getElementById('ghostBtn');
+  if(gb){
+    gb.style.display='none';
+    gb.addEventListener('click',function(e){e.preventDefault();setGhost(!ghost);});
+  }
+  console.log('view3d.js: ОК');
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachBtn);
+else attachBtn();
+console.log('view3d.js: загружен');
+})();
