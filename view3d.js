@@ -33,16 +33,29 @@ window.DVS_3D_REF={
   clearAll:function(){
     _blockM=[];_headM=[];_coverM=[];_ribM=[];_asm=[];_cams=[];
     _cranks=[];_flies=[];_camSingles=[];_beltT=null;_beltB=null;
+  },
+  getCfg:function(t){
+    var CFG={
+      scooter:{n:1,v:false},
+      tdi:{n:4,v:false},
+      dci:{n:4,v:false,model:'dci'},
+      mt82:{n:4,v:false},
+      passatb3:{n:4,v:false},
+      bluebird:{n:4,v:false},
+      galant6:{n:6,v:true},
+      wankel:{n:2,v:false,model:'wankel'},
+      r4:{n:4,v:false},
+      v8:{n:12,v:true},
+      v16:{n:22,v:true}
+    };
+    return CFG[t]||CFG.r4;
   }
 };
 
 /* ============ УМНАЯ ПЕРЕСБОРКА ============ */
-/* Вызывает нужный билдер из window.DVS_3D_BUILDERS по типу двигателя */
 function smartRebuild(){
   var R=window.DVS_3D_REF;
   var sc=R.getScene(); if(!sc)return;
-
-  // Удаляем старый корень
   var old=R.getRoot();
   if(old){
     while(old.children.length){
@@ -53,25 +66,28 @@ function smartRebuild(){
     sc.remove(old);
   }
   R.clearAll();
-  window._dvsWankelRotors=[];window._dvsWankelPins=[];window._dvsWankelFlashes=[];
+  window._dvsWankelRotors=[];
+  window._dvsWankelPins=[];
+  window._dvsWankelFlashes=[];
   window._dciPartsArr=[];
 
-  // Новый корень
   var root=new THREE.Group();sc.add(root);R.setRoot(root);
 
-  // Определяем тип
   var B=window.DVS_3D_BUILDERS;
   if(!B){ fallbackRebuild(root); return; }
 
   var raw=(S.engineType||S.engine||S.engineKey||'r4').toString().toLowerCase().replace(/\s+/g,'');
   var fn=null;
-  // Прямое совпадение
   for(var k in B){ if(k.toLowerCase()===raw){ fn=B[k]; break; } }
-  // Частичное совпадение
   if(!fn){ for(var k2 in B){ if(raw.indexOf(k2.toLowerCase())>=0){ fn=B[k2]; break; } } }
-  // Алиасы
   if(!fn){
-    var A={r4:'r4',2jz:'i6',inline6:'i6',v6:'v6',v8:'v8',v12:'v12',v16:'v16',v22:'v22',subaru:'boxer',boxer:'boxer',rotary:'wankel',wankel:'wankel',tdi:'tdi',dci:'dci',scooter:'scooter',tractor:'tractor'};
+    var A={
+      "r4":"r4","2jz":"i6","inline6":"i6",
+      "v6":"v6","v8":"v8","v12":"v12","v16":"v16","v22":"v22",
+      "subaru":"boxer","boxer":"boxer","rotary":"wankel","wankel":"wankel",
+      "tdi":"tdi","dci":"dci","scooter":"scooter","tractor":"tractor",
+      "1.9":"r4","1.8":"r4","2.0":"r4","240":"tractor"
+    };
     for(var a in A){ if(raw.indexOf(a)>=0){ fn=B[A[a]]; break; } }
   }
   if(!fn) fn=B.r4||null;
@@ -324,9 +340,10 @@ function attachBtn(){
   if(gb){gb.style.display='none';gb.addEventListener('click',function(e){e.preventDefault();setGhost(!ghost);});}
   var lb=document.getElementById('lockBtn');
   if(lb){lb.style.display='none';lb.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();toggleLock();});}
+  console.log('view3d.js: buttons attached');
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachBtn);
 else attachBtn();
 
-console.log('view3d.js: загружен (smart rebuild)');
+console.log('view3d.js: загружен (smart rebuild v2)');
 })();
