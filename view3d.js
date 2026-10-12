@@ -56,12 +56,12 @@ function smartRebuild(attempt){
   }
   R.clearAll();
   window._dvsWankelRotors=[];window._dvsWankelPins=[];window._dvsWankelFlashes=[];
-  window._dciPartsArr=[];
+  window._dciParts=[];
   var root=new THREE.Group();sc.add(root);R.setRoot(root);
   var raw=(S.engineType||S.engine||'r4').toString().toLowerCase().replace(/\s+/g,'');
   var B=window.DVS_3D_BUILDERS, fn=B.r4;
   for(var k in B){if(k.toLowerCase()===raw){fn=B[k];break;}}
-  if(fn){try{fn(root);console.log('Собран:',raw);}catch(e){console.warn('Ошибка:',e);}}
+  if(fn){try{fn(root);}catch(e){console.warn('Ошибка:',e);}}
 }
 window.DVS_3D_REBUILD=smartRebuild;
 
@@ -179,13 +179,10 @@ function attachControls(){
   el.addEventListener('mouseleave',up);
 }
 
-/* === АНИМАЦИЯ === */
 function animate(){
   if(!active||!scene){animId=null;return;}
   animId=requestAnimationFrame(animate);
   var ang=S.crankAngle||0;
-
-  // Поршневые — рядные, V, boxer, radial
   for(var i=0;i<_asm.length;i++){
     var A=_asm[i];
     if(!A||!A.p||!A.g)continue;
@@ -205,29 +202,15 @@ function animate(){
       A.rod.rotation.z=-Math.atan2(cpX,pinY-cpY);
     }
   }
-
-  // ВАНКЕЛЬ — 2 ротора, обкатываются по эпитрохоидам
   var wR=window._dvsWankelRotors||[];
   for(var wr=0;wr<wR.length;wr++){
     var W=wR[wr];
-    var phase=W.phase||0;
-    var ea=ang+phase;
-    // Эксцентрик описывает круг
-    var eccX=Math.cos(ea)*W.ecc;
-    var eccY=Math.sin(ea)*W.ecc;
-    // Центр ротора = центр эксцентрика
-    W.mesh.position.x=W.baseX+eccX;
-    W.mesh.position.y=W.baseY+eccY;
-    // Ротор крутится в 3 раза медленнее вала, в обратную сторону
-    // и ещё на +фаза (чтобы грани смотрели правильно)
-    W.mesh.rotation.z=-(ea)/3 + phase;
+    W.mesh.rotation.z=-ang/3;
+    W.mesh.position.x=Math.cos(ang)*W.ecc;
+    W.mesh.position.y=3+Math.sin(ang)*W.ecc;
   }
-
-  // Вал Ванкеля
   var wp=window._dvsWankelPins||[];
   for(var j=0;j<wp.length;j++)wp[j].grp.rotation.z=ang;
-
-  // Вспышки (по 3 на ротор)
   var fl=window._dvsWankelFlashes||[];
   for(var f=0;f<fl.length;f++){
     var F=fl[f];
@@ -238,14 +221,13 @@ function animate(){
     var sc=0.4+inten*0.9;
     F.mesh.scale.set(sc,sc,sc);
   }
-
-  var _dpa=window._dciPartsArr||[];
+  var _dpa=window._dciParts||[];
   for(var di=0;di<_dpa.length;di++){
     var P=_dpa[di];
     if(P.turbo)P.turbo.rotation.x=ang*2.5;
   }
-  for(var ci=0;ci<_cranks.length;ci++)_cranks[ci].rotation.x=ang;
-  for(var fi=0;fi<_flies.length;fi++)_flies[fi].rotation.x=ang;
+  for(var ci=0;ci<_cranks.length;ci++)_cranks[ci].rotation.x=-ang;
+  for(var fi=0;fi<_flies.length;fi++)_flies[fi].rotation.x=-ang;
   for(var ci2=0;ci2<_cams.length;ci2++)_cams[ci2].rotation.x=ang*0.5;
   renderer.render(scene,camera);
 }
