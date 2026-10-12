@@ -179,38 +179,55 @@ function attachControls(){
   el.addEventListener('mouseleave',up);
 }
 
+/* === АНИМАЦИЯ === */
 function animate(){
   if(!active||!scene){animId=null;return;}
   animId=requestAnimationFrame(animate);
   var ang=S.crankAngle||0;
+
+  // Поршневые — рядные, V, boxer, radial
   for(var i=0;i<_asm.length;i++){
     var A=_asm[i];
     if(!A||!A.p||!A.g)continue;
     var ph=ang+(A.off||0);
     var Rc=A.crankR||0.8;
     var L=A.rodLen||3.5;
-    var cy=A.crankY||1.0;
+    var cyA=A.crankY||1.0;
     var sinT=Math.sin(ph),cosT=Math.cos(ph);
     var sq=L*L-Rc*Rc*sinT*sinT;if(sq<0)sq=0;
-    var pinY=cy+Rc*cosT+Math.sqrt(sq);
+    var pinY=cyA+Rc*cosT+Math.sqrt(sq);
     A.p.position.y=pinY;
     if(A.rod){
       var cpX=Rc*sinT;
-      var cpY=cy+Rc*cosT;
+      var cpY=cyA+Rc*cosT;
       A.rod.position.x=cpX/2;
       A.rod.position.y=(pinY+cpY)/2;
-      A.rod.rotation.z=Math.atan2(cpX,pinY-cpY);
+      A.rod.rotation.z=-Math.atan2(cpX,pinY-cpY);
     }
   }
+
+  // ВАНКЕЛЬ — 2 ротора, обкатываются по эпитрохоидам
   var wR=window._dvsWankelRotors||[];
   for(var wr=0;wr<wR.length;wr++){
     var W=wR[wr];
-    W.mesh.rotation.z=-ang/3;
-    W.mesh.position.x=Math.cos(ang)*W.ecc;
-    W.mesh.position.y=3+Math.sin(ang)*W.ecc;
+    var phase=W.phase||0;
+    var ea=ang+phase;
+    // Эксцентрик описывает круг
+    var eccX=Math.cos(ea)*W.ecc;
+    var eccY=Math.sin(ea)*W.ecc;
+    // Центр ротора = центр эксцентрика
+    W.mesh.position.x=W.baseX+eccX;
+    W.mesh.position.y=W.baseY+eccY;
+    // Ротор крутится в 3 раза медленнее вала, в обратную сторону
+    // и ещё на +фаза (чтобы грани смотрели правильно)
+    W.mesh.rotation.z=-(ea)/3 + phase;
   }
+
+  // Вал Ванкеля
   var wp=window._dvsWankelPins||[];
   for(var j=0;j<wp.length;j++)wp[j].grp.rotation.z=ang;
+
+  // Вспышки (по 3 на ротор)
   var fl=window._dvsWankelFlashes||[];
   for(var f=0;f<fl.length;f++){
     var F=fl[f];
@@ -221,6 +238,7 @@ function animate(){
     var sc=0.4+inten*0.9;
     F.mesh.scale.set(sc,sc,sc);
   }
+
   var _dpa=window._dciPartsArr||[];
   for(var di=0;di<_dpa.length;di++){
     var P=_dpa[di];
