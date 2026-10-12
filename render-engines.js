@@ -1,4 +1,3 @@
-
 (function(){
 "use strict";
 var RB = window.RB;
@@ -7,7 +6,6 @@ var RE = window.RE = {};
 
 RE.drawCyl = function(c,S,cx,crankY,topY,botY,halfW,phase,CR,ROD,dir,br,firing,thr,num,camY){
   var cycPos=((phase%(Math.PI*4))+Math.PI*4)%(Math.PI*4);
-  var stroke=Math.floor(cycPos/Math.PI);
   var s=Math.sin(phase),co=Math.cos(phase);
   var sq=ROD*ROD-CR*CR*s*s;if(sq<0)sq=0;
   var dist=CR*co+Math.sqrt(sq);
@@ -26,39 +24,21 @@ RE.drawCyl = function(c,S,cx,crankY,topY,botY,halfW,phase,CR,ROD,dir,br,firing,t
        pg.addColorStop(.55,'#8b98a7');pg.addColorStop(1,'#2a333f');}
   c.fillStyle=pg;
   var pTop=dir<0?pinY-24:pinY;
-  RB.rr(c,cx-halfW+3,pTop,(halfW-3)*2,24,3);c.fill();
-  c.strokeStyle='#1a232e';c.lineWidth=1.2;c.stroke();
-  c.strokeStyle=br?'#5a3030':'#1a252f';c.lineWidth=1.8;
-  for(var k=0;k<3;k++){c.beginPath();
-    c.moveTo(cx-halfW+5,pTop+5+k*5);c.lineTo(cx+halfW-5,pTop+5+k*5);c.stroke();}
+  if(RB.rr){RB.rr(c,cx-halfW+3,pTop,(halfW-3)*2,24,3);c.fill();
+    c.strokeStyle='#1a232e';c.lineWidth=1.2;c.stroke();}
 
   var dR=Math.min(halfW*.55,CR*1.3);if(dR<6)dR=6;
   var dg=c.createRadialGradient(cx-dR*.4,crankY-dR*.4,1,cx,crankY,dR);
   if(br){dg.addColorStop(0,'#8a6a6a');dg.addColorStop(1,'#1a0a0a');}
   else{dg.addColorStop(0,'#a8b4c0');dg.addColorStop(.5,'#6a7685');dg.addColorStop(1,'#2a3340');}
   c.fillStyle=dg;c.beginPath();c.arc(cx,crankY,dR,0,7);c.fill();
-  c.strokeStyle='#0a0f15';c.lineWidth=1.5;c.stroke();
 
   c.strokeStyle='#0a1018';c.lineWidth=11;c.lineCap='round';
-  c.beginPath();c.moveTo(cx,pinY);
-  if(br)c.quadraticCurveTo((cx+cpX)/2+6,(pinY+cpY)/2,cpX,cpY);
-  else c.lineTo(cpX,cpY);
-  c.stroke();
+  c.beginPath();c.moveTo(cx,pinY);c.lineTo(cpX,cpY);c.stroke();
   c.strokeStyle=br?'#7a5a5a':'#8894a2';c.lineWidth=8;
-  c.beginPath();c.moveTo(cx,pinY);
-  if(br)c.quadraticCurveTo((cx+cpX)/2+6,(pinY+cpY)/2,cpX,cpY);
-  else c.lineTo(cpX,cpY);
-  c.stroke();
-  if(!br){c.strokeStyle='rgba(220,230,240,0.5)';c.lineWidth=2;
-    c.beginPath();c.moveTo(cx-2,pinY-2);c.lineTo(cpX-2,cpY-2);c.stroke();}
+  c.beginPath();c.moveTo(cx,pinY);c.lineTo(cpX,cpY);c.stroke();
 
-  c.fillStyle='#0a0f15';c.beginPath();c.arc(cx,pinY,4.5,0,7);c.fill();
-  c.fillStyle=br?'#7a5a5a':'#4a5566';c.beginPath();c.arc(cx,pinY,3,0,7);c.fill();
-
-  var shg=c.createRadialGradient(cpX-2,cpY-2,1,cpX,cpY,8);
-  if(br){shg.addColorStop(0,'#8a6a6a');shg.addColorStop(1,'#1a0a0a');}
-  else{shg.addColorStop(0,'#e8eff6');shg.addColorStop(.5,'#8a95a3');shg.addColorStop(1,'#3a4654');}
-  c.fillStyle=shg;c.beginPath();c.arc(cpX,cpY,8,0,7);c.fill();
+  c.fillStyle='#0a0f15';c.beginPath();c.arc(cpX,cpY,8,0,7);c.fill();
   c.strokeStyle='#0a0f15';c.lineWidth=1.5;c.stroke();
 
   if(firing){
@@ -78,192 +58,72 @@ RE.drawCyl = function(c,S,cx,crankY,topY,botY,halfW,phase,CR,ROD,dir,br,firing,t
     }
   }
 
-  var inL=0,exL=0;
-  if(br){inL=5;exL=6;}
-  else if(S.running){
-    if(stroke===0)inL=Math.sin(cycPos%Math.PI)*5;
-    if(stroke===3)exL=Math.sin(cycPos-3*Math.PI)*5;
-  }
-  if(dir<0){
-    RB.drawCam(c,cx-halfW*.5,camY,phase*.5);
-    RB.drawCam(c,cx+halfW*.5,camY,phase*.5+Math.PI);
-    RB.drawValve(c,cx-halfW*.5,camY+12,topY,inL,br?'#8a5a5a':'#6fd0ff',br);
-    RB.drawValve(c,cx+halfW*.5,camY+12,topY,exL,br?'#8a4a4a':'#ff8a6f',br);
-  }else{
-    c.save();c.translate(cx,botY);c.rotate(Math.PI);c.translate(-cx,-botY);
-    RB.drawCam(c,cx-halfW*.5,camY,phase*.5);
-    RB.drawCam(c,cx+halfW*.5,camY,phase*.5+Math.PI);
-    RB.drawValve(c,cx-halfW*.5,camY+12,topY,inL,br?'#8a5a5a':'#6fd0ff',br);
-    RB.drawValve(c,cx+halfW*.5,camY+12,topY,exL,br?'#8a4a4a':'#ff8a6f',br);
-    c.restore();
-  }
-
-  RB.drawSpark(c,cx,dir<0?topY:botY,dir,phase,firing);
-
   c.fillStyle=br?'#a05050':'#4a5c70';
   c.font='bold 9px Segoe UI, sans-serif';
   c.textAlign='center';c.textBaseline='middle';
-  var numY=dir<0?topY-30:botY+30;
-  c.fillText('Ц.'+num,cx,numY);
-
-  if(br){
-    c.strokeStyle='rgba(255,50,50,0.85)';c.lineWidth=2.5;
-    var ccy=(topY+botY)/2;
-    c.beginPath();
-    c.moveTo(cx-10,ccy-10);c.lineTo(cx+10,ccy+10);
-    c.moveTo(cx+10,ccy-10);c.lineTo(cx-10,ccy+10);
-    c.stroke();
-  }
+  c.fillText('Ц.'+num,cx,dir<0?topY-30:botY+30);
 };
 
-/* ====== R4 ====== */
 RE.drawR4 = function(c,S){
-  var W=c.canvas.width;
-  var br=S.broken;
+  var W=c.canvas.width,br=S.broken;
   var crankY=305,CR=32,ROD=95;
   var xs=[115,250,385,520];
   var halfW=44,topY=155,botY=290,camY=100;
   var offs=[2*Math.PI,3*Math.PI,Math.PI,0];
 
   var pg=c.createLinearGradient(0,355,0,415);
-  if(br){pg.addColorStop(0,'#2a1a1a');pg.addColorStop(1,'#1a0a0a');}
-  else{pg.addColorStop(0,'#2a3340');pg.addColorStop(1,'#131b24');}
-  c.fillStyle=pg;
-  c.beginPath();c.moveTo(40,355);c.lineTo(600,355);c.lineTo(580,415);c.lineTo(60,415);
-  c.closePath();c.fill();
-  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=2;c.stroke();
-  RB.bolt(c,320,408,5,br);
+  pg.addColorStop(0,'#2a3340');pg.addColorStop(1,'#131b24');
+  c.fillStyle=pg;c.fillRect(40,355,560,60);
+  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.strokeRect(40,355,560,60);
 
-  c.fillStyle=RB.metalGrad(c,30,140,220,br);
-  RB.rr(c,30,140,580,220,8);c.fill();
-  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=2;c.stroke();
-  c.strokeStyle=br?'rgba(90,40,40,0.5)':'rgba(30,40,52,0.55)';c.lineWidth=1.5;
-  for(var rb=0;rb<12;rb++){var ry=155+rb*17;
-    c.beginPath();c.moveTo(35,ry);c.lineTo(605,ry);c.stroke();}
+  c.fillStyle='#2a3a4c';c.fillRect(30,140,580,220);
+  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.strokeRect(30,140,580,220);
 
-  c.fillStyle=RB.metalGrad(c,30,60,85,br);
-  RB.rr(c,30,60,580,85,8);c.fill();
-  c.strokeStyle=br?'#6a3a3a':'#4a5a6c';c.lineWidth=2;c.stroke();
-  c.fillStyle=br?'#3a2424':'#1d2530';
-  RB.rr(c,40,42,560,22,6);c.fill();
-  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=1.5;c.stroke();
-  for(var bi=0;bi<5;bi++)RB.bolt(c,60+bi*130,53,3,br);
+  c.fillStyle='#3a4654';c.fillRect(30,60,580,85);
+  c.strokeStyle='#4a5a6c';c.lineWidth=2;c.strokeRect(30,60,580,85);
 
   c.fillStyle='#1a232e';c.fillRect(60,camY,520,6);
-  c.strokeStyle='#3a4654';c.lineWidth=1;c.strokeRect(60,camY,520,6);
 
-  RB.drawCrank(c,60,580,crankY,br);
-  var mains=[70,180,320,460,570];
-  for(var mi=0;mi<mains.length;mi++)RB.drawMainBearing(c,mains[mi],crankY,12,br);
-  RB.drawFlywheel(c,605,crankY,32,S.crankAngle,br);
-  RB.drawBelt(c,25,camY+3,crankY,br);
+  if(RB.drawCrank)RB.drawCrank(c,60,580,crankY,br);
+  if(RB.drawFlywheel)RB.drawFlywheel(c,605,crankY,32,S.crankAngle,br);
 
   for(var i=0;i<4;i++){
     RE.drawCyl(c,S,xs[i],crankY,topY,botY,halfW,S.crankAngle+offs[i],CR,ROD,-1,
       br,S.running&&!S.stalled&&!br,S.throttle,i+1,camY+3);
   }
 
-  var eg=c.createLinearGradient(0,120,0,140);
-  if(br){eg.addColorStop(0,'#3a2424');eg.addColorStop(1,'#2a1a1a');}
-  else{eg.addColorStop(0,'#3a2a1a');eg.addColorStop(1,'#2a1a0a');}
-  c.strokeStyle=eg;c.lineWidth=10;c.lineCap='round';
-  for(var pi=0;pi<4;pi++){
-    var px=100+pi*110;
-    c.beginPath();c.moveTo(px,152);c.lineTo(px,182);c.stroke();
-  }
-  c.beginPath();c.moveTo(80,188);c.lineTo(470,188);c.stroke();
-
-  c.fillStyle=br?'#8a5a5a':'#5d7189';
-  c.font='bold 11px Segoe UI, sans-serif';
-  c.textAlign='left';c.textBaseline='top';
-  c.fillText('R4  •  4 цилиндра в ряд  •  ГРМ + распредвал',45,20);
-};
-
-/* ====== I6 ====== */
-RE.drawI6 = function(c,S){
-  var W=c.canvas.width;
-  var br=S.broken;
-  var crankY=305,CR=28,ROD=85;
-  var xs=[75,175,275,375,475,575];
-  var halfW=34,topY=155,botY=290,camY=100;
-  var offs=[0,Math.PI,2*Math.PI,3*Math.PI,4*Math.PI,5*Math.PI];
-
-  var pg=c.createLinearGradient(0,355,0,415);
-  pg.addColorStop(0,'#2a3340');pg.addColorStop(1,'#131b24');
-  c.fillStyle=pg;
-  c.beginPath();c.moveTo(30,355);c.lineTo(620,355);c.lineTo(600,415);c.lineTo(50,415);
-  c.closePath();c.fill();
-  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.stroke();
-
-  c.fillStyle=RB.metalGrad(c,20,140,220,br);
-  RB.rr(c,20,140,600,220,8);c.fill();
-  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.stroke();
-  for(var rb=0;rb<12;rb++){
-    var ry=155+rb*17;
-    c.strokeStyle='rgba(30,40,52,0.55)';c.lineWidth=1.5;
-    c.beginPath();c.moveTo(25,ry);c.lineTo(615,ry);c.stroke();
-  }
-
-  c.fillStyle=RB.metalGrad(c,20,60,85,br);
-  RB.rr(c,20,60,600,85,8);c.fill();
-  c.strokeStyle='#4a5a6c';c.lineWidth=2;c.stroke();
-  c.fillStyle='#1d2530';
-  RB.rr(c,30,42,580,22,6);c.fill();
-  for(var bi=0;bi<7;bi++)RB.bolt(c,45+bi*90,53,3,br);
-
-  c.fillStyle='#1a232e';c.fillRect(50,camY,540,6);
-
-  RB.drawCrank(c,40,600,crankY,br);
-  for(var mi=0;mi<7;mi++)RB.drawMainBearing(c,45+mi*90,crankY,11,br);
-  RB.drawFlywheel(c,615,crankY,30,S.crankAngle,br);
-  RB.drawBelt(c,18,camY+3,crankY,br);
-
-  for(var i=0;i<6;i++){
-    RE.drawCyl(c,S,xs[i],crankY,topY,botY,halfW,S.crankAngle+offs[i],CR,ROD,-1,
-      br,S.running&&!S.stalled&&!br,S.throttle,i+1,camY+3);
-  }
-
-  c.strokeStyle='#2a1a0a';c.lineWidth=11;c.lineCap='round';
-  for(var pi=0;pi<6;pi++){
-    var px=70+pi*100;
-    c.beginPath();c.moveTo(px,152);c.lineTo(px,182);c.stroke();
-  }
-  c.beginPath();c.moveTo(55,188);c.lineTo(580,188);c.stroke();
-
   c.fillStyle='#5d7189';
   c.font='bold 11px Segoe UI, sans-serif';
   c.textAlign='left';c.textBaseline='top';
-  c.fillText('I6  •  6 цилиндров в ряд  •  Toyota 2JZ',25,20);
+  c.fillText('R4  •  4 цилиндра в ряд',45,20);
 };
 
-/* ====== V-образные (V6, V8, V12, V16, V22) ====== */
 RE.drawV = function(c,S,n){
-  var W=c.canvas.width;
-  var br=S.broken;
+  var W=c.canvas.width,br=S.broken;
   var crankY=215;
   var CR,ROD,halfW,spacing;
   if(n>=20){CR=6;ROD=16;halfW=10;spacing=40;}
   else if(n>=12){CR=8;ROD=22;halfW=13;spacing=52;}
   else if(n>=8){CR=11;ROD=28;halfW=17;spacing=78;}
-  else {CR=15;ROD=38;halfW=24;spacing=112;}
+  else{CR=15;ROD=38;halfW=24;spacing=112;}
   var startX=W/2-(n-1)*spacing/2;
   var tTop=70,tBot=195,bTop=235,bBot=360;
   var camT=55,camB=375;
 
-  c.fillStyle=RB.metalGrad(c,15,30,180,br);
-  RB.rr(c,15,30,W-30,180,10);c.fill();
-  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=2;c.stroke();
+  c.fillStyle='#2a3a4c';
+  c.fillRect(15,30,W-30,180);
+  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.strokeRect(15,30,W-30,180);
+  c.fillStyle='#2a3a4c';
+  c.fillRect(15,220,W-30,180);
+  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.strokeRect(15,220,W-30,180);
 
-  c.fillStyle=RB.metalGrad(c,15,220,180,br);
-  RB.rr(c,15,220,W-30,180,10);c.fill();
-  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=2;c.stroke();
-
-  RB.drawCrank(c,30,W-30,crankY,br);
+  if(RB.drawCrank)RB.drawCrank(c,30,W-30,crankY,br);
   var cnt=n+1;
   for(var mi=0;mi<=cnt;mi++){
     var mx=40+mi*((W-80)/cnt);
-    RB.drawMainBearing(c,mx,crankY,9,br);
+    if(RB.drawMainBearing)RB.drawMainBearing(c,mx,crankY,9,br);
   }
+
   for(var i=0;i<n;i++){
     var cx=startX+i*spacing;
     RE.drawCyl(c,S,cx,crankY,tTop,tBot,halfW,S.crankAngle+(i*4*Math.PI/n),CR,ROD,-1,
@@ -274,95 +134,108 @@ RE.drawV = function(c,S,n){
     RE.drawCyl(c,S,cx2,crankY,bTop,bBot,halfW,S.crankAngle+((j+n)*4*Math.PI/n),CR,ROD,1,
       br,S.running&&!S.stalled&&!br,S.throttle,j+n+1,camB);
   }
-  var label='V'+n+'  •  '+n+' цилиндров';
-  if(n===6)label+='  •  Mitsubishi';
-  if(n===8)label+='  •  V-образный';
-  if(n===12)label+='  •  V-образный';
+
   c.fillStyle=br?'#8a5a5a':'#5d7189';
   c.font='bold 11px Segoe UI, sans-serif';
   c.textAlign='center';c.textBaseline='top';
-  c.fillText(label,W/2,12);
+  c.fillText('V'+n+'  •  '+n+' цилиндров',W/2,12);
 };
 
-/* ====== BOXER (Subaru) ====== */
+RE.drawI6 = function(c,S){
+  var W=c.canvas.width,br=S.broken;
+  var crankY=305,CR=28,ROD=85;
+  var xs=[75,175,275,375,475,575];
+  var halfW=34,topY=155,botY=290,camY=100;
+  var offs=[0,Math.PI,2*Math.PI,3*Math.PI,4*Math.PI,5*Math.PI];
+
+  c.fillStyle='#2a3a4c';c.fillRect(20,140,600,220);
+  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.strokeRect(20,140,600,220);
+  c.fillStyle='#3a4654';c.fillRect(20,60,600,85);
+  c.strokeStyle='#4a5a6c';c.lineWidth=2;c.strokeRect(20,60,600,85);
+  c.fillStyle='#1a232e';c.fillRect(50,camY,540,6);
+
+  if(RB.drawCrank)RB.drawCrank(c,40,600,crankY,br);
+  for(var mi=0;mi<7;mi++){
+    if(RB.drawMainBearing)RB.drawMainBearing(c,45+mi*90,crankY,11,br);
+  }
+  if(RB.drawFlywheel)RB.drawFlywheel(c,615,crankY,30,S.crankAngle,br);
+
+  for(var i=0;i<6;i++){
+    RE.drawCyl(c,S,xs[i],crankY,topY,botY,halfW,S.crankAngle+offs[i],CR,ROD,-1,
+      br,S.running&&!S.stalled&&!br,S.throttle,i+1,camY+3);
+  }
+
+  c.fillStyle='#5d7189';
+  c.font='bold 11px Segoe UI, sans-serif';
+  c.textAlign='left';c.textBaseline='top';
+  c.fillText('I6  •  Toyota 2JZ',25,20);
+};
+
 RE.drawBoxer = function(c,S){
-  var W=c.canvas.width;
-  var br=S.broken;
+  var W=c.canvas.width,br=S.broken;
   var crankY=215;
   var xs=[W/2-90,W/2+90];
   var halfW=42,CR=28,ROD=75;
   var tTop=70,tBot=185,bTop=245,bBot=360;
 
-  c.fillStyle=RB.metalGrad(c,40,180,80,br);
-  RB.rr(c,40,180,W-80,80,8);c.fill();
-  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.stroke();
+  c.fillStyle='#2a3a4c';c.fillRect(40,180,W-80,80);
+  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.strokeRect(40,180,W-80,80);
+  c.fillStyle='#3a4654';c.fillRect(40,90,W-80,90);
+  c.strokeStyle='#4a5a6c';c.lineWidth=2;c.strokeRect(40,90,W-80,90);
+  c.fillStyle='#3a4654';c.fillRect(40,260,W-80,90);
+  c.strokeStyle='#4a5a6c';c.lineWidth=2;c.strokeRect(40,260,W-80,90);
 
-  c.fillStyle=RB.metalGrad(c,40,90,90,br);
-  RB.rr(c,40,90,W-80,90,8);c.fill();
-  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.stroke();
-
-  c.fillStyle=RB.metalGrad(c,40,260,90,br);
-  RB.rr(c,40,260,W-80,90,8);c.fill();
-  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.stroke();
-
-  RB.drawCrank(c,60,W-60,crankY,br);
-  for(var mi=0;mi<4;mi++)RB.drawMainBearing(c,90+mi*140,crankY,12,br);
-  RB.drawFlywheel(c,W-55,crankY,34,S.crankAngle,br);
+  if(RB.drawCrank)RB.drawCrank(c,60,W-60,crankY,br);
+  for(var mi=0;mi<4;mi++){
+    if(RB.drawMainBearing)RB.drawMainBearing(c,90+mi*140,crankY,12,br);
+  }
+  if(RB.drawFlywheel)RB.drawFlywheel(c,W-55,crankY,34,S.crankAngle,br);
 
   for(var i=0;i<2;i++){
     RE.drawCyl(c,S,xs[i],crankY,tTop,tBot,halfW,
-      S.crankAngle+(i*Math.PI*2/2),CR,ROD,-1,br,
+      S.crankAngle+(i*Math.PI),CR,ROD,-1,br,
       S.running&&!S.stalled&&!br,S.throttle,i+1,60);
   }
   for(var j=0;j<2;j++){
     RE.drawCyl(c,S,xs[j],crankY,bTop,bBot,halfW,
-      S.crankAngle+((j+2)*Math.PI*2/2),CR,ROD,1,br,
+      S.crankAngle+((j+2)*Math.PI),CR,ROD,1,br,
       S.running&&!S.stalled&&!br,S.throttle,j+3,375);
   }
 
   c.fillStyle='#5d7189';
   c.font='bold 11px Segoe UI, sans-serif';
   c.textAlign='center';c.textBaseline='top';
-  c.fillText('BOXER  •  Subaru EJ25  •  оппозитный',W/2,12);
+  c.fillText('BOXER  •  Subaru EJ25',W/2,12);
 };
 
-/* ====== RADIAL (Wright R-1820) ====== */
 RE.drawRadial = function(c,S){
   var br=S.broken;
-  var cx=320,cy=240;
-  var R=145;
-  var n=9;
-  var CR=22,ROD=60;
-  var cylLen=70,cylW=30;
+  var cx=320,cy=240,R=145,n=9;
+  var CR=22,ROD=60,cylLen=70,cylW=30;
 
   c.save();
   c.translate(cx,cy);
 
   for(var i=0;i<n;i++){
     var a=i*(Math.PI*2/n)-Math.PI/2;
-
-    c.save();
-    c.rotate(a);
+    c.save();c.rotate(a);
 
     var bx=-cylW/2,by=R-cylLen/2;
     var bg=c.createLinearGradient(bx,0,bx+cylW,0);
     bg.addColorStop(0,'#05080c');bg.addColorStop(.5,'#0e141c');bg.addColorStop(1,'#05080c');
-    c.fillStyle=bg;
-    c.fillRect(bx,by,cylW,cylLen);
-    c.strokeStyle='#2a3a4a';c.lineWidth=1.5;
-    c.strokeRect(bx,by,cylW,cylLen);
+    c.fillStyle=bg;c.fillRect(bx,by,cylW,cylLen);
+    c.strokeStyle='#2a3a4a';c.lineWidth=1.5;c.strokeRect(bx,by,cylW,cylLen);
 
     var pg=c.createLinearGradient(bx+2,0,bx+cylW-2,0);
     pg.addColorStop(0,'#4a5566');pg.addColorStop(.25,'#d8e0e8');
     pg.addColorStop(.55,'#8b98a7');pg.addColorStop(1,'#2a333f');
-    c.fillStyle=pg;
+
     var phase=S.crankAngle+i*Math.PI*2/n;
     var off=CR*Math.cos(phase)+Math.sqrt(ROD*ROD-CR*CR*Math.sin(phase)*Math.sin(phase));
-    var pTop=cy+by+ (cylLen/2) - off*0.9 + 20;
+    var py=by+cylLen/2-off*0.9+20;
     c.fillStyle=pg;
-    var px=bx+3,py=pTop;
-    RB.rr(c,px,py,cylW-6,20,3);c.fill();
-    c.strokeStyle='#1a232e';c.lineWidth=1;c.stroke();
+    if(RB.rr){RB.rr(c,bx+3,py,cylW-6,20,3);c.fill();
+      c.strokeStyle='#1a232e';c.lineWidth=1;c.stroke();}
 
     c.fillStyle='#8a95a3';
     c.fillRect(bx-3,by-8,cylW+6,8);
@@ -370,26 +243,20 @@ RE.drawRadial = function(c,S){
 
     c.strokeStyle='#8894a2';c.lineWidth=6;c.lineCap='round';
     c.beginPath();
-    c.moveTo(0,cy+by+cylLen/2-20);
-    var cpX=CR*Math.sin(phase),cpY=CR*Math.cos(phase);
-    c.lineTo(cpX,cy+cpY);
+    c.moveTo(0,by+cylLen/2-20);
+    c.lineTo(CR*Math.sin(phase),CR*Math.cos(phase));
     c.stroke();
 
     c.restore();
   }
 
-  c.fillStyle='#3a4654';
-  c.beginPath();c.arc(0,0,50,0,7);c.fill();
+  c.fillStyle='#3a4654';c.beginPath();c.arc(0,0,50,0,7);c.fill();
   c.strokeStyle='#1a232e';c.lineWidth=2;c.stroke();
 
-  c.fillStyle=RB.metalGrad?RB.metalGrad(c,-40,-40,80,br):'#6a7580';
-  c.beginPath();c.arc(0,0,40,0,7);c.fill();
+  c.fillStyle='#6a7580';c.beginPath();c.arc(0,0,40,0,7);c.fill();
+  c.fillStyle='#1a232e';c.beginPath();c.arc(0,0,15,0,7);c.fill();
 
-  c.fillStyle='#1a232e';
-  c.beginPath();c.arc(0,0,15,0,7);c.fill();
-
-  c.save();
-  c.rotate(S.crankAngle);
+  c.save();c.rotate(S.crankAngle);
   c.strokeStyle='#a8b4c0';c.lineWidth=6;
   c.beginPath();c.moveTo(-30,0);c.lineTo(30,0);c.stroke();
   c.restore();
@@ -402,26 +269,20 @@ RE.drawRadial = function(c,S){
   c.fillText('RADIAL  •  Wright R-1820  •  9 цилиндров',40,20);
 };
 
-/* ====== WANKEL (13B) ====== */
 RE.drawWankel = function(c,S){
-  var W=c.canvas.width;
-  var br=S.broken;
-  var cy=240;
-  var R=95;
+  var W=c.canvas.width,br=S.broken;
+  var cy=240,R=95;
   var cxL=W/2-95,cxR=W/2+95;
 
   c.fillStyle='#1a232e';
-  RB.rr(c,40,60,W-80,360,12);c.fill();
-  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.stroke();
+  c.fillRect(40,60,W-80,360);
+  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.strokeRect(40,60,W-80,360);
 
-  var ecc=R*0.28;
-  var rotR=R*0.65;
+  var ecc=R*0.28,rotR=R*0.65;
 
   function drawRotor(cx,phase){
-    c.save();
-    c.translate(cx,cy);
-    var ea=phase;
-    var ox=Math.cos(ea)*ecc,oy=Math.sin(ea)*ecc;
+    c.save();c.translate(cx,cy);
+    var ox=Math.cos(phase)*ecc,oy=Math.sin(phase)*ecc;
 
     c.fillStyle='rgba(80,140,200,0.15)';
     c.beginPath();
@@ -434,9 +295,7 @@ RE.drawWankel = function(c,S){
     c.closePath();c.fill();
     c.strokeStyle='#5a8fc0';c.lineWidth=2;c.stroke();
 
-    c.save();
-    c.translate(ox,oy);
-    c.rotate(-ea/3);
+    c.save();c.translate(ox,oy);c.rotate(-phase/3);
     c.beginPath();
     for(var k=0;k<3;k++){
       var a=k*Math.PI*2/3-Math.PI/2;
@@ -448,24 +307,15 @@ RE.drawWankel = function(c,S){
     rg.addColorStop(0,'#d8e0e8');rg.addColorStop(.5,'#8a95a3');rg.addColorStop(1,'#4a5566');
     c.fillStyle=rg;c.fill();
     c.strokeStyle='#1a232e';c.lineWidth=2.5;c.stroke();
-
-    c.fillStyle='#1a232e';
-    for(var v=0;v<3;v++){
-      var va=v*Math.PI*2/3-Math.PI/2;
-      c.beginPath();c.arc(Math.cos(va)*rotR,Math.sin(va)*rotR,4,0,7);c.fill();
-    }
-    c.beginPath();c.arc(0,0,8,0,7);c.fill();
-    c.restore();
-    c.restore();
+    c.fillStyle='#1a232e';c.beginPath();c.arc(0,0,8,0,7);c.fill();
+    c.restore();c.restore();
   }
 
   drawRotor(cxL,0);
   drawRotor(cxR,Math.PI);
 
-  c.save();
   c.strokeStyle='#8a95a3';c.lineWidth=8;c.lineCap='round';
   c.beginPath();c.moveTo(cxL-R-30,cy);c.lineTo(cxR+R+30,cy);c.stroke();
-  c.restore();
 
   c.fillStyle='#5d7189';
   c.font='bold 11px Segoe UI, sans-serif';
@@ -473,104 +323,52 @@ RE.drawWankel = function(c,S){
   c.fillText('WANKEL  •  13B Renesis  •  2 ротора',40,20);
 };
 
-/* ====== SCOOTER ====== */
 RE.drawScooter = function(c,S){
-  var W=c.canvas.width;
-  var br=S.broken;
-  var cx=W/2;
+  var W=c.canvas.width,br=S.broken,cx=W/2;
   var crankY=340,CR=42,ROD=110;
   var halfW=75,topY=140,botY=320,camY=105;
 
-  var bg=c.createLinearGradient(0,50,0,400);
-  if(br){bg.addColorStop(0,'#3a2a2a');bg.addColorStop(.5,'#2a1e1e');bg.addColorStop(1,'#1a1212');}
-  else{bg.addColorStop(0,'#2b3746');bg.addColorStop(.5,'#1d2733');bg.addColorStop(1,'#131b24');}
-  c.fillStyle=bg;RB.rr(c,90,50,W-180,370,12);c.fill();
-  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=2;c.stroke();
+  c.fillStyle='#2a3a4c';c.fillRect(90,50,W-180,370);
+  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.strokeRect(90,50,W-180,370);
+  c.fillStyle='#1a232e';c.fillRect(cx-85,60,170,40);
 
-  c.fillStyle=br?'#3a2424':'#1d2530';
-  RB.rr(c,cx-85,60,170,40,6);c.fill();
-  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=1.5;c.stroke();
-  for(var bi=0;bi<4;bi++)RB.bolt(c,cx-60+bi*40,80,3,br);
-
-  RB.drawCrank(c,130,W-130,crankY,br);
-  RB.drawFlywheel(c,W-110,crankY,26,S.crankAngle,br);
-  RB.drawBelt(c,105,camY+3,crankY,br);
+  if(RB.drawCrank)RB.drawCrank(c,130,W-130,crankY,br);
+  if(RB.drawFlywheel)RB.drawFlywheel(c,W-110,crankY,26,S.crankAngle,br);
 
   RE.drawCyl(c,S,cx,crankY,topY,botY,halfW,S.crankAngle,CR,ROD,-1,
     br,S.running&&!S.stalled&&!br,S.throttle,1,camY+3);
 
-  c.fillStyle=br?'#8a5a5a':'#5d7189';
+  c.fillStyle='#5d7189';
   c.font='bold 11px Segoe UI, sans-serif';
   c.textAlign='left';c.textBaseline='top';
   c.fillText('S1  •  1 цилиндр  •  4-тактный',105,70);
-  c.textAlign='right';c.font='bold 10px Segoe UI, sans-serif';
-  c.fillStyle='#3d4a58';
-  c.fillText('СКУТЕР 50cc',W-105,72);
 };
 
-/* ====== TDI / dCi / Passat / Bluebird (рядные дизели/бензин) ====== */
-function drawTDICommon(c,S,label1,label2,brandColor){
-  var W=c.canvas.width;
-  var br=S.broken;
+function drawInline4(c,S,label1,label2,brandColor){
+  var W=c.canvas.width,br=S.broken;
   var crankY=310,CR=30,ROD=90;
   var xs=[125,255,385,515];
   var halfW=42,topY=150,botY=295,camY=95;
   var offs=[2*Math.PI,3*Math.PI,Math.PI,0];
 
-  var pg=c.createLinearGradient(0,360,0,420);
-  if(br){pg.addColorStop(0,'#2a1a1a');pg.addColorStop(1,'#1a0a0a');}
-  else{pg.addColorStop(0,'#2a3340');pg.addColorStop(1,'#131b24');}
-  c.fillStyle=pg;
-  c.beginPath();c.moveTo(40,360);c.lineTo(600,360);c.lineTo(580,418);c.lineTo(60,418);
-  c.closePath();c.fill();
-  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=2;c.stroke();
-  RB.bolt(c,320,412,5,br);
-
-  c.fillStyle=RB.metalGrad(c,30,135,225,br);
-  RB.rr(c,30,135,580,225,6);c.fill();
-  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=2;c.stroke();
-  for(var rb=0;rb<14;rb++){
-    c.strokeStyle=br?'rgba(90,40,40,0.5)':'rgba(30,40,52,0.6)';c.lineWidth=1.5;
-    var ry=150+rb*16;
-    c.beginPath();c.moveTo(35,ry);c.lineTo(605,ry);c.stroke();
-  }
-
-  c.fillStyle=RB.metalGrad(c,30,55,90,br);
-  RB.rr(c,30,55,580,90,6);c.fill();
-  c.strokeStyle=br?'#6a3a3a':'#4a5a6c';c.lineWidth=2;c.stroke();
-  c.fillStyle=br?'#3a2424':'#1d2530';
-  RB.rr(c,45,38,550,20,4);c.fill();
-  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=1.5;c.stroke();
-  for(var bi=0;bi<6;bi++)RB.bolt(c,70+bi*105,48,2.5,br);
-
+  c.fillStyle='#2a3a4c';c.fillRect(30,135,580,225);
+  c.strokeStyle='#3a4a5c';c.lineWidth=2;c.strokeRect(30,135,580,225);
+  c.fillStyle='#3a4654';c.fillRect(30,55,580,90);
+  c.strokeStyle='#4a5a6c';c.lineWidth=2;c.strokeRect(30,55,580,90);
   c.fillStyle='#1a232e';c.fillRect(60,camY,520,5);
 
-  RB.drawCrank(c,60,580,crankY,br);
-  var mains=[70,185,320,455,570];
-  for(var mi=0;mi<mains.length;mi++)RB.drawMainBearing(c,mains[mi],crankY,11,br);
-  RB.drawFlywheel(c,608,crankY,34,S.crankAngle,br);
-  RB.drawBelt(c,25,camY+3,crankY,br);
+  if(RB.drawCrank)RB.drawCrank(c,60,580,crankY,br);
+  for(var mi=0;mi<5;mi++){
+    if(RB.drawMainBearing)RB.drawMainBearing(c,70+mi*122,crankY,11,br);
+  }
+  if(RB.drawFlywheel)RB.drawFlywheel(c,608,crankY,34,S.crankAngle,br);
 
   for(var i=0;i<4;i++){
     RE.drawCyl(c,S,xs[i],crankY,topY,botY,halfW,S.crankAngle+offs[i],CR,ROD,-1,
       br,S.running&&!S.stalled&&!br,S.throttle,i+1,camY+3);
   }
 
-  for(var fi=0;fi<4;fi++){
-    var fx=xs[fi];
-    c.fillStyle=br?'#3a2424':'#2a333f';
-    RB.rr(c,fx-8,72,16,32,3);c.fill();
-    c.strokeStyle=br?'#5a3030':'#1a232e';c.lineWidth=1.5;c.stroke();
-    c.fillStyle=br?'#5a4040':'#8a95a3';
-    c.fillRect(fx-3,62,6,10);
-    c.strokeStyle=br?'#5a3030':'#4a5566';c.lineWidth=2.5;
-    c.beginPath();
-    c.moveTo(fx,62);
-    c.quadraticCurveTo(fx-40,40,100,40);
-    c.stroke();
-    }
-
-  c.fillStyle=br?'#8a5a5a':'#8fb5d8';
+  c.fillStyle=br?'#8a5a5a':(brandColor||'#8fb5d8');
   c.font='bold 12px Segoe UI, sans-serif';
   c.textAlign='left';c.textBaseline='top';
   c.fillText(label1,45,10);
@@ -579,30 +377,32 @@ function drawTDICommon(c,S,label1,label2,brandColor){
   c.fillText(label2,45,27);
 }
 
-RE.drawTDI = function(c,S){drawTDICommon(c,S,'1.9 TDI  •  Volkswagen Passat B5','Рядная 4-ка  •  Турбодизель  •  110 л.с.','#8fb5d8');};
-RE.drawDCi = function(c,S){drawTDICommon(c,S,'2.0 dCi  •  Renault','Рядная 4-ка  •  Турбодизель  •  150 л.с.','#f0d860');};
-RE.drawPassatB3 = function(c,S){drawTDICommon(c,S,'1.8  •  Volkswagen Passat B3','Рядная 4-ка  •  Бензин  •  90 л.с.','#8fb5d8');};
-RE.drawBluebird = function(c,S){drawTDICommon(c,S,'CA20  •  Nissan Bluebird','Рядная 4-ка  •  Бензин  •  105 л.с.','#e08080');};
+RE.drawTDI = function(c,S){drawInline4(c,S,'1.9 TDI  •  Volkswagen','Рядная 4-ка  •  Турбодизель','#8fb5d8');};
+RE.drawDCi = function(c,S){drawInline4(c,S,'2.0 dCi  •  Renault','Рядная 4-ка  •  Турбодизель','#f0d860');};
+RE.drawPassatB3 = function(c,S){drawInline4(c,S,'1.8  •  Volkswagen Passat B3','Рядная 4-ка  •  Бензин','#8fb5d8');};
+RE.drawBluebird = function(c,S){drawInline4(c,S,'CA20  •  Nissan Bluebird','Рядная 4-ка  •  Бензин','#e08080');};
+RE.drawMTZ = function(c,S){drawInline4(c,S,'Д-240  •  МТЗ-82 «Беларус»','Рядная 4-ка  •  Дизель','#8fb5d8');};
+RE.drawGalant6 = function(c,S){RE.drawV(c,S,6);};
 
 RE.render = function(c,S){
-  var raw=(S.engineType||S.engine||'r4').toString().toLowerCase().replace(/\s+/g,'');
-  if(raw==='wankel'||raw==='renesis')  return RE.drawWankel(c,S);
-  if(raw==='radial'||raw==='wright')   return RE.drawRadial(c,S);
-  if(raw==='boxer'||raw==='ej25')      return RE.drawBoxer(c,S);
-  if(raw==='v22')                      return RE.drawV(c,S,22);
-  if(raw==='v16')                      return RE.drawV(c,S,16);
-  if(raw==='v12')                      return RE.drawV(c,S,12);
-  if(raw==='v8')                       return RE.drawV(c,S,8);
-  if(raw==='v6'||raw==='galant6')      return RE.drawV(c,S,6);
-  if(raw==='i6'||raw==='2jz')          return RE.drawI6(c,S);
-  if(raw==='scooter')                  return RE.drawScooter(c,S);
-  if(raw==='tdi')                      return RE.drawTDI(c,S);
-  if(raw==='dci')                      return RE.drawDCi(c,S);
-  if(raw==='passatb3')                 return RE.drawPassatB3(c,S);
-  if(raw==='bluebird')                 return RE.drawBluebird(c,S);
-  if(raw==='tractor'||raw==='mt82')    return RE.drawMTZ(c,S);
+  var raw=(S.engineType||S.engine||'r4').toString().toLowerCase().replace(/\s+/g,'').replace(/-/g,'');
+  function has(){for(var i=0;i<arguments.length;i++)if(raw.indexOf(arguments[i])>=0)return true;return false;}
+  if(has('wankel','renesis','rotary'))       return RE.drawWankel(c,S);
+  if(has('radial','wright','r1820'))         return RE.drawRadial(c,S);
+  if(has('boxer','ej25','subaru'))           return RE.drawBoxer(c,S);
+  if(has('v22'))                             return RE.drawV(c,S,22);
+  if(has('v16'))                             return RE.drawV(c,S,16);
+  if(has('v12'))                             return RE.drawV(c,S,12);
+  if(has('v8'))                              return RE.drawV(c,S,8);
+  if(has('v6','galant6','galant'))           return RE.drawV(c,S,6);
+  if(has('i6','2jz','inline6','straight6'))  return RE.drawI6(c,S);
+  if(has('scooter','50cc'))                  return RE.drawScooter(c,S);
+  if(has('tdi'))                             return RE.drawTDI(c,S);
+  if(has('dci'))                             return RE.drawDCi(c,S);
+  if(has('passat'))                          return RE.drawPassatB3(c,S);
+  if(has('bluebird','ca20'))                 return RE.drawBluebird(c,S);
+  if(has('tractor','mtz','mt82','belarus','д-240')) return RE.drawMTZ(c,S);
   return RE.drawR4(c,S);
 };
 
 })();
-
