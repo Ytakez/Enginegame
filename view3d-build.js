@@ -630,4 +630,428 @@ function waitRef(){
       root.add(ex);
     }
 
-    re
+        return {
+      blockY: blockY, blockH: blockH, blockD: blockD,
+      length: length, plenumY: pY, headY: headY
+    };
+  }
+
+  /* ============================================================
+     V6 — Mitsubishi
+     ============================================================ */
+  function buildV6(root){
+    var B = buildVBase(root, 6, Math.PI / 6, 1.4);
+    addPlate(root, 0, B.plenumY + 0.5, 0,
+      B.length * 0.7, 0.65, 'MITSUBISHI', '#E60012', '#FFFFFF');
+  }
+
+  function buildV8(root){
+    var B = buildVBase(root, 8, Math.PI / 6, 1.5);
+    addPlate(root, 0, B.plenumY + 0.5, 0,
+      B.length * 0.7, 0.65, 'V8', '#222222', '#FFAA00');
+  }
+  function buildV12(root){
+    var B = buildVBase(root, 12, Math.PI / 6, 1.6);
+    addPlate(root, 0, B.plenumY + 0.5, 0,
+      B.length * 0.7, 0.65, 'V12', '#222222', '#FFAA00');
+  }
+  function buildV16(root){
+    var B = buildVBase(root, 16, Math.PI / 6, 1.7);
+    addPlate(root, 0, B.plenumY + 0.5, 0,
+      B.length * 0.7, 0.65, 'V16', '#222222', '#FFAA00');
+  }
+  function buildV22(root){
+    var B = buildVBase(root, 22, Math.PI / 4, 2.0);
+    addPlate(root, 0, B.plenumY + 0.5, 0,
+      B.length * 0.7, 0.65, 'V22', '#222222', '#FFAA00');
+  }
+
+  /* ============================================================
+     BOXER EJ25 — Subaru
+     ============================================================ */
+  function buildBoxer(root){
+    var n = 2;
+    var sp = 2.2;
+    var tw = n * sp;
+    var length = tw + 1.6;
+    var blockH = 3.4;
+    var blockD = 3.4;
+    var blockY = 3.2;
+    var pH2 = 0.7;
+    var pistonR = 0.8;
+    var crankR = 0.75;
+    var rodLen = 2.5;
+    var crankY = blockY - pH2 / 2 - rodLen + crankR * 0.5;
+
+    makeCrank(root, length, crankY, n, crankR, 2.0);
+
+    var pan = box(length + 0.4, 0.6, blockD + 0.3, MAT.oil);
+    pan.position.y = crankY - 0.9;
+    root.add(pan);
+
+    var bk = box(length, blockH, 2.2, MAT.glass);
+    bk.position.y = blockY;
+    root.add(bk);
+    pB(bk);
+
+    var arr = [];
+    for (var s = 0; s < 2; s++){
+      var sign = s === 0 ? -1 : 1;
+      var headH = 1.8;
+
+      var hd = box(length + 0.1, headH, 1.2, MAT.head);
+      hd.position.set(0, blockY, sign * (blockD / 2 + 0.6));
+      hd.rotation.x = sign * Math.PI / 2;
+      root.add(hd);
+      pH(hd);
+
+      var cv = box(length - 0.15, headH * 0.8, 0.85, MAT.cover);
+      cv.position.set(0, blockY, sign * (blockD / 2 + 1.05));
+      cv.rotation.x = sign * Math.PI / 2;
+      root.add(cv);
+      pC(cv);
+
+      for (var j = 0; j < n; j++){
+        var xx = -tw / 2 + sp / 2 + j * sp;
+        var off = s === 0 ? j * Math.PI : j * Math.PI + Math.PI;
+
+        var a = makeCyl({
+          x: xx, z: sign * (blockD / 2 + 0.2),
+          r: pistonR, pH: pH2,
+          cylH: blockH - 0.4, cylY: blockY,
+          off: off,
+          crankR: crankR, rodLen: rodLen, crankY: crankY
+        });
+        a.g.rotation.x = sign * Math.PI / 2;
+        root.add(a.g);
+        arr.push(a);
+      }
+    }
+    sA(arr);
+
+    addPlate(root, 0, blockY + 2.3, 0,
+      length * 0.6, 0.6, 'SUBARU', '#003399', '#FFFFFF');
+  }
+
+  /* ============================================================
+     RADIAL — Wright R-1820
+     ============================================================ */
+  function buildRadial(root){
+    var n = 9;
+    var step = Math.PI * 2 / n;
+    var R_cyl = 3.0;
+    var cylLen = 2.6;
+    var blockY = 3.0;
+    var pH2 = 0.7;
+    var pistonR = 0.75;
+    var crankR = 0.7;
+    var rodLen = 1.6;
+
+    var carter = new THREE.Mesh(
+      new THREE.TorusGeometry(1.2, 0.4, 12, 28),
+      MAT.glass
+    );
+    carter.rotation.x = Math.PI / 2;
+    carter.position.set(0, blockY, 0);
+    root.add(carter);
+    pB(carter);
+
+    var crank = cyl(0.3, 0.3, 3.6, 22, MAT.crank);
+    crank.rotation.x = Math.PI / 2;
+    crank.position.set(0, blockY, 0);
+    root.add(crank);
+    sCr(crank);
+
+    var fw = new THREE.Group();
+    var fwD = cyl(1.9, 1.9, 0.3, 28, MAT.fly);
+    fwD.rotation.x = Math.PI / 2;
+    fw.add(fwD);
+    for (var ft = 0; ft < 36; ft++){
+      var th = box(0.26, 0.14, 0.11, MAT.crank);
+      var a = (ft / 36) * Math.PI * 2;
+      th.position.set(Math.cos(a) * 2.0, Math.sin(a) * 2.0, 0);
+      th.rotation.z = a;
+      fw.add(th);
+    }
+    fw.position.set(0, blockY, 3.0);
+    root.add(fw);
+    sF(fw);
+
+    var arr = [];
+    for (var i = 0; i < n; i++){
+      var a2 = i * step - Math.PI / 2;
+      var cx2 = Math.cos(a2) * R_cyl;
+      var cyy = blockY + Math.sin(a2) * R_cyl;
+
+      var grp = new THREE.Group();
+      grp.position.set(cx2, cyy, 0);
+      grp.rotation.z = a2 - Math.PI / 2;
+      root.add(grp);
+
+      var shell = new THREE.Mesh(
+        new THREE.CylinderGeometry(pistonR + 0.05, pistonR + 0.05, cylLen, 24, 1, true),
+        MAT.glassD
+      );
+      shell.position.y = cylLen / 2;
+      grp.add(shell);
+      pB(shell);
+
+      var r1 = tor(pistonR + 0.08, 0.05, 8, 24, MAT.metal);
+      r1.rotation.x = Math.PI / 2;
+      r1.position.y = cylLen;
+      grp.add(r1);
+
+      var r2 = tor(pistonR + 0.08, 0.05, 8, 24, MAT.metal);
+      r2.rotation.x = Math.PI / 2;
+      r2.position.y = 0;
+      grp.add(r2);
+
+      var hd = cyl(0.9, 0.9, 0.4, 22, MAT.head);
+      hd.position.y = cylLen + 0.2;
+      grp.add(hd);
+      pH(hd);
+
+      var plug = cyl(0.1, 0.1, 0.45, 10, MAT.darkB);
+      plug.position.y = cylLen + 0.55;
+      grp.add(plug);
+
+      var p = makePiston(pistonR, pH2);
+      grp.add(p);
+
+      var r = makeRod(rodLen);
+      grp.add(r);
+
+      arr.push({
+        g: grp, p: p, rod: r,
+        off: 0, crankR: crankR, rodLen: rodLen,
+        crankY: cylLen * 0.5 - crankR - rodLen - pH2 / 2
+      });
+    }
+    sA(arr);
+
+    addPlate(root, 0, blockY + R_cyl + 2.5, 0,
+      4.5, 0.65, 'WRIGHT', '#1A1A1A', '#FFD700');
+  }
+
+  /* ============================================================
+     ТРАКТОР Д-240
+     ============================================================ */
+  function buildTractor(root){
+    var n = 4;
+    var sp = 2.6;
+    var tw = n * sp;
+    var length = tw + 2.0;
+
+    var B = inlineBase(root, {
+      n: 4, spacing: 2.6, d: 4.5, h: 5.2, y: 4.0,
+      pR: 1.0, pH: 0.9, rodLen: 3.6, crankR: 0.85,
+      fwR: 2.8, diesel: true
+    });
+
+    var tank = box(length * 0.55, 1.6, 1.8, MAT.yellow);
+    tank.position.set(-length / 2 - 1.8, B.blockY + 1.6, 0);
+    root.add(tank);
+
+    var rad = box(3.0, 2.6, 0.5, MAT.metal);
+    rad.position.set(length / 2 + 2.4, B.blockY, 0);
+    root.add(rad);
+    for (var rf = 0; rf < 12; rf++){
+      var fin = box(2.9, 0.05, 0.5, MAT.rail);
+      fin.position.set(length / 2 + 2.4, B.blockY - 1.2 + rf * 0.2, 0);
+      root.add(fin);
+    }
+
+    var ex = cyl(0.3, 0.3, 6.5, 12, MAT.exh);
+    ex.position.set(length / 2 - 1.5, B.head.covY + 2.0, 0);
+    root.add(ex);
+
+    addPlate(root, 0, B.head.covY + B.head.covH / 2 + 0.03, 0,
+      B.length * 0.55, 0.6, 'TRACTOR', '#222222', '#FFDD00');
+  }
+
+  /* ============================================================
+     ВАНКЕЛЬ — 13B Renesis (2 ротора)
+     ============================================================ */
+  function makeEpiShape(Rr, e){
+    var pts = [];
+    for (var i = 0; i <= 120; i++){
+      var t = (i / 120) * Math.PI * 2;
+      pts.push(new THREE.Vector2(
+        Rr * Math.cos(t) + e * Math.cos(3 * t),
+        Rr * Math.sin(t) + e * Math.sin(3 * t)
+      ));
+    }
+    return new THREE.Shape(pts);
+  }
+
+  function makeRotorShape(rotR){
+    var sh = new THREE.Shape();
+    var pts = [];
+    for (var i = 0; i <= 90; i++){
+      var t = (i / 90) * Math.PI * 2;
+      var r = rotR * (0.72 + 0.28 * Math.abs(Math.cos(1.5 * t)));
+      pts.push(new THREE.Vector2(r * Math.cos(t), r * Math.sin(t)));
+    }
+    sh.moveTo(pts[0].x, pts[0].y);
+    for (var j = 1; j < pts.length; j++){
+      sh.lineTo(pts[j].x, pts[j].y);
+    }
+    sh.closePath();
+    return sh;
+  }
+
+  function buildWankel(root){
+    window._dvsWankelRotors = window._dvsWankelRotors || [];
+    window._dvsWankelPins = window._dvsWankelPins || [];
+    window._dvsWankelFlashes = window._dvsWankelFlashes || [];
+
+    var Rr = 1.7;
+    var ecc = 0.5;
+    var depth = 1.5;
+    var gap = 0.35;
+    var zOff = -1.0;
+    var baseY = 3.0;
+
+    var shaft = new THREE.Group();
+    shaft.position.y = baseY;
+
+    var sb = cyl(0.28, 0.28, 5.0, 20, MAT.crank);
+    sb.rotation.x = Math.PI / 2;
+    shaft.add(sb);
+
+    var e1 = new THREE.Group();
+    var e1b = cyl(0.55, 0.55, 0.45, 22, MAT.crankJ);
+    e1b.rotation.x = Math.PI / 2;
+    e1.add(e1b);
+    e1.position.set(0, 0, zOff);
+    shaft.add(e1);
+
+    var e2 = new THREE.Group();
+    var e2b = cyl(0.55, 0.55, 0.45, 22, MAT.crankJ);
+    e2b.rotation.x = Math.PI / 2;
+    e2.add(e2b);
+    e2.position.set(0, 0, zOff + depth + gap);
+    shaft.add(e2);
+
+    root.add(shaft);
+    sCr(shaft);
+    window._dvsWankelPins.push({ grp: shaft });
+
+    var fw = new THREE.Group();
+    fw.position.y = baseY;
+    var fwD = cyl(1.7, 1.7, 0.3, 28, MAT.fly);
+    fwD.rotation.x = Math.PI / 2;
+    fw.add(fwD);
+    for (var ft = 0; ft < 32; ft++){
+      var th = box(0.24, 0.16, 0.11, MAT.crank);
+      var a = (ft / 32) * Math.PI * 2;
+      th.position.set(Math.cos(a) * 1.8, Math.sin(a) * 1.8, 0);
+      th.rotation.z = a;
+      fw.add(th);
+    }
+    fw.position.z = zOff + depth * 2 + gap + 0.7;
+    root.add(fw);
+    sF(fw);
+
+    for (var rIdx = 0; rIdx < 2; rIdx++){
+      var zC = zOff + rIdx * (depth + gap);
+      var phase = rIdx * Math.PI;
+
+      var hGeo = new THREE.ExtrudeGeometry(makeEpiShape(Rr, ecc), {
+        depth: depth,
+        bevelEnabled: false
+      });
+      hGeo.center();
+      var housing = new THREE.Mesh(hGeo, MAT.glass);
+      housing.position.set(0, baseY, zC);
+      root.add(housing);
+      pB(housing);
+
+      var iGeo = new THREE.ExtrudeGeometry(makeEpiShape(Rr * 0.95, ecc * 0.95), {
+        depth: depth - 0.05,
+        bevelEnabled: false
+      });
+      iGeo.center();
+      var inner = new THREE.Mesh(iGeo, MAT.glassD);
+      inner.position.set(0, baseY, zC);
+      inner.scale.set(0.97, 0.97, 0.97);
+      root.add(inner);
+
+      var rGeo = new THREE.ExtrudeGeometry(makeRotorShape(Rr * 0.72), {
+        depth: depth - 0.25,
+        bevelEnabled: false
+      });
+      rGeo.center();
+      var rm = new THREE.Mesh(rGeo, MAT.dark);
+      rm.position.set(0, baseY, zC);
+      root.add(rm);
+
+      window._dvsWankelRotors.push({
+        mesh: rm,
+        ecc: ecc,
+        phase: phase,
+        baseX: 0,
+        baseY: baseY
+      });
+
+      for (var fp = 0; fp < 3; fp++){
+        var fm = new THREE.Mesh(
+          new THREE.SphereGeometry(0.28, 12, 10),
+          new THREE.MeshBasicMaterial({
+            color: 0xffaa44,
+            transparent: true,
+            opacity: 0
+          })
+        );
+        var fa = fp * (Math.PI * 2 / 3) + phase;
+        fm.position.set(
+          Math.cos(fa) * Rr * 0.7,
+          baseY + Math.sin(fa) * Rr * 0.7,
+          zC
+        );
+        root.add(fm);
+
+        var lt = new THREE.PointLight(0xffaa44, 0, 6);
+        lt.position.copy(fm.position);
+        root.add(lt);
+
+        window._dvsWankelFlashes.push({ mesh: fm, light: lt, phase: fa });
+      }
+    }
+
+    addPlate(root, 0, baseY + Rr + 1.0, zOff + depth / 2,
+      3.5, 0.55, 'MAZDA', '#101010', '#FFFFFF');
+  }
+
+  /* ============================================================
+     ЭКСПОРТ
+     ============================================================ */
+  window.DVS_3D_BUILDERS = {
+    r4: buildR4,
+    tdi: buildTDI,
+    dci: buildDCi,
+    scooter: buildScooter,
+    passatb3: buildPassatB3,
+    bluebird: buildBluebird,
+    i6: buildI6,
+    galant6: buildV6,
+    v6: buildV6,
+    v8: buildV8,
+    v12: buildV12,
+    v16: buildV16,
+    v22: buildV22,
+    boxer: buildBoxer,
+    radial: buildRadial,
+    tractor: buildTractor,
+    wankel: buildWankel
+  };
+
+  if (window.DVS_3D && window.DVS_3D.isActive && window.DVS_3D.isActive()){
+    try { window.DVS_3D_REBUILD(); } catch (e) {}
+  }
+
+  console.log('view3d-build.js: билдеров =', Object.keys(window.DVS_3D_BUILDERS).length);
+}
+
+waitRef();
+})();
