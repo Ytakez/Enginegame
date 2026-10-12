@@ -568,5 +568,41 @@ function drawTDICommon(c,S,label1,label2,brandColor){
     c.moveTo(fx,62);
     c.quadraticCurveTo(fx-40,40,100,40);
     c.stroke();
-  }
+    }
+
+  c.fillStyle=br?'#8a5a5a':'#8fb5d8';
+  c.font='bold 12px Segoe UI, sans-serif';
+  c.textAlign='left';c.textBaseline='top';
+  c.fillText(label1,45,10);
+  c.fillStyle=br?'#6a4a4a':'#5d7189';
+  c.font='bold 9px Segoe UI, sans-serif';
+  c.fillText(label2,45,27);
+}
+
+RE.drawTDI = function(c,S){drawTDICommon(c,S,'1.9 TDI  •  Volkswagen Passat B5','Рядная 4-ка  •  Турбодизель  •  110 л.с.','#8fb5d8');};
+RE.drawDCi = function(c,S){drawTDICommon(c,S,'2.0 dCi  •  Renault','Рядная 4-ка  •  Турбодизель  •  150 л.с.','#f0d860');};
+RE.drawPassatB3 = function(c,S){drawTDICommon(c,S,'1.8  •  Volkswagen Passat B3','Рядная 4-ка  •  Бензин  •  90 л.с.','#8fb5d8');};
+RE.drawBluebird = function(c,S){drawTDICommon(c,S,'CA20  •  Nissan Bluebird','Рядная 4-ка  •  Бензин  •  105 л.с.','#e08080');};
+
+RE.render = function(c,S){
+  var raw=(S.engineType||S.engine||'r4').toString().toLowerCase().replace(/\s+/g,'');
+  if(raw==='wankel'||raw==='renesis')  return RE.drawWankel(c,S);
+  if(raw==='radial'||raw==='wright')   return RE.drawRadial(c,S);
+  if(raw==='boxer'||raw==='ej25')      return RE.drawBoxer(c,S);
+  if(raw==='v22')                      return RE.drawV(c,S,22);
+  if(raw==='v16')                      return RE.drawV(c,S,16);
+  if(raw==='v12')                      return RE.drawV(c,S,12);
+  if(raw==='v8')                       return RE.drawV(c,S,8);
+  if(raw==='v6'||raw==='galant6')      return RE.drawV(c,S,6);
+  if(raw==='i6'||raw==='2jz')          return RE.drawI6(c,S);
+  if(raw==='scooter')                  return RE.drawScooter(c,S);
+  if(raw==='tdi')                      return RE.drawTDI(c,S);
+  if(raw==='dci')                      return RE.drawDCi(c,S);
+  if(raw==='passatb3')                 return RE.drawPassatB3(c,S);
+  if(raw==='bluebird')                 return RE.drawBluebird(c,S);
+  if(raw==='tractor'||raw==='mt82')    return RE.drawMTZ(c,S);
+  return RE.drawR4(c,S);
+};
+
+})();
 
