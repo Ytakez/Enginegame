@@ -582,4 +582,102 @@ function waitRef(){
     rad.position.set(length/2+2.6,blockY,0);root.add(rad);
     for(var rf=0;rf<14;rf++){
       var fin=box(3.3,0.06,0.5,MAT.alu);
-      fin.position.set(length/2+2.6,block
+            fin.position.set(length/2+2.6,blockY-1.4+rf*0.2,0);root.add(fin);
+    }
+  }
+
+  /* ============ ВАНКЕЛЬ ============ */
+  function makeEpiShape(Rr,e){
+    var pts=[];
+    for(var i=0;i<=120;i++){
+      var t=(i/120)*Math.PI*2;
+      pts.push(new THREE.Vector2(
+        Rr*Math.cos(t)+e*Math.cos(3*t),
+        Rr*Math.sin(t)+e*Math.sin(3*t)
+      ));
+    }
+    return new THREE.Shape(pts);
+  }
+  function makeRotorShape(rotR){
+    var sh=new THREE.Shape();
+    var pts=[];
+    for(var i=0;i<=90;i++){
+      var t=(i/90)*Math.PI*2;
+      var r=rotR*(0.7+0.3*Math.abs(Math.cos(1.5*t)));
+      pts.push(new THREE.Vector2(r*Math.cos(t),r*Math.sin(t)));
+    }
+    sh.moveTo(pts[0].x,pts[0].y);
+    for(var j=1;j<pts.length;j++)sh.lineTo(pts[j].x,pts[j].y);
+    sh.closePath();
+    return sh;
+  }
+  function buildWankel(root){
+    window._dvsWankelRotors=window._dvsWankelRotors||[];
+    window._dvsWankelPins=window._dvsWankelPins||[];
+    window._dvsWankelFlashes=window._dvsWankelFlashes||[];
+
+    var Rr=2.0,e=0.45;
+    var hGeo=new THREE.ExtrudeGeometry(makeEpiShape(Rr,e),{depth:2.2,bevelEnabled:false});
+    hGeo.center();
+    var housing=new THREE.Mesh(hGeo,MAT.block);
+    housing.position.y=3;root.add(housing);pB(housing);
+
+    var iGeo=new THREE.ExtrudeGeometry(makeEpiShape(Rr*0.92,e*0.92),{depth:2.0,bevelEnabled:false});
+    iGeo.center();
+    var inner=new THREE.Mesh(iGeo,MAT.head);
+    inner.position.y=3;inner.scale.set(0.95,0.95,0.9);root.add(inner);
+
+    var rGeo=new THREE.ExtrudeGeometry(makeRotorShape(1.5),{depth:1.4,bevelEnabled:false});
+    rGeo.center();
+    var rotorMesh=new THREE.Mesh(rGeo,MAT.alu);
+    rotorMesh.position.y=3;root.add(rotorMesh);
+    window._dvsWankelRotors.push({mesh:rotorMesh,ecc:e});
+
+    var shaft=new THREE.Group();
+    shaft.position.y=3;
+    var sh=cyl(0.3,0.3,4.0,14,MAT.chrome);
+    sh.rotation.x=Math.PI/2;shaft.add(sh);
+    var ecc=cyl(0.7,0.7,0.4,20,MAT.aluD);
+    ecc.rotation.x=Math.PI/2;ecc.position.z=0.4;shaft.add(ecc);
+    root.add(shaft);sCr(shaft);
+    window._dvsWankelPins.push({grp:shaft});
+
+    var fw=new THREE.Group();
+    fw.position.y=3;
+    var fwD=cyl(1.9,1.9,0.35,28,MAT.aluD);
+    fwD.rotation.x=Math.PI/2;fw.add(fwD);
+    for(var ft=0;ft<30;ft++){
+      var th=box(0.28,0.18,0.13,MAT.aluD);
+      var a=(ft/30)*Math.PI*2;
+      th.position.set(Math.cos(a)*2.0,Math.sin(a)*2.0,0);
+      th.rotation.z=a;fw.add(th);
+    }
+    fw.position.z=2.8;root.add(fw);sF(fw);
+
+    for(var fp=0;fp<3;fp++){
+      var fm=new THREE.Mesh(
+        new THREE.SphereGeometry(0.45,14,10),
+        new THREE.MeshBasicMaterial({color:0xffaa44,transparent:true,opacity:0})
+      );
+      var fa=fp*(Math.PI*2/3)-Math.PI/2;
+      fm.position.set(Math.cos(fa)*Rr*0.7,3+Math.sin(fa)*Rr*0.7,0.5);
+      root.add(fm);
+      var lt=new THREE.PointLight(0xffaa44,0,8);
+      lt.position.copy(fm.position);root.add(lt);
+      window._dvsWankelFlashes.push({mesh:fm,light:lt,phase:fa});
+    }
+  }
+
+  window.DVS_3D_BUILDERS={
+    r4:buildR4,tdi:buildTDI,dci:buildDCi,
+    scooter:buildScooter,passatb3:buildPassatB3,bluebird:buildBluebird,
+    i6:buildI6,galant6:buildV6,v6:buildV6,v8:buildV8,v12:buildV12,v16:buildV16,v22:buildV22,
+    boxer:buildBoxer,radial:buildRadial,tractor:buildTractor,wankel:buildWankel
+  };
+  if(window.DVS_3D&&window.DVS_3D.isActive&&window.DVS_3D.isActive()){
+    try{window.DVS_3D_REBUILD();}catch(e){}
+  }
+  console.log('view3d-build.js: билдеров =',Object.keys(window.DVS_3D_BUILDERS).length);
+}
+waitRef();
+})();
