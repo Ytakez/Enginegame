@@ -9,11 +9,14 @@ var LANGS={
 var ENGINES_INFO=[
   {id:'scooter',label:'🛵 Скутер (S1)',sub:'1 цилиндр · 4-тактный · АКПП'},
   {id:'tdi',label:'🚐 1.9 TDI',sub:'4 цилиндра · турбодизель · Passat B5'},
-  {id:'dci',label:'🚐 2.0 dCi',sub:'4 цилиндра · турбодизель · Renault/Nissan · 6МКПП'},
+  {id:'dci',label:'🚐 2.0 dCi',sub:'4 цилиндра · турбодизель · Renault · 6МКПП'},
   {id:'mt82',label:'🚜 МТЗ-82 (Д-240)',sub:'4 цилиндра · тракторный дизель'},
   {id:'passatb3',label:'🚙 1.8 B3',sub:'4 цилиндра · бензин · Passat B3'},
   {id:'bluebird',label:'🚗 2.0 CA20',sub:'4 цилиндра · бензин · Bluebird'},
+  {id:'boxer4',label:'🏎️ EJ25 Boxer',sub:'4 цилиндра · оппозитный · Subaru'},
+  {id:'i6',label:'🚗 2JZ I6',sub:'6 цилиндров · рядный · Toyota Supra'},
   {id:'galant6',label:'🚘 2.0 V6',sub:'6 цилиндров · Galant 6'},
+  {id:'radial9',label:'✈️ Wright R-1820',sub:'9 цилиндров · радиальный · авиационный'},
   {id:'wankel',label:'🏎️ Mazda RX-8',sub:'2-роторный Ванкель · 13B-MSP Renesis'},
   {id:'r4',label:'🚗 R4',sub:'4 цилиндра · в ряд'},
   {id:'v8',label:'🏎️ V12',sub:'12 цилиндров · V-образный'},
@@ -35,10 +38,10 @@ function injectStyles(){
   var st=document.createElement('style');
   st.id='settingsStyle';
   st.textContent=
-  '.settings-btn{position:fixed;top:8px;left:8px;z-index:99998;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(12,12,12,.5);backdrop-filter:blur(80px) saturate(200%);-webkit-backdrop-filter:blur(80px) saturate(200%);color:#c0c0c0;font-size:20px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 8px 24px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.14);transition:background .2s,border-color .2s,color .2s}'+
+  '.settings-btn{position:fixed;top:8px;left:8px;z-index:99998;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.12);background:rgba(12,12,12,.5);backdrop-filter:blur(30px) saturate(160%);-webkit-backdrop-filter:blur(30px) saturate(160%);color:#c0c0c0;font-size:20px;cursor:pointer;touch-action:manipulation;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 8px 24px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.14);transition:background .2s,border-color .2s,color .2s}'+
   '.settings-btn:hover{border-color:rgba(255,255,255,.22);color:#ffffff}'+
-  '.settings-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit}'+
-  '.settings-modal{width:100%;max-width:400px;max-height:92vh;overflow-y:auto;background:rgba(10,10,10,.7);backdrop-filter:blur(120px) saturate(220%);-webkit-backdrop-filter:blur(120px) saturate(220%);border:1px solid rgba(255,255,255,.13);border-radius:22px;padding:18px;color:#e8e8e8;box-shadow:0 24px 70px rgba(0,0,0,.7)}'+
+  '.settings-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;font-family:inherit}'+
+  '.settings-modal{width:100%;max-width:400px;max-height:92vh;overflow-y:auto;background:rgba(10,10,10,.7);backdrop-filter:blur(40px) saturate(180%);-webkit-backdrop-filter:blur(40px) saturate(180%);border:1px solid rgba(255,255,255,.13);border-radius:22px;padding:18px;color:#e8e8e8;box-shadow:0 24px 70px rgba(0,0,0,.7)}'+
   '.settings-modal h2{font-size:12px;letter-spacing:5px;color:#f0f0f0;text-transform:uppercase;margin:0 0 16px;font-weight:600;text-align:center}'+
   '.settings-item{width:100%;min-height:54px;margin-bottom:8px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(25,25,25,.5);color:#c0c0c0;font:600 13px/1.3 inherit;cursor:pointer;padding:10px 14px;text-align:left;touch-action:manipulation;display:flex;align-items:center;justify-content:space-between;gap:10px;transition:background .2s,border-color .2s,color .2s}'+
   '.settings-item:hover{border-color:rgba(255,255,255,.16)}'+
@@ -50,17 +53,14 @@ function injectStyles(){
   '.settings-item.on{border-color:rgba(255,255,255,.25);color:#ffffff;background:rgba(255,255,255,.10)}'+
   '.settings-item.on .check{opacity:1}.settings-item.on .sub{color:#a0a0a0}'+
   '.settings-item.primary{background:rgba(232,232,90,.10);border-color:rgba(232,232,90,.3);color:#fff}'+
-  '.settings-item.primary:hover{background:rgba(232,232,90,.18)}'+
   '.settings-item.danger{color:#e0a0a0}'+
   '.settings-item.danger:hover{border-color:rgba(220,80,80,.4);color:#ffb8b8}'+
   '.sound-toggle{flex:0 0 auto;width:64px;height:32px;border-radius:16px;position:relative;border:1px solid rgba(255,255,255,.1);background:rgba(40,40,40,.8);cursor:pointer;transition:background .2s,border-color .2s}'+
   '.sound-toggle.on{border-color:#f0f0f0;background:#f0f0f0}'+
   '.sound-toggle .knob{position:absolute;top:2px;left:2px;width:24px;height:24px;border-radius:50%;background:#6a6a6a;transition:left .15s,background .15s}'+
   '.sound-toggle.on .knob{left:34px;background:#0a0a0a}'+
-  '.settings-close{width:100%;height:46px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(25,25,25,.5);color:#c0c0c0;font:600 12px/1 inherit;letter-spacing:2.5px;cursor:pointer;text-transform:uppercase;touch-action:manipulation;margin-top:12px;transition:background .2s,border-color .2s,color .2s}'+
-  '.settings-close:hover{border-color:rgba(255,255,255,.20);color:#ffffff}'+
-  '.settings-back{width:100%;height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(20,20,20,.5);color:#c0c0c0;font:600 12px/1 inherit;letter-spacing:2px;cursor:pointer;text-transform:uppercase;touch-action:manipulation;margin-bottom:14px;transition:background .2s,border-color .2s,color .2s}'+
-  '.settings-back:hover{border-color:rgba(255,255,255,.20);color:#ffffff}'+
+  '.settings-close{width:100%;height:46px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(25,25,25,.5);color:#c0c0c0;font:600 12px/1 inherit;letter-spacing:2.5px;cursor:pointer;text-transform:uppercase;touch-action:manipulation;margin-top:12px}'+
+  '.settings-back{width:100%;height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(20,20,20,.5);color:#c0c0c0;font:600 12px/1 inherit;letter-spacing:2px;cursor:pointer;text-transform:uppercase;touch-action:manipulation;margin-bottom:14px}'+
   '.settings-modal::-webkit-scrollbar{width:0;display:none}'+
   '.settings-modal{scrollbar-width:none;-ms-overflow-style:none}';
   document.head.appendChild(st);
@@ -71,11 +71,11 @@ function injectTimerStyles(){
   var st=document.createElement('style');
   st.id='timerStyle';
   st.textContent=
-  '#timerOverlay{position:fixed;top:60px;right:10px;z-index:9998;display:none;min-width:130px;padding:10px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(15,15,15,.7);backdrop-filter:blur(40px) saturate(160%);-webkit-backdrop-filter:blur(40px) saturate(160%);color:#e8e8e8;font:600 12px/1.4 -apple-system,Inter,sans-serif;box-shadow:0 12px 36px rgba(0,0,0,.6);text-align:left}'+
+  '#timerOverlay{position:fixed;top:60px;right:10px;z-index:9998;display:none;min-width:130px;padding:10px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:rgba(15,15,15,.7);backdrop-filter:blur(30px);color:#e8e8e8;font:600 12px/1.4 -apple-system,Inter,sans-serif;box-shadow:0 12px 36px rgba(0,0,0,.6);text-align:left}'+
   '#timerOverlay .tm-lbl{font-size:9px;letter-spacing:2px;color:#8a8a8a;text-transform:uppercase;margin-bottom:4px}'+
-  '#timerOverlay .tm-val{font-size:24px;font-weight:700;color:#f0f0f0;transition:color .3s}'+
+  '#timerOverlay .tm-val{font-size:24px;font-weight:700;color:#f0f0f0}'+
   '#timerOverlay .tm-val.done{color:#43c98a}'+
-  '#timerOverlay .tm-best{font-size:9px;color:#8a8a8a;margin-top:4px;transition:color .3s}'+
+  '#timerOverlay .tm-best{font-size:9px;color:#8a8a8a;margin-top:4px}'+
   '#timerOverlay .tm-best.record{color:#e8e85a;font-weight:700}'+
   '#timerOverlay .tm-hint{font-size:9px;color:#6a6a6a;margin-top:2px;font-weight:500}';
   document.head.appendChild(st);
@@ -101,7 +101,6 @@ function applyLang(){
   var h=document.querySelector('header');if(h)h.textContent=t('title');
   var map={'pClutch':'clutch','pBrake':'brake','pGas':'gas'};
   for(var id in map){var el=document.getElementById(id);if(!el)continue;var spans=el.querySelectorAll('span');for(var i=0;i<spans.length;i++){if(spans[i].classList.contains('icon'))continue;if(spans[i].classList.contains('sub')){spans[i].textContent=t('hold');continue;}spans[i].textContent=t(map[id]);}}
-  var ro=document.querySelectorAll('.ro .lbl');if(ro.length>=2){ro[0].textContent=t('speed');ro[1].textContent=t('gear');}
 }
 
 function fmtTime(ms){
@@ -171,7 +170,6 @@ function openOther(){
   closeAll();
   var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
   var h=document.createElement('h2');h.textContent='🔧 '+t('other');m.appendChild(h);
-
   var back=document.createElement('button');
   back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
   back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
@@ -191,115 +189,13 @@ function openOther(){
     m.appendChild(rb);
   }
 
-  var hint=document.createElement('div');
-  hint.style.cssText='text-align:center;font-size:10px;color:#6a6a6a;letter-spacing:1px;margin-top:10px';
-  hint.textContent=t('otherEmpty');
-  m.appendChild(hint);
-
   var cb=document.createElement('button');
   cb.type='button';cb.className='settings-close';cb.textContent=t('close');
   cb.addEventListener('click',closeAll);m.appendChild(cb);
-
   document.body.appendChild(ov);
 }
 
 function openPicker(){
   closeAll();
   var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
-  var h=document.createElement('h2');h.textContent='🏁 '+t('engine');m.appendChild(h);
-  var back=document.createElement('button');
-  back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
-  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
-  var S=window.S;var cur=S?S.engineType:'r4';
-  ENGINES_INFO.forEach(function(E){
-    var b=document.createElement('button');
-    b.type='button';b.className='settings-item'+(E.id===cur?' on':'');
-    b.innerHTML='<div class="txt"><span class="lbl">'+E.label+'</span><span class="sub">'+E.sub+'</span></div><span class="check">✓</span>';
-    b.addEventListener('click',function(){
-      if(S&&S.setEngine)S.setEngine(E.id);
-      var all=m.querySelectorAll('.settings-item');
-      for(var i=0;i<all.length;i++)all[i].classList.remove('on');
-      b.classList.add('on');
-      try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
-    });
-    m.appendChild(b);
-  });
-  var cb=document.createElement('button');
-  cb.type='button';cb.className='settings-close';cb.textContent=t('close');
-  cb.addEventListener('click',closeAll);m.appendChild(cb);
-  document.body.appendChild(ov);
-}
-
-function openWeatherPicker(){
-  closeAll();
-  var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
-  var h=document.createElement('h2');h.textContent='🌦 '+t('weather');m.appendChild(h);
-  var back=document.createElement('button');
-  back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
-  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
-  var S=window.S;var cur=S?S.weather:'summer';
-  WEATHERS.forEach(function(W){
-    var b=document.createElement('button');
-    b.type='button';b.className='settings-item'+(W.id===cur?' on':'');
-    b.innerHTML='<div class="txt"><span class="lbl">'+W.label+'</span><span class="sub">'+W.sub+'</span></div><span class="check">✓</span>';
-    b.addEventListener('click',function(){
-      if(S&&S.setWeather)S.setWeather(W.id);
-      var all=m.querySelectorAll('.settings-item');
-      for(var i=0;i<all.length;i++)all[i].classList.remove('on');
-      b.classList.add('on');
-      try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
-    });
-    m.appendChild(b);
-  });
-  var cb=document.createElement('button');
-  cb.type='button';cb.className='settings-close';cb.textContent=t('close');
-  cb.addEventListener('click',closeAll);m.appendChild(cb);
-  document.body.appendChild(ov);
-}
-
-function openLangPicker(){
-  closeAll();
-  var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
-  var h=document.createElement('h2');h.textContent='🌐 '+t('language');m.appendChild(h);
-  var back=document.createElement('button');
-  back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
-  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
-  Object.keys(LANGS).forEach(function(code){
-    var b=document.createElement('button');
-    b.type='button';b.className='settings-item'+(code===curLang?' on':'');
-    b.innerHTML='<div class="txt"><span class="lbl">'+LANGS[code].label+'</span></div><span class="check">✓</span>';
-    b.addEventListener('click',function(){
-      curLang=code;
-      try{localStorage.setItem(LANG_KEY,code);}catch(e){}
-      applyLang();
-      var all=m.querySelectorAll('.settings-item');
-      for(var i=0;i<all.length;i++)all[i].classList.remove('on');
-      b.classList.add('on');
-      h.textContent='🌐 '+t('language');
-      back.textContent='‹ '+t('back');
-      try{if(navigator.vibrate)navigator.vibrate(10);}catch(e){}
-    });
-    m.appendChild(b);
-  });
-  var cb=document.createElement('button');
-  cb.type='button';cb.className='settings-close';cb.textContent=t('close');
-  cb.addEventListener('click',closeAll);m.appendChild(cb);
-  document.body.appendChild(ov);
-}
-
-function init(){
-  injectStyles();
-  injectTimerStyles();
-  addSettingsButton();
-  try{applyLang();}catch(e){}
-  var b=document.getElementById('engBadge');
-  var S=window.S;
-  if(b&&S&&S.engines&&S.engines[S.engineType])b.textContent=S.engines[S.engineType].name;
-}
-if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init);}
-else{init();}
-setTimeout(init,500);
-setTimeout(init,1500);
-
-console.log('settings.js: загружено');
-})();
+  var h=document.createElement('h2');h.textContent='🏁 '+t('engine');m.appendChild
