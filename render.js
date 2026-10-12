@@ -23,9 +23,7 @@ function drawEngine(){
 
   var drawn=false;
   try{
-    if(typeof RE.render==='function'){
-      RE.render(c,S);drawn=true;
-    }
+    if(typeof RE.render==='function'){RE.render(c,S);drawn=true;}
   }catch(err){console.log('draw error:',err);}
 
   if(!drawn){
@@ -34,7 +32,6 @@ function drawEngine(){
   }
   if(S.broken){c.fillStyle='rgba(200,20,20,0.06)';c.fillRect(0,0,W,H);}
 
-  /* Значок погоды */
   var wx=W-40,wy=H-30;
   c.save();
   if(S.weather==='winter'){
@@ -46,14 +43,11 @@ function drawEngine(){
       c.lineTo(wx+Math.cos(a)*10,wy+Math.sin(a)*10);
       c.stroke();
     }
-  } else if(S.weather==='autumn'){
-    c.fillStyle='#ff8030';
-    c.beginPath();c.arc(wx,wy,10,0,7);c.fill();
-    c.fillStyle='#ffc93c';
-    c.beginPath();c.arc(wx,wy,6,0,7);c.fill();
-  } else {
-    c.fillStyle='#ffc93c';
-    c.beginPath();c.arc(wx,wy,8,0,7);c.fill();
+  }else if(S.weather==='autumn'){
+    c.fillStyle='#ff8030';c.beginPath();c.arc(wx,wy,10,0,7);c.fill();
+    c.fillStyle='#ffc93c';c.beginPath();c.arc(wx,wy,6,0,7);c.fill();
+  }else{
+    c.fillStyle='#ffc93c';c.beginPath();c.arc(wx,wy,8,0,7);c.fill();
     c.strokeStyle='#ffc93c';c.lineWidth=2;
     for(var j=0;j<8;j++){
       var a2=j*Math.PI/4;
@@ -68,8 +62,7 @@ function drawEngine(){
 
 function drawOilIcon(c,x,y,color){
   var fill=color==='red'?'#ff5b5b':(color==='yellow'?'#ffc93c':(color==='green'?'#43c98a':'#4a4a4a'));
-  c.save();c.translate(x,y);
-  c.fillStyle=fill;
+  c.save();c.translate(x,y);c.fillStyle=fill;
   c.beginPath();
   c.moveTo(-7,-1);c.lineTo(-7,-7);c.lineTo(-3,-9);c.lineTo(-3,-10);
   c.lineTo(3,-10);c.lineTo(3,-7);c.lineTo(6,-7);c.lineTo(8,-4);
@@ -81,8 +74,7 @@ function drawOilIcon(c,x,y,color){
 }
 function drawCheckIcon(c,x,y,color){
   var fill=color==='yellow'?'#ffc93c':(color==='red'?'#ff5b5b':(color==='green'?'#43c98a':'#4a4a4a'));
-  c.save();c.translate(x,y);
-  c.fillStyle=fill;
+  c.save();c.translate(x,y);c.fillStyle=fill;
   c.beginPath();
   c.moveTo(-9,-5);c.lineTo(-5,-5);c.lineTo(-3,-8);c.lineTo(3,-8);
   c.lineTo(5,-5);c.lineTo(9,-5);c.lineTo(9,6);c.lineTo(-9,6);c.closePath();c.fill();
@@ -92,8 +84,7 @@ function drawCheckIcon(c,x,y,color){
 }
 function drawFuelIcon(c,x,y,color){
   var fill=color==='red'?'#ff5b5b':(color==='green'?'#43c98a':(color==='yellow'?'#ffc93c':'#4a4a4a'));
-  c.save();c.translate(x,y);
-  c.fillStyle=fill;
+  c.save();c.translate(x,y);c.fillStyle=fill;
   c.beginPath();c.moveTo(-8,-10);c.lineTo(3,-10);c.lineTo(3,8);c.lineTo(-8,8);c.closePath();c.fill();
   c.fillStyle=color==='dim'?'#1a1a1a':'#0a0a0a';
   c.beginPath();c.rect(-6,-7,6,4);c.fill();
@@ -105,8 +96,7 @@ function drawFuelIcon(c,x,y,color){
 }
 function drawTempIcon(c,x,y,color){
   var fill=color==='red'?'#ff5b5b':(color==='yellow'?'#ffc93c':(color==='green'?'#43c98a':'#4a4a4a'));
-  c.save();c.translate(x,y);
-  c.fillStyle=fill;
+  c.save();c.translate(x,y);c.fillStyle=fill;
   c.beginPath();c.arc(0,5,4.5,0,7);c.fill();
   c.beginPath();c.rect(-2,-10,4,14);c.fill();
   if(color!=='dim'){
@@ -115,8 +105,7 @@ function drawTempIcon(c,x,y,color){
     c.beginPath();c.rect(-0.7,-5,3,1.2);c.fill();
     c.beginPath();c.rect(-0.7,-2,3,1.2);c.fill();
     c.beginPath();c.rect(-0.7,1,3,1.2);c.fill();
-    c.fillStyle=fill;
-    c.beginPath();c.rect(-0.7,3,2.2,3);c.fill();
+    c.fillStyle=fill;c.beginPath();c.rect(-0.7,3,2.2,3);c.fill();
   }
   c.restore();
 }
@@ -156,18 +145,15 @@ function drawGauge(c,cx,cy,R,value,maxV,redline,label,bigNum){
   c.beginPath();
   c.moveTo(-7,-3);c.lineTo(R-12,-1.5);c.lineTo(R-8,0);c.lineTo(R-12,1.5);c.lineTo(-7,3);
   c.closePath();c.fill();c.restore();
-  c.fillStyle='#141414';
-  c.beginPath();c.arc(cx,cy,8,0,7);c.fill();
+  c.fillStyle='#141414';c.beginPath();c.arc(cx,cy,8,0,7);c.fill();
   c.strokeStyle='#333333';c.lineWidth=1.5;c.stroke();
   var col='#9fe8c0';
   if(value>redline)col='#ff5b5b';
   else if(value>redline*0.85)col='#ffc93c';
-  c.fillStyle=col;
-  c.font='bold 14px Segoe UI, sans-serif';
+  c.fillStyle=col;c.font='bold 14px Segoe UI, sans-serif';
   c.textAlign='center';c.textBaseline='alphabetic';
   c.fillText(bigNum,cx,cy-11);
-  c.fillStyle='#666666';
-  c.font='bold 6px Segoe UI, sans-serif';
+  c.fillStyle='#666666';c.font='bold 6px Segoe UI, sans-serif';
   c.fillText(label,cx,cy-2);
 }
 
@@ -182,122 +168,78 @@ function drawIndicatorRing(c,x,y,r,color,blinkOn){
   if(color==='red')ringCol=blinkOn===false?'#4a1010':'#ff5b5b';
   else if(color==='yellow')ringCol=blinkOn===false?'#4a3a10':'#ffc93c';
   else if(color==='green')ringCol='#43c98a';
-  c.strokeStyle=ringCol;
-  c.lineWidth=color==='dim'?1.5:2;
+  c.strokeStyle=ringCol;c.lineWidth=color==='dim'?1.5:2;
   if(color!=='dim'&&blinkOn===false)c.lineWidth=1;
   c.beginPath();c.arc(x,y,r,0,7);c.stroke();
-  if(color!=='dim'&&blinkOn!==false){
-    c.strokeStyle=ringCol;c.lineWidth=1;c.globalAlpha=0.4;
-    c.beginPath();c.arc(x,y,r+2,0,7);c.stroke();
-    c.globalAlpha=1;
-  }
 }
 
 function drawDash(){
   if(!gctx)return;
   var c=gctx,W=gcv.width,H=gcv.height;
-  var now=performance.now();
-  var blinkOn=Math.floor(now/350)%2===0;
+  var blinkOn=Math.floor(performance.now()/350)%2===0;
   c.clearRect(0,0,W,H);
-
   var bg=c.createLinearGradient(0,0,0,H);
-  bg.addColorStop(0,'#000000');
-  bg.addColorStop(1,'#050505');
+  bg.addColorStop(0,'#000');bg.addColorStop(1,'#050505');
   c.fillStyle=bg;c.fillRect(0,0,W,H);
   c.strokeStyle='#1a1a1a';c.lineWidth=1;c.strokeRect(0.5,0.5,W-1,H-1);
-
   var E=S.engines[S.engineType]||S.engines.r4;
-  var rpm=safe(S.rpm);
-  var spd=Math.abs(safe(S.speed));
-
-  c.fillStyle='#4a4a4a';
-  c.font='bold 6px Segoe UI, sans-serif';
+  var rpm=safe(S.rpm),spd=Math.abs(safe(S.speed));
+  c.fillStyle='#4a4a4a';c.font='bold 6px Segoe UI, sans-serif';
   c.textAlign='left';c.textBaseline='top';
   c.fillText('ДВС • ПРИБОРНАЯ ПАНЕЛЬ',6,6);
-
-  var wIcon=S.weather==='winter'?'❄':(S.weather==='autumn'?'🍂':'☀');
-  var wTxt=S.weather==='winter'?'ЗИМА':(S.weather==='autumn'?'ОСЕНЬ':'ЛЕТО');
-  c.fillStyle='#707070';
-  c.font='bold 7px Segoe UI, sans-serif';
+  var wI=S.weather==='winter'?'❄':(S.weather==='autumn'?'🍂':'☀');
+  var wT=S.weather==='winter'?'ЗИМА':(S.weather==='autumn'?'ОСЕНЬ':'ЛЕТО');
+  c.fillStyle='#707070';c.font='bold 7px Segoe UI, sans-serif';
   c.textAlign='right';c.textBaseline='top';
-  c.fillText(wIcon+' '+wTxt,W-6,6);
-
-  var gaugeMax=10500;
-  if(S.engineType==='wankel')gaugeMax=11000;
-  drawGauge(c,78,90,56,rpm,gaugeMax,E.redline,'об/мин ×1000',(rpm/1000).toFixed(1));
+  c.fillText(wI+' '+wT,W-6,6);
+  var gMax=S.engineType==='wankel'?11000:10500;
+  drawGauge(c,78,90,56,rpm,gMax,E.redline,'об/мин ×1000',(rpm/1000).toFixed(1));
   drawGauge(c,262,90,56,spd,MAXS,220,'км/ч',String(Math.round(spd)));
-
   var gv=S.gear;
-  var gearTxt=gv===0?'N':(gv===-1?'R':(E.auto?'D':String(gv)));
-  var gearCol='#8fd8ff';
-  if(gv===-1)gearCol='#ff5b5b';
-  else if(gv===0)gearCol='#c9c943';
-  c.fillStyle=gearCol;
-  c.font='bold 20px Segoe UI, sans-serif';
+  var gt=gv===0?'N':(gv===-1?'R':(E.auto?'D':String(gv)));
+  var gc='#8fd8ff';
+  if(gv===-1)gc='#ff5b5b';else if(gv===0)gc='#c9c943';
+  c.fillStyle=gc;c.font='bold 20px Segoe UI, sans-serif';
   c.textAlign='center';c.textBaseline='middle';
-  c.fillText(gearTxt,170,68);
-  c.fillStyle='#666666';
-  c.font='bold 6px Segoe UI, sans-serif';
+  c.fillText(gt,170,68);
+  c.fillStyle='#666666';c.font='bold 6px Segoe UI, sans-serif';
   c.fillText('ПЕРЕДАЧА',170,84);
   c.fillStyle=S.running?'#43c98a':'#4a4a4a';
   c.font='bold 6px Segoe UI, sans-serif';
   c.fillText('СТАРТ',170,98);
   c.beginPath();c.arc(170,110,3.5,0,7);c.fill();
-
-  var pumpColor='dim';
-  if(S.ignitionState==='priming')pumpColor='red';
-  else if(S.ignitionState==='ready'||S.ignitionState==='running')pumpColor='green';
-
-  var oilColor=S.broken?'red':'dim';
-  var engColor=S.broken?'yellow':'dim';
-
-  var engTemp=safe(S.engineTemp);
-  var ambTemp=safe(S.ambientTemp);
-
-  var tempColor='dim';
-  var tempBlink=true;
-  if(engTemp>105){tempColor='red';tempBlink=blinkOn;}
-  else if(engTemp>95){tempColor='yellow';tempBlink=blinkOn;}
-  else if(engTemp>75){tempColor='green';tempBlink=true;}
-  else if(engTemp<ambTemp+5&&S.weather==='winter'){tempColor='yellow';tempBlink=blinkOn;}
-
+  var pc='dim';
+  if(S.ignitionState==='priming')pc='red';
+  else if(S.ignitionState==='ready'||S.ignitionState==='running')pc='green';
+  var oc=S.broken?'red':'dim',ec=S.broken?'yellow':'dim';
+  var et=safe(S.engineTemp),at=safe(S.ambientTemp);
+  var tc='dim',tb=true;
+  if(et>105){tc='red';tb=blinkOn;}
+  else if(et>95){tc='yellow';tb=blinkOn;}
+  else if(et>75){tc='green';}
+  else if(et<at+5&&S.weather==='winter'){tc='yellow';tb=blinkOn;}
   var iy=152,ir=12;
-  drawIndicatorRing(c,52,iy,ir,oilColor,true);
-  drawOilIcon(c,52,iy,oilColor);
-  drawIndicatorRing(c,130,iy,ir,engColor,true);
-  drawCheckIcon(c,130,iy,engColor);
-  drawIndicatorRing(c,208,iy,ir,pumpColor,true);
-  drawFuelIcon(c,208,iy,pumpColor);
-  drawIndicatorRing(c,286,iy,ir,tempColor,tempBlink);
-  drawTempIcon(c,286,iy,tempColor);
-
-  c.fillStyle='#4a4a4a';
-  c.font='bold 6px Segoe UI, sans-serif';
+  drawIndicatorRing(c,52,iy,ir,oc,true);drawOilIcon(c,52,iy,oc);
+  drawIndicatorRing(c,130,iy,ir,ec,true);drawCheckIcon(c,130,iy,ec);
+  drawIndicatorRing(c,208,iy,ir,pc,true);drawFuelIcon(c,208,iy,pc);
+  drawIndicatorRing(c,286,iy,ir,tc,tb);drawTempIcon(c,286,iy,tc);
+  c.fillStyle='#4a4a4a';c.font='bold 6px Segoe UI, sans-serif';
   c.textAlign='center';c.textBaseline='top';
-  c.fillText('МАСЛО',52,iy+16);
-  c.fillText('CHECK',130,iy+16);
-  c.fillText('НАСОС',208,iy+16);
-  c.fillText('ТЕМП',286,iy+16);
-
-  var tempTxtColor='#4a4a4a';
-  if(engTemp>105)tempTxtColor=blinkOn?'#ff5b5b':'#4a1010';
-  else if(engTemp>95)tempTxtColor=blinkOn?'#ffc93c':'#4a3a10';
-  else if(engTemp>75)tempTxtColor='#43c98a';
-  else if(engTemp<ambTemp+5&&S.weather==='winter')tempTxtColor=blinkOn?'#8fd8ff':'#4a6a80';
-
-  c.fillStyle=tempTxtColor;
-  c.font='bold 8px Segoe UI, sans-serif';
+  c.fillText('МАСЛО',52,iy+16);c.fillText('CHECK',130,iy+16);
+  c.fillText('НАСОС',208,iy+16);c.fillText('ТЕМП',286,iy+16);
+  var ttc='#4a4a4a';
+  if(et>105)ttc=blinkOn?'#ff5b5b':'#4a1010';
+  else if(et>95)ttc=blinkOn?'#ffc93c':'#4a3a10';
+  else if(et>75)ttc='#43c98a';
+  c.fillStyle=ttc;c.font='bold 8px Segoe UI, sans-serif';
   c.textAlign='center';c.textBaseline='top';
-  c.fillText('ДВИГ: '+Math.round(engTemp)+'°C   ВОЗДУХ: '+Math.round(ambTemp)+'°C',170,H-12);
-
-  if(S.weather==='winter'&&engTemp<5&&S.running&&blinkOn){
-    c.fillStyle='#8fd8ff';
-    c.font='bold 9px Segoe UI, sans-serif';
+  c.fillText('ДВИГ: '+Math.round(et)+'°C   ВОЗДУХ: '+Math.round(at)+'°C',170,H-12);
+  if(S.weather==='winter'&&et<5&&S.running&&blinkOn){
+    c.fillStyle='#8fd8ff';c.font='bold 9px Segoe UI, sans-serif';
     c.textAlign='center';c.textBaseline='middle';
     c.fillText('❄ ДВИГАТЕЛЬ ХОЛОДНЫЙ — ГРЕЙ!',170,128);
-  } else if(engTemp>=105&&S.running&&!S.broken&&blinkOn){
-    c.fillStyle='#ff3030';
-    c.font='bold 9px Segoe UI, sans-serif';
+  }else if(et>=105&&S.running&&!S.broken&&blinkOn){
+    c.fillStyle='#ff3030';c.font='bold 9px Segoe UI, sans-serif';
     c.textAlign='center';c.textBaseline='middle';
     c.fillText('⚠ ПЕРЕГРЕВ — ОТПУСТИ ГАЗ!',170,128);
   }
