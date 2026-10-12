@@ -27,7 +27,10 @@ var PROFILES = {
   wankel:   { pitch:1.30, sub:0.14, saw:0.28, sq:0.14, noise:0.024, drive:7.0,  filter:2400, q:3.4, wave:'sawtooth', detune:44 },
   r4:       { pitch:0.98, sub:0.20, saw:0.24, sq:0.10, noise:0.020, drive:6.0,  filter:1600, q:2.8, wave:'sawtooth', detune:30 },
   v8:       { pitch:1.08, sub:0.22, saw:0.22, sq:0.09, noise:0.028, drive:5.6,  filter:1800, q:2.6, wave:'sawtooth', detune:16 },
-  v16:      { pitch:0.86, sub:0.34, saw:0.28, sq:0.14, noise:0.044, drive:8.0,  filter:1400, q:3.2, wave:'sawtooth', detune:70 }
+  v16:      { pitch:0.86, sub:0.34, saw:0.28, sq:0.14, noise:0.044, drive:8.0,  filter:1400, q:3.2, wave:'sawtooth', detune:70 },
+  boxer4:   { pitch:1.10, sub:0.28, saw:0.28, sq:0.10, noise:0.030, drive:6.0,  filter:1300, q:3.0, wave:'sawtooth', detune:35 },
+  i6:       { pitch:1.15, sub:0.26, saw:0.24, sq:0.08, noise:0.020, drive:5.5,  filter:1700, q:2.8, wave:'sawtooth', detune:18 },
+  radial9:  { pitch:0.42, sub:0.50, saw:0.35, sq:0.20, noise:0.100, drive:10.0, filter:700,  q:4.0, wave:'square',   detune:100 }
 };
 var DEFAULT_PROFILE = PROFILES.r4;
 
@@ -77,33 +80,21 @@ function initAudio(){
     mainFilter.connect(postGain);
     postGain.connect(masterGain);
 
-    oscSub = ctx.createOscillator();
-    oscSub.type = 'sine';
-    oscSub.frequency.value = 40;
-    subGain = ctx.createGain();
-    subGain.gain.value = 0;
+    oscSub = ctx.createOscillator(); oscSub.type = 'sine'; oscSub.frequency.value = 40;
+    subGain = ctx.createGain(); subGain.gain.value = 0;
     oscSub.connect(subGain); subGain.connect(shaper);
 
-    oscSaw1 = ctx.createOscillator();
-    oscSaw1.type = 'sawtooth';
-    oscSaw1.frequency.value = 80;
-    saw1Gain = ctx.createGain();
-    saw1Gain.gain.value = 0;
+    oscSaw1 = ctx.createOscillator(); oscSaw1.type = 'sawtooth'; oscSaw1.frequency.value = 80;
+    saw1Gain = ctx.createGain(); saw1Gain.gain.value = 0;
     oscSaw1.connect(saw1Gain); saw1Gain.connect(shaper);
 
-    oscSaw2 = ctx.createOscillator();
-    oscSaw2.type = 'sawtooth';
-    oscSaw2.frequency.value = 82;
+    oscSaw2 = ctx.createOscillator(); oscSaw2.type = 'sawtooth'; oscSaw2.frequency.value = 82;
     oscSaw2.detune.value = 40;
-    saw2Gain = ctx.createGain();
-    saw2Gain.gain.value = 0;
+    saw2Gain = ctx.createGain(); saw2Gain.gain.value = 0;
     oscSaw2.connect(saw2Gain); saw2Gain.connect(shaper);
 
-    oscSq = ctx.createOscillator();
-    oscSq.type = 'square';
-    oscSq.frequency.value = 20;
-    sqGain = ctx.createGain();
-    sqGain.gain.value = 0;
+    oscSq = ctx.createOscillator(); oscSq.type = 'square'; oscSq.frequency.value = 20;
+    sqGain = ctx.createGain(); sqGain.gain.value = 0;
     oscSq.connect(sqGain); sqGain.connect(shaper);
 
     var bufSize = 2 * ctx.sampleRate;
@@ -113,23 +104,17 @@ function initAudio(){
     noiseNode = ctx.createBufferSource();
     noiseNode.buffer = buffer;
     noiseNode.loop = true;
-
     noiseFilter = ctx.createBiquadFilter();
     noiseFilter.type = 'bandpass';
     noiseFilter.frequency.value = 1200;
     noiseFilter.Q.value = 1.0;
-
     noiseGain = ctx.createGain();
     noiseGain.gain.value = 0;
     noiseNode.connect(noiseFilter); noiseFilter.connect(noiseGain);
     noiseGain.connect(shaper);
 
-    console.log('sound.js: готово');
     return true;
-  }catch(e){
-    console.warn('sound.js: ошибка', e);
-    return false;
-  }
+  }catch(e){ return false; }
 }
 
 function startOscillators(){
@@ -174,34 +159,24 @@ function updateSound(){
         oscSub = ctx.createOscillator(); oscSub.type='sine'; oscSub.frequency.value=40;
         subGain = ctx.createGain(); subGain.gain.value=0;
         oscSub.connect(subGain); subGain.connect(shaper);
-
         oscSaw1 = ctx.createOscillator(); oscSaw1.type='sawtooth'; oscSaw1.frequency.value=80;
         saw1Gain = ctx.createGain(); saw1Gain.gain.value=0;
         oscSaw1.connect(saw1Gain); saw1Gain.connect(shaper);
-
         oscSaw2 = ctx.createOscillator(); oscSaw2.type='sawtooth'; oscSaw2.frequency.value=82;
         saw2Gain = ctx.createGain(); saw2Gain.gain.value=0;
         oscSaw2.connect(saw2Gain); saw2Gain.connect(shaper);
-
         oscSq = ctx.createOscillator(); oscSq.type='square'; oscSq.frequency.value=20;
         sqGain = ctx.createGain(); sqGain.gain.value=0;
         oscSq.connect(sqGain); sqGain.connect(shaper);
-
         var bufSize = 2 * ctx.sampleRate;
         var buffer = ctx.createBuffer(1, bufSize, ctx.sampleRate);
         var data = buffer.getChannelData(0);
         for(var i = 0; i < bufSize; i++) data[i] = Math.random()*2-1;
-        noiseNode = ctx.createBufferSource();
-        noiseNode.buffer = buffer;
-        noiseNode.loop = true;
-        noiseFilter = ctx.createBiquadFilter();
-        noiseFilter.type = 'bandpass';
-        noiseFilter.frequency.value = 1200;
-        noiseFilter.Q.value = 1.0;
-        noiseGain = ctx.createGain();
-        noiseGain.gain.value = 0;
-        noiseNode.connect(noiseFilter); noiseFilter.connect(noiseGain);
-        noiseGain.connect(shaper);
+        noiseNode = ctx.createBufferSource(); noiseNode.buffer = buffer; noiseNode.loop = true;
+        noiseFilter = ctx.createBiquadFilter(); noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.value = 1200; noiseFilter.Q.value = 1.0;
+        noiseGain = ctx.createGain(); noiseGain.gain.value = 0;
+        noiseNode.connect(noiseFilter); noiseFilter.connect(noiseGain); noiseGain.connect(shaper);
       }catch(e){}
       oscStarted = false;
     }
@@ -218,7 +193,6 @@ function updateSound(){
 
   var mainFreq = (30 + rpm * 0.05) * P.pitch;
   if(mainFreq < 15) mainFreq = 15;
-
   var subFreq = mainFreq * 0.5;
   var sqFreq = mainFreq * 0.25;
   if(sqFreq < 3) sqFreq = 3;
@@ -239,33 +213,26 @@ function updateSound(){
 
   var t = ctx.currentTime;
   var smooth = stopping ? 0.12 : 0.03;
-
   try{
     subGain.gain.setTargetAtTime(subL, t, smooth);
     saw1Gain.gain.setTargetAtTime(sawL * 0.65, t, smooth);
     saw2Gain.gain.setTargetAtTime(sawL * 0.55, t, smooth);
     sqGain.gain.setTargetAtTime(sqL, t, smooth);
     noiseGain.gain.setTargetAtTime(noiseL, t, smooth);
-
     var fSmooth = stopping ? 0.15 : 0.02;
     oscSub.frequency.setTargetAtTime(subFreq, t, fSmooth);
     oscSaw1.frequency.setTargetAtTime(mainFreq, t, fSmooth);
     oscSaw2.frequency.setTargetAtTime(mainFreq, t, fSmooth);
     oscSaw2.detune.value = P.detune + Math.sin(t * 4) * 6;
     oscSq.frequency.setTargetAtTime(sqFreq, t, fSmooth);
-
     if(oscSaw1.type !== P.wave) oscSaw1.type = P.wave;
-
     var nF = P.filter + rpm * 0.12;
     if(nF > 5000) nF = 5000;
     mainFilter.frequency.setTargetAtTime(nF, t, 0.06);
     mainFilter.Q.setTargetAtTime(P.q, t, 0.1);
-
     shaper.curve = makeDriveCurve(P.drive);
     shaperGain.gain.setTargetAtTime(0.7 + thr * 0.4, t, 0.05);
-
     noiseFilter.frequency.setTargetAtTime(900 + rpm * 0.3, t, 0.05);
-
     var masterVol = muted ? 0 : 0.75;
     masterGain.gain.setTargetAtTime(masterVol, t, 0.08);
   }catch(e){}
@@ -381,7 +348,6 @@ function gearCrunch(){
     g.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
     noise.connect(filt); filt.connect(g); g.connect(ctx.destination);
     noise.start(t);
-
     var o1 = ctx.createOscillator();
     o1.type = 'square';
     o1.frequency.setValueAtTime(320, t);
@@ -391,7 +357,6 @@ function gearCrunch(){
     og1.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
     o1.connect(og1); og1.connect(ctx.destination);
     o1.start(t); o1.stop(t + 0.18);
-
     var o2 = ctx.createOscillator();
     o2.type = 'triangle';
     o2.frequency.setValueAtTime(120, t);
@@ -448,5 +413,5 @@ window.DVS_SOUND = {
 document.addEventListener('touchstart', function(){ if(!ctx) initAudio(); }, {once:true, passive:true});
 document.addEventListener('click', function(){ if(!ctx) initAudio(); }, {once:true});
 
-console.log('sound.js: загружено (10 профилей)');
+console.log('sound.js: 14 профилей');
 })();
