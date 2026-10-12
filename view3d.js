@@ -76,20 +76,20 @@ window.DVS_3D={
 
 function updCam(){
   var cx=dist*Math.sin(rotY)*Math.cos(rotX);
-  var cy=dist*Math.sin(rotX);
+  var cy2=dist*Math.sin(rotX);
   var cz=dist*Math.cos(rotY)*Math.cos(rotX);
-  camera.position.set(cx,cy+4,cz);
-  camera.lookAt(0,3,0);
+  camera.position.set(cx,cy2+4,cz);
+  camera.lookAt(0,3.5,0);
 }
 
 function setGhost(on){
   ghost=on;
-  var op=on?0.1:1.0;
   var L=_blockM.concat(_headM).concat(_coverM);
   for(var i=0;i<L.length;i++){
     if(!L[i])continue;
+    var base=L[i].userData&&L[i].userData.baseOp!==undefined?L[i].userData.baseOp:1;
     L[i].material.transparent=on;
-    L[i].material.opacity=on?0.1:(L[i].userData&&L[i].userData.baseOpacity!==undefined?L[i].userData.baseOpacity:1);
+    L[i].material.opacity=on?0.12:base;
   }
   for(var r=0;r<_ribM.length;r++){
     _ribM[r].material.transparent=on;
@@ -185,26 +185,21 @@ function animate(){
   var ang=S.crankAngle||0;
   for(var i=0;i<_asm.length;i++){
     var A=_asm[i];
-    if(!A||!A.g)continue;
+    if(!A||!A.p||!A.g)continue;
     var ph=ang+(A.off||0);
-    var R=A.crankR||0.8;
-    var L=A.rodLen||2.6;
-    var pH=A.pH||0.9;
-    var cx=R*Math.sin(ph);
-    var cyc=-R*Math.cos(ph);
-    var py=L*Math.cos(Math.asin(R*Math.sin(ph)/L))+R*Math.cos(ph);
-    py=py*0.5;
-    if(A.p)A.p.position.y=py;
+    var Rc=A.crankR||0.8;
+    var L=A.rodLen||3.5;
+    var cy=A.crankY||1.0;
+    var sinT=Math.sin(ph),cosT=Math.cos(ph);
+    var sq=L*L-Rc*Rc*sinT*sinT;if(sq<0)sq=0;
+    var pinY=cy+Rc*cosT+Math.sqrt(sq);
+    A.p.position.y=pinY;
     if(A.rod){
-      var pinPy=py-pH*0.5;
-      var crankPy=-L*0.5+cyc;
-      var crankPx=cx;
-      var dx=crankPx-0,dy=crankPy-pinPy;
-      var rl=Math.sqrt(dx*dx+dy*dy);
-      var ra=Math.atan2(dx,-dy);
-      A.rod.position.y=(pinPy+crankPy)*0.5;
-      A.rod.rotation.z=-ra;
-      if(A.rodBaseLen)A.rod.scale.y=rl/A.rodBaseLen;
+      var cpX=Rc*sinT;
+      var cpY=cy+Rc*cosT;
+      A.rod.position.x=cpX/2;
+      A.rod.position.y=(pinY+cpY)/2;
+      A.rod.rotation.z=Math.atan2(cpX,pinY-cpY);
     }
   }
   var wR=window._dvsWankelRotors||[];
@@ -212,15 +207,15 @@ function animate(){
     var W=wR[wr];
     W.mesh.rotation.z=-ang/3;
     W.mesh.position.x=Math.cos(ang)*W.ecc;
-    W.mesh.position.y=Math.sin(ang)*W.ecc;
+    W.mesh.position.y=3+Math.sin(ang)*W.ecc;
   }
   var wp=window._dvsWankelPins||[];
   for(var j=0;j<wp.length;j++)wp[j].grp.rotation.z=ang;
   var fl=window._dvsWankelFlashes||[];
   for(var f=0;f<fl.length;f++){
     var F=fl[f];
-    var cyc2=((ang*1.5+F.phase)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
-    var inten=Math.max(0,1-Math.abs(cyc2-Math.PI)*1.8);
+    var cyc=((ang*1.5+F.phase)%(Math.PI*2)+Math.PI*2)%(Math.PI*2);
+    var inten=Math.max(0,1-Math.abs(cyc-Math.PI)*1.8);
     F.mesh.material.opacity=inten*0.85;
     F.light.intensity=inten*4;
     var sc=0.4+inten*0.9;
@@ -249,10 +244,8 @@ function show3D(){
   if(!setup())return;
   active=true;
   container.style.display='block';
-  var gb=document.getElementById('ghostBtn');
-  if(gb)gb.style.display='inline-block';
-  var vb=document.getElementById('view3dBtn');
-  if(vb)vb.textContent='📊 2D';
+  var gb=document.getElementById('ghostBtn');if(gb)gb.style.display='inline-block';
+  var vb=document.getElementById('view3dBtn');if(vb)vb.textContent='📊 2D';
   resize();setTimeout(resize,150);setTimeout(resize,400);
   if(window.DVS_3D_REBUILD){try{window.DVS_3D_REBUILD();}catch(e){}}
   if(!animId)animate();
