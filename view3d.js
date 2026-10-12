@@ -58,10 +58,15 @@ function smartRebuild(attempt){
   window._dvsWankelRotors=[];window._dvsWankelPins=[];window._dvsWankelFlashes=[];
   window._dciParts=[];
   var root=new THREE.Group();sc.add(root);R.setRoot(root);
-  var raw=(S.engineType||S.engine||'r4').toString().toLowerCase().replace(/\s+/g,'');
-  var B=window.DVS_3D_BUILDERS, fn=B.r4;
-  for(var k in B){if(k.toLowerCase()===raw){fn=B[k];break;}}
-  if(fn){try{fn(root);}catch(e){console.warn('Ошибка:',e);}}
+
+  var raw=(S.engineType||S.engine||'r4').toString().toLowerCase().replace(/\s+/g,'').replace(/-/g,'');
+  var B=window.DVS_3D_BUILDERS, fn=null;
+  for(var k in B){ if(raw.indexOf(k.toLowerCase())>=0){fn=B[k];break;} }
+  if(!fn){ for(var k2 in B){ if(k2.toLowerCase().indexOf(raw)>=0){fn=B[k2];break;} } }
+  if(!fn) fn=B.r4;
+
+  console.log('3D диспетчер:',raw,'->',fn?'OK':'fallback');
+  try{fn(root);}catch(e){console.warn('Ошибка билдера:',e);}
 }
 window.DVS_3D_REBUILD=smartRebuild;
 
