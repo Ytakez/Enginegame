@@ -5,7 +5,7 @@ var active=false,scene,camera,renderer,container,animId=null;
 var rotX=0.4,rotY=0.7,dist=14,isDown=false,lastX=0,lastY=0,pinch=0;
 var ghost=false;
 var _blockM=[],_headM=[],_coverM=[],_ribM=[],_asm=[],_cams=[];
-var _crank,_fly,_cam,_beltT,_beltB;
+var _cranks=[],_flies=[],_camSingles=[],_beltT,_beltB;
 var _ready=false;
 
 function m(c,a,b){return new THREE.MeshStandardMaterial({color:c,metalness:a===undefined?0.85:a,roughness:b===undefined?0.35:b});}
@@ -19,18 +19,21 @@ window.DVS_3D_REF={
   getScene:function(){return scene;},
   getRoot:function(){return window._3dRoot||null;},
   setRoot:function(r){window._3dRoot=r;},
-  setCrank:function(g){_crank=g;},
-  setFly:function(g){_fly=g;},
-  setCam:function(g){_cam=g;},
+  setCrank:function(g){if(g)_cranks.push(g);},
+  setFly:function(g){if(g)_flies.push(g);},
+  setCam:function(g){if(g)_camSingles.push(g);},
   setBeltT:function(g){_beltT=g;},
   setBeltB:function(g){_beltB=g;},
-  setAsm:function(a){_asm=a||[];},
+  setAsm:function(a){if(a)_asm=_asm.concat(a);},
   setCams:function(c){_cams=c||[];},
-  pushBlock:function(x){_blockM.push(x);},
-  pushHead:function(x){_headM.push(x);},
-  pushCover:function(x){_coverM.push(x);},
-  pushRib:function(x){_ribM.push(x);},
-  clearAll:function(){_blockM=[];_headM=[];_coverM=[];_ribM=[];_asm=[];_cams=[];},
+  pushBlock:function(x){if(x)_blockM.push(x);},
+  pushHead:function(x){if(x)_headM.push(x);},
+  pushCover:function(x){if(x)_coverM.push(x);},
+  pushRib:function(x){if(x)_ribM.push(x);},
+  clearAll:function(){
+    _blockM=[];_headM=[];_coverM=[];_ribM=[];_asm=[];_cams=[];
+    _cranks=[];_flies=[];_camSingles=[];_beltT=null;_beltB=null;
+  },
   getCfg:function(t){
     var CFG={
       scooter:{n:1,v:false},
@@ -57,7 +60,7 @@ function fallbackRebuild(){
   if(old){while(old.children.length){var c=old.children.pop();if(c.geometry)try{c.geometry.dispose();}catch(e){}if(c.material)try{c.material.dispose();}catch(e){};}
     sc.remove(old);}
   R.clearAll();
-  window._dvsWankelRotors=[];window._dvsWankelPins=[];window._dvsWankelFlashes=[];window._dciParts=null;
+  window._dvsWankelRotors=[];window._dvsWankelPins=[];window._dvsWankelFlashes=[];window._dciPartsArr=[];
   var root=new THREE.Group();sc.add(root);R.setRoot(root);
   var block=bx(4.2,1.5,1.6,0x2a2d33,0.75,0.55);root.add(block);R.pushBlock(block);
   for(var i=0;i<5;i++){var rib=bx(0.06,1.4,1.66,0x1e2126,0.85,0.55);rib.position.x=-1.7+i*0.85;root.add(rib);R.pushRib(rib);}
@@ -233,18 +236,19 @@ function animate(){
     var sc=0.4+inten*0.9;
     F.mesh.scale.set(sc,sc,sc);
   }
-  if(window._dciParts){
-    var P=window._dciParts;
+  var _dpa=window._dciPartsArr||[];
+  for(var di=0;di<_dpa.length;di++){
+    var P=_dpa[di];
     if(P.turbo)P.turbo.rotation.x=ang*2.5;
     if(P.cam)P.cam.rotation.x=ang*0.5;
     if(P.fw)P.fw.rotation.x=ang;
     if(P.crank)P.crank.rotation.x=ang;
   }
-  if(_crank)_crank.rotation.x=ang;
-  if(_fly)_fly.rotation.x=ang;
+  for(var ci=0;ci<_cranks.length;ci++)_cranks[ci].rotation.x=ang;
+  for(var fi=0;fi<_flies.length;fi++)_flies[fi].rotation.x=ang;
+  for(var si=0;si<_camSingles.length;si++)_camSingles[si].rotation.x=ang*0.5;
   if(_beltB)_beltB.rotation.x=ang;
   if(_beltT)_beltT.rotation.x=ang*0.5;
-  if(_cam)_cam.rotation.x=ang*0.5;
   for(var c=0;c<_cams.length;c++)_cams[c].grp.rotation.z=(ang*0.5)+_cams[c].off;
   renderer.render(scene,camera);
 }
@@ -319,5 +323,5 @@ function attachBtn(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachBtn);
 else attachBtn();
 
-console.log('view3d.js: загружен');
+console.log('view3d.js: загружен (multi-engine fix)');
 })();
