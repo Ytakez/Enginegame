@@ -13,10 +13,8 @@ var ENGINES_INFO=[
   {id:'mt82',label:'🚜 МТЗ-82 (Д-240)',sub:'4 цилиндра · тракторный дизель'},
   {id:'passatb3',label:'🚙 1.8 B3',sub:'4 цилиндра · бензин · Passat B3'},
   {id:'bluebird',label:'🚗 2.0 CA20',sub:'4 цилиндра · бензин · Bluebird'},
-  {id:'boxer4',label:'🏎️ EJ25 Boxer',sub:'4 цилиндра · оппозитный · Subaru'},
   {id:'i6',label:'🚗 2JZ I6',sub:'6 цилиндров · рядный · Toyota Supra'},
   {id:'galant6',label:'🚘 2.0 V6',sub:'6 цилиндров · Galant 6'},
-  {id:'radial9',label:'✈️ Wright R-1820',sub:'9 цилиндров · радиальный · авиационный'},
   {id:'wankel',label:'🏎️ Mazda RX-8',sub:'2-роторный Ванкель · 13B-MSP Renesis'},
   {id:'r4',label:'🚗 R4',sub:'4 цилиндра · в ряд'},
   {id:'v8',label:'🏎️ V12',sub:'12 цилиндров · V-образный'},
@@ -293,5 +291,5 @@ else{init();}
 setTimeout(init,500);
 setTimeout(init,1500);
 
-console.log('settings.js: 14 двигателей');
+console.log('settings.js: 12 двигателей');
 })();
