@@ -6,17 +6,14 @@ RE.cil=function(c,cx,cy,r,col){
   c.fillStyle=col;c.beginPath();c.arc(cx,cy,r,0,7);c.fill();
   c.strokeStyle='#1a232e';c.lineWidth=1.5;c.stroke();
 };
-
 RE.block=function(c,x,y,w,h){
   c.fillStyle='#2a3a4c';c.fillRect(x,y,w,h);
   c.strokeStyle='#3a4a5c';c.lineWidth=2;c.strokeRect(x,y,w,h);
 };
-
 RE.head=function(c,x,y,w,h){
   c.fillStyle='#3a4654';c.fillRect(x,y,w,h);
   c.strokeStyle='#4a5a6c';c.lineWidth=2;c.strokeRect(x,y,w,h);
 };
-
 RE.cyl=function(c,cx,cy,r,ph,br){
   var py=cy+Math.cos(ph)*r*0.6;
   c.fillStyle=br?'#1a0e0e':'#0e141c';
@@ -27,14 +24,12 @@ RE.cyl=function(c,cx,cy,r,ph,br){
   c.fillRect(cx-r+3,py-r*0.4,r*2-6,r*0.8);
   c.strokeStyle='#1a232e';c.lineWidth=1;c.strokeRect(cx-r+3,py-r*0.4,r*2-6,r*0.8);
 };
-
 RE.crank=function(c,y,x1,x2,br){
   c.strokeStyle=br?'#7a5a5a':'#a8b4c0';c.lineWidth=8;c.lineCap='round';
   c.beginPath();c.moveTo(x1,y);c.lineTo(x2,y);c.stroke();
   c.strokeStyle='#1a232e';c.lineWidth=2;
   c.beginPath();c.moveTo(x1,y);c.lineTo(x2,y);c.stroke();
 };
-
 RE.fly=function(c,cx,cy,r,ang,br){
   RE.cil(c,cx,cy,r,br?'#5a3a3a':'#6a7580');
   c.save();c.translate(cx,cy);c.rotate(ang);
@@ -51,12 +46,23 @@ RE.drawR4=function(c,S){
   RE.head(c,30,60,580,85);
   RE.crank(c,305,60,580,br);
   RE.fly(c,605,305,32,S.crankAngle,br);
-  for(var i=0;i<4;i++){
-    RE.cyl(c,115+i*135,305,38,S.crankAngle+i*Math.PI,br);
-  }
+  for(var i=0;i<4;i++)RE.cyl(c,115+i*135,305,38,S.crankAngle+i*Math.PI,br);
   c.fillStyle='#5d7189';c.font='bold 12px Arial';
   c.textAlign='left';c.textBaseline='top';
   c.fillText('R4  •  4 цилиндра в ряд',45,20);
+};
+
+RE.drawInline6=function(c,S){
+  var W=c.canvas.width,br=S.broken;
+  c.clearRect(0,0,W,c.canvas.height);
+  RE.block(c,20,140,600,220);
+  RE.head(c,20,60,600,85);
+  RE.crank(c,305,40,600,br);
+  RE.fly(c,615,305,30,S.crankAngle,br);
+  for(var i=0;i<6;i++)RE.cyl(c,70+i*96,305,30,S.crankAngle+i*Math.PI,br);
+  c.fillStyle='#5d7189';c.font='bold 12px Arial';
+  c.textAlign='left';c.textBaseline='top';
+  c.fillText('I6  •  Toyota 2JZ  •  6 цилиндров',25,20);
 };
 
 RE.drawV=function(c,S,n){
@@ -179,21 +185,52 @@ RE.drawTDI=function(c,S){
   c.textAlign='left';c.textBaseline='top';
   c.fillText('1.9 TDI  •  Volkswagen',45,20);
 };
+RE.drawDCi=function(c,S){
+  RE.drawR4(c,S);
+  c.fillStyle='#f0d860';c.font='bold 12px Arial';
+  c.textAlign='left';c.textBaseline='top';
+  c.fillText('2.0 dCi  •  Renault',45,20);
+};
+RE.drawPassatB3=function(c,S){
+  RE.drawR4(c,S);
+  c.fillStyle='#8fb5d8';c.font='bold 12px Arial';
+  c.textAlign='left';c.textBaseline='top';
+  c.fillText('1.8  •  Volkswagen Passat B3',45,20);
+};
+RE.drawBluebird=function(c,S){
+  RE.drawR4(c,S);
+  c.fillStyle='#e08080';c.font='bold 12px Arial';
+  c.textAlign='left';c.textBaseline='top';
+  c.fillText('CA20  •  Nissan Bluebird',45,20);
+};
+RE.drawMTZ=function(c,S){
+  RE.drawR4(c,S);
+  c.fillStyle='#8fb5d8';c.font='bold 12px Arial';
+  c.textAlign='left';c.textBaseline='top';
+  c.fillText('Д-240  •  МТЗ-82 Беларус',45,20);
+};
+RE.drawGalant6=function(c,S){RE.drawV(c,S,6);};
 
 RE.render=function(c,S){
   var raw=(S.engineType||S.engine||'r4').toString().toLowerCase().replace(/\s+/g,'').replace(/-/g,'');
   function has(){for(var i=0;i<arguments.length;i++)if(raw.indexOf(arguments[i])>=0)return true;return false;}
-  if(has('wankel','renesis','rotary')) return RE.drawWankel(c,S);
-  if(has('radial','wright','r1820'))   return RE.drawRadial(c,S);
-  if(has('boxer','ej25','subaru'))     return RE.drawBoxer(c,S);
-  if(has('v22'))                       return RE.drawV(c,S,22);
-  if(has('v16'))                       return RE.drawV(c,S,16);
-  if(has('v12'))                       return RE.drawV(c,S,12);
-  if(has('v8'))                        return RE.drawV(c,S,8);
-  if(has('v6','galant'))               return RE.drawV(c,S,6);
-  if(has('scooter'))                   return RE.drawScooter(c,S);
-  if(has('tdi'))                       return RE.drawTDI(c,S);
+  if(has('wankel','renesis','rotary'))       return RE.drawWankel(c,S);
+  if(has('radial','wright','r1820'))         return RE.drawRadial(c,S);
+  if(has('boxer','ej25','subaru'))           return RE.drawBoxer(c,S);
+  if(has('v22'))                             return RE.drawV(c,S,22);
+  if(has('v16'))                             return RE.drawV(c,S,16);
+  if(has('v12'))                             return RE.drawV(c,S,12);
+  if(has('v8'))                              return RE.drawV(c,S,8);
+  if(has('v6','galant'))                     return RE.drawV(c,S,6);
+  if(has('i6','2jz','inline6','straight6'))  return RE.drawInline6(c,S);
+  if(has('scooter','50cc'))                  return RE.drawScooter(c,S);
+  if(has('tdi'))                             return RE.drawTDI(c,S);
+  if(has('dci'))                             return RE.drawDCi(c,S);
+  if(has('passat'))                          return RE.drawPassatB3(c,S);
+  if(has('bluebird','ca20'))                 return RE.drawBluebird(c,S);
+  if(has('tractor','mtz','mt82','belarus'))  return RE.drawMTZ(c,S);
   return RE.drawR4(c,S);
 };
 
+console.log('render-engines.js: OK');
 })();
