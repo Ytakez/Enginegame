@@ -3,7 +3,6 @@
 var RE=window.RE={};
 
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
-
 function gradV(c,y0,y1,col0,col1,col2){
   var g=c.createLinearGradient(0,y0,0,y1);
   g.addColorStop(0,col0);
@@ -22,26 +21,22 @@ function gradH(c,x0,x1,col0,col1,col2){
 /* ====================== ГОЛОВКА ====================== */
 function drawHead(c,W,br){
   var y=15,h=60;
-  // клапанная крышка
   c.fillStyle=br?'#3a2424':'#3a4654';
   c.fillRect(20,y,W-40,h*0.55);
   c.strokeStyle=br?'#5a3030':'#4a5a6c';c.lineWidth=2;
   c.strokeRect(20,y,W-40,h*0.55);
-  // болты крышки
   c.fillStyle=br?'#7a5a5a':'#8a95a3';
   for(var i=0;i<7;i++){
     c.beginPath();c.arc(50+i*(W-100)/6,y+h*0.27,3,0,7);c.fill();
   }
-  // головка блока (гладкая светлая)
   var g=gradV(c,y+h*0.55,y+h,'#a8b4c0','#6a7580','#3a4654');
   c.fillStyle=br?'#4a3030':g;
   c.fillRect(20,y+h*0.55,W-40,h*0.45);
   c.strokeStyle=br?'#5a3030':'#2a3a4a';c.lineWidth=2;
   c.strokeRect(20,y+h*0.55,W-40,h*0.45);
-  return {y:y,h:h,headTop:y+h*0.55,headBot:y+h};
 }
 
-/* ====================== РАСПРЕДВАЛ + КУЛАЧКИ ====================== */
+/* ====================== РАСПРЕДВАЛ ====================== */
 function drawCamshaft(c,W,y,ang,br){
   c.strokeStyle=br?'#5a3a3a':'#8894a2';c.lineWidth=8;c.lineCap='round';
   c.beginPath();c.moveTo(30,y);c.lineTo(W-30,y);c.stroke();
@@ -49,9 +44,8 @@ function drawCamshaft(c,W,y,ang,br){
   c.beginPath();c.moveTo(30,y);c.lineTo(W-30,y);c.stroke();
 }
 
-/* ====================== ЗУБЧАТЫЙ МАХОВИК ====================== */
+/* ====================== МАХОВИК ====================== */
 function drawFlywheel(c,cx,cy,r,ang,br){
-  // внешние зубья
   c.fillStyle=br?'#4a3030':'#6a7580';
   for(var i=0;i<32;i++){
     var a=(i/32)*Math.PI*2;
@@ -63,14 +57,12 @@ function drawFlywheel(c,cx,cy,r,ang,br){
     c.moveTo(x1-2,y1-2);c.lineTo(x2-2,y2-2);c.lineTo(x2+2,y2+2);c.lineTo(x1+2,y1+2);
     c.closePath();c.fill();
   }
-  // диск
   var g=c.createRadialGradient(cx-r*.3,cy-r*.3,2,cx,cy,r);
   if(br){g.addColorStop(0,'#6a4a4a');g.addColorStop(1,'#2a1818');}
   else{g.addColorStop(0,'#b8c4d0');g.addColorStop(.6,'#6a7580');g.addColorStop(1,'#2a3340');}
   c.fillStyle=g;
   c.beginPath();c.arc(cx,cy,r,0,7);c.fill();
   c.strokeStyle='#0a1018';c.lineWidth=2;c.stroke();
-  // отверстия
   c.fillStyle=br?'#2a1818':'#2a3340';
   for(var h=0;h<6;h++){
     var ha=(h/6)*Math.PI*2+ang*0.3;
@@ -78,20 +70,18 @@ function drawFlywheel(c,cx,cy,r,ang,br){
     c.arc(cx+Math.cos(ha)*r*0.62,cy+Math.sin(ha)*r*0.62,r*0.12,0,7);
     c.fill();
   }
-  // центр
   c.fillStyle='#1a232e';c.beginPath();c.arc(cx,cy,r*0.22,0,7);c.fill();
   c.strokeStyle=br?'#7a5a5a':'#a8b4c0';c.lineWidth=2;c.stroke();
 }
 
-/* ====================== КОЛЕНВАЛ С ПРОТИВОВЕСАМИ ====================== */
+/* ====================== КОЛЕНВАЛ ====================== */
 function drawCrankshaft(c,x1,x2,y,crankR,pins,br){
-  // ось
   c.strokeStyle=br?'#5a3a3a':'#b8c4d0';c.lineWidth=8;c.lineCap='round';
   c.beginPath();c.moveTo(x1,y);c.lineTo(x2,y);c.stroke();
   c.strokeStyle='#0a1018';c.lineWidth=1.5;
   c.beginPath();c.moveTo(x1,y);c.lineTo(x2,y);c.stroke();
-  // коренные подшипники
-  for(var i=0;i<pins.length+1;i++){
+
+  for(var i=0;i<=pins.length;i++){
     var mx=x1+(i/(pins.length))*((x2-x1));
     var g=c.createRadialGradient(mx-3,y-3,1,mx,y,12);
     if(br){g.addColorStop(0,'#6a4a4a');g.addColorStop(1,'#2a1818');}
@@ -100,20 +90,18 @@ function drawCrankshaft(c,x1,x2,y,crankR,pins,br){
     c.beginPath();c.arc(mx,y,10,0,7);c.fill();
     c.strokeStyle='#0a1018';c.lineWidth=1.5;c.stroke();
   }
-  // шейки + противовесы
+
   for(var j=0;j<pins.length;j++){
     var p=pins[j];
     var px=p.x,py=y+Math.cos(p.phase)*crankR;
     var cwY=y-Math.cos(p.phase)*crankR;
-    var cwX=px;
-    // противовес (большой круг)
-    var cg=c.createRadialGradient(cwX-4,cwY-4,2,cwX,cwY,crankR*1.1);
+    var cg=c.createRadialGradient(px-4,cwY-4,2,px,cwY,crankR*1.1);
     if(br){cg.addColorStop(0,'#8a6a6a');cg.addColorStop(1,'#2a1818');}
     else{cg.addColorStop(0,'#c8d4e0');cg.addColorStop(.5,'#7a8695');cg.addColorStop(1,'#3a4654');}
     c.fillStyle=cg;
-    c.beginPath();c.arc(cwX,cwY,crankR*1.1,0,7);c.fill();
+    c.beginPath();c.arc(px,cwY,crankR*1.1,0,7);c.fill();
     c.strokeStyle='#0a1018';c.lineWidth=2;c.stroke();
-    // шейка (маленький блестящий круг)
+
     var pg=c.createRadialGradient(px-2,py-2,1,px,py,6);
     if(br){pg.addColorStop(0,'#8a6a6a');pg.addColorStop(1,'#2a1818');}
     else{pg.addColorStop(0,'#ffffff');pg.addColorStop(1,'#6a7580');}
@@ -123,152 +111,128 @@ function drawCrankshaft(c,x1,x2,y,crankR,pins,br){
   }
 }
 
-/* ====================== ЦИЛИНДР + ПОРШЕНЬ + ШАТУН ====================== */
+/* ====================== ЦИЛИНДР + ПОРШЕНЬ ====================== */
 function drawCyl(c,x,yTop,yBot,r,phase,crankCY,crankR,br,isDiesel,thr,S){
   var h=yBot-yTop;
-  // стенки цилиндра (тёмные, с блеском)
+
+  /* нутро цилиндра */
   var wallG=gradH(c,x-r,x+r,'#0a0f15','#1a232e','#0a0f15');
   c.fillStyle=wallG;
   c.fillRect(x-r,yTop,r*2,h);
-  // зеркало цилиндра (светлое пятно сбоку)
-  c.fillStyle='rgba(180,220,255,0.06)';
-  c.fillRect(x-r+2,yTop+2,r*0.7,h-4);
-  // края
+  c.fillStyle='rgba(180,220,255,0.05)';
+  c.fillRect(x-r+2,yTop+2,r*0.5,h-4);
   c.strokeStyle=br?'#5a3030':'#3a4a5c';c.lineWidth=2;
   c.strokeRect(x-r,yTop,r*2,h);
 
-  // рёбра цилиндра (тонкие полоски)
+  /* рёбра гильзы */
   c.strokeStyle=br?'rgba(120,60,60,.4)':'rgba(80,100,120,.35)';c.lineWidth=1;
-  for(var ri=1;ri<5;ri++){
+  for(var ri=1;ri<6;ri++){
     c.beginPath();
-    c.moveTo(x-r+2,yTop+ri*h/5);
-    c.lineTo(x+r-2,yTop+ri*h/5);
+    c.moveTo(x-r+2,yTop+ri*h/6);
+    c.lineTo(x+r-2,yTop+ri*h/6);
     c.stroke();
   }
 
-  // поршень
-  var pistonH=r*1.1;
-  var travel=h-pistonH-10;
-  var pistonY=yTop+5+((Math.cos(phase)+1)/2)*travel;
-  var pg=gradH(c,x-r,x+r,'#4a5566','#e0e8f0','#2a333f');
-  c.fillStyle=br?'#6a5a5a':pg;
+  /* поршень */
+  var pistonH=r*1.6;
+  var travel=h-pistonH-8;
+  var pistonY=yTop+4+((Math.cos(phase)+1)/2)*travel;
+
+  var pg=gradH(c,x-r,x+r,'#3a4654','#e8f0f8','#2a333f');
+  c.fillStyle=br?'#5a4a4a':pg;
   rr(c,x-r+2,pistonY,(r-2)*2,pistonH,3);c.fill();
+  c.strokeStyle='#0a1018';c.lineWidth=1.8;c.stroke();
+
+  /* коронка */
+  var crownG=gradH(c,x-r+2,x+r-2,'#5a6570','#c8d4e0','#3a4654');
+  c.fillStyle=br?'#6a5a5a':crownG;
+  rr(c,x-r+2,pistonY,(r-2)*2,r*0.35,3);c.fill();
   c.strokeStyle='#0a1018';c.lineWidth=1.5;c.stroke();
-  // кольца поршня (3 штуки)
-  c.strokeStyle=br?'#8a6a6a':'#1a252f';c.lineWidth=1.8;
+
+  /* кольца */
+  c.strokeStyle=br?'#8a6a6a':'#1a252f';c.lineWidth=2;
   for(var k=0;k<3;k++){
     c.beginPath();
-    c.moveTo(x-r+4,pistonY+5+k*6);
-    c.lineTo(x+r-4,pistonY+5+k*6);
+    c.moveTo(x-r+3,pistonY+r*0.45+k*r*0.18);
+    c.lineTo(x+r-3,pistonY+r*0.45+k*r*0.18);
     c.stroke();
   }
-  // палец
+
+  /* палец */
+  var pinY0=pistonY+pistonH*0.7;
   c.fillStyle='#0a1018';
-  c.beginPath();c.arc(x,pistonY+pistonH*0.65,3,0,7);c.fill();
-  c.fillStyle=br?'#5a3a3a':'#8a95a3';
-  c.beginPath();c.arc(x,pistonY+pistonH*0.65,1.8,0,7);c.fill();
+  c.beginPath();c.arc(x,pinY0,r*0.15,0,7);c.fill();
+  c.fillStyle=br?'#5a3a3a':'#a8b4c0';
+  c.beginPath();c.arc(x,pinY0,r*0.08,0,7);c.fill();
 
-  // шатун от поршня до шейки
+  /* шатун */
   var pinY=crankCY+Math.cos(phase)*crankR;
-  var rodTopY=pistonY+pistonH*0.65;
-  // тень шатуна
-  c.strokeStyle='#0a1018';c.lineWidth=8;c.lineCap='round';
+  var rodTopY=pinY0+r*0.1;
+  c.strokeStyle='#0a1018';c.lineWidth=Math.max(6,r*0.28);c.lineCap='round';
   c.beginPath();c.moveTo(x,rodTopY);c.lineTo(x,pinY);c.stroke();
-  // тело шатуна
-  var rg=gradH(c,x-2,x+2,'#5a6570','#c8d4e0','#3a4654');
-  c.strokeStyle=br?'#7a5a5a':rg;c.lineWidth=5;
+  var rg=gradH(c,x-2,x+2,'#5a6570','#d8e0e8','#3a4654');
+  c.strokeStyle=br?'#7a5a5a':rg;c.lineWidth=Math.max(3,r*0.15);
   c.beginPath();c.moveTo(x,rodTopY);c.lineTo(x,pinY);c.stroke();
 
-  // нижняя головка (у шейки)
-  var bg=c.createRadialGradient(x-2,pinY-2,1,x,pinY,8);
+  /* головка шатуна */
+  var bg=c.createRadialGradient(x-2,pinY-2,1,x,pinY,r*0.32);
   if(br){bg.addColorStop(0,'#8a6a6a');bg.addColorStop(1,'#2a1818');}
   else{bg.addColorStop(0,'#e0e8f0');bg.addColorStop(.5,'#8a95a3');bg.addColorStop(1,'#2a3340');}
   c.fillStyle=bg;
-  c.beginPath();c.arc(x,pinY,8,0,7);c.fill();
+  c.beginPath();c.arc(x,pinY,r*0.32,0,7);c.fill();
   c.strokeStyle='#0a1018';c.lineWidth=1.5;c.stroke();
 
-  // СВЕЧА сверху
+  /* свеча */
   c.fillStyle=br?'#5a3030':'#e8e4dc';
-  c.fillRect(x-2,yTop-18,4,16);
+  c.fillRect(x-2,yTop-16,4,14);
   c.strokeStyle='#0a1018';c.lineWidth=1;
-  c.strokeRect(x-2,yTop-18,4,16);
+  c.strokeRect(x-2,yTop-16,4,14);
   c.fillStyle=br?'#5a4040':'#d8c8a0';
-  c.fillRect(x-3,yTop-22,6,4);
+  c.fillRect(x-3,yTop-20,6,4);
 
-  // КЛАПАНЫ (пружины сверху цилиндра)
+  /* клапаны */
   var vInX=x-r*0.5, vExX=x+r*0.5;
-  var springY=yTop-18, springH=14;
-  // впуск (голубой)
-  c.strokeStyle='#0a1018';c.lineWidth=1;
-  for(var s=0;s<3;s++){
-    c.beginPath();
-    c.moveTo(vInX-r*0.15,springY+3+s*4);
-    c.lineTo(vInX+r*0.15,springY+3+s*4);
-    c.stroke();
-  }
+  var vTop=yTop-16, vH=14;
   c.fillStyle=br?'#8a5a5a':'#6fd0ff';
-  c.fillRect(vInX-2,springY,4,springH);
-  c.beginPath();c.arc(vInX,springY+springH+4,3.5,0,7);c.fill();
-  c.strokeStyle='#0a1018';c.lineWidth=1;c.stroke();
-  // выпуск (красный)
-  for(var s2=0;s2<3;s2++){
-    c.beginPath();
-    c.moveTo(vExX-r*0.15,springY+3+s2*4);
-    c.lineTo(vExX+r*0.15,springY+3+s2*4);
-    c.stroke();
+  c.fillRect(vInX-2,vTop,4,vH);
+  c.strokeStyle='#0a1018';c.lineWidth=1;
+  c.strokeRect(vInX-2,vTop,4,vH);
+  c.beginPath();c.arc(vInX,vTop+vH+3,3.5,0,7);c.fill();c.stroke();
+  c.strokeStyle='#c8d4e0';c.lineWidth=1;
+  for(var s=0;s<3;s++){
+    c.beginPath();c.moveTo(vInX-3,vTop+3+s*3);c.lineTo(vInX+3,vTop+3+s*3);c.stroke();
   }
   c.fillStyle=br?'#8a4a4a':'#ff8a6f';
-  c.fillRect(vExX-2,springY,4,springH);
-  c.beginPath();c.arc(vExX,springY+springH+4,3.5,0,7);c.fill();
-  c.strokeStyle='#0a1018';c.lineWidth=1;c.stroke();
+  c.fillRect(vExX-2,vTop,4,vH);
+  c.strokeStyle='#0a1018';c.lineWidth=1;
+  c.strokeRect(vExX-2,vTop,4,vH);
+  c.beginPath();c.arc(vExX,vTop+vH+3,3.5,0,7);c.fill();c.stroke();
+  c.strokeStyle='#c8d4e0';c.lineWidth=1;
+  for(var s2=0;s2<3;s2++){
+    c.beginPath();c.moveTo(vExX-3,vTop+3+s2*3);c.lineTo(vExX+3,vTop+3+s2*3);c.stroke();
+  }
 
-  // ВСПЫШКА (такт зажигания)
+  /* вспышка */
   if(!br&&S.running&&!S.stalled){
     var cyc=((phase%(Math.PI*4))+Math.PI*4)%(Math.PI*4);
     var d=cyc-2*Math.PI;
     var inten=Math.max(0,1-Math.abs(d)/1.3)*(0.5+0.5*thr);
     if(inten>0.05){
-      var sg=c.createRadialGradient(x,yTop+25,2,x,yTop+25,r*2.5);
+      var sg=c.createRadialGradient(x,yTop+30,2,x,yTop+30,r*2.5);
       sg.addColorStop(0,'rgba(255,255,240,'+inten+')');
       sg.addColorStop(.3,'rgba(255,220,120,'+(0.9*inten)+')');
       sg.addColorStop(.7,'rgba(255,100,20,'+(0.4*inten)+')');
       sg.addColorStop(1,'rgba(120,20,0,0)');
       c.fillStyle=sg;
       c.save();
-      c.beginPath();c.rect(x-r+2,yTop+2,r*2-4,60);c.clip();
+      c.beginPath();c.rect(x-r+2,yTop+2,r*2-4,Math.min(80,h-4));c.clip();
       c.fillRect(x-r*2,yTop,r*4,80);
       c.restore();
     }
   }
 }
 
-/* ====================== РЕМЕНЬ/ЦЕПЬ ГРМ ====================== */
-function drawTiming(c,x,yTop,yBot,crankY,ang,br){
-  // звезда сверху (распредвал)
-  drawSprocket(c,x,42,12,ang*0.5,br);
-  // звезда снизу (коленвал)
-  drawSprocket(c,x,crankY,18,ang,br);
-  // ремень/цепь
-  c.strokeStyle=br?'#4a2a2a':'#1a1a1a';c.lineWidth=6;
-  c.beginPath();
-  c.moveTo(x-12,42);
-  c.lineTo(x-18,crankY);
-  c.moveTo(x+12,42);
-  c.lineTo(x+18,crankY);
-  c.stroke();
-  // звенья
-  c.strokeStyle=br?'#7a5a5a':'#3a4654';c.lineWidth=1;
-  var n=14;
-  for(var i=0;i<n;i++){
-    var t=i/n;
-    var lx=x-12+(x-18-x+12)*t;
-    var ly=42+(crankY-42)*t;
-    c.beginPath();c.moveTo(lx-3,ly);c.lineTo(lx+3,ly);c.stroke();
-    var rx=x+12+(x+18-x-12)*t;
-    c.beginPath();c.moveTo(rx-3,ly);c.lineTo(rx+3,ly);c.stroke();
-  }
-}
-
+/* ====================== ЗВЁЗДЫ + РЕМЕНЬ ====================== */
 function drawSprocket(c,cx,cy,r,ang,br){
   c.fillStyle=br?'#4a3030':'#6a7580';
   for(var i=0;i<16;i++){
@@ -291,28 +255,47 @@ function drawSprocket(c,cx,cy,r,ang,br){
   c.beginPath();c.arc(cx,cy,r*0.3,0,7);c.fill();
 }
 
-/* ====================== ВЫПУСКНОЙ КОЛЛЕКТОР ====================== */
+function drawTiming(c,x,ang,br){
+  drawSprocket(c,x,42,12,ang*0.5,br);
+  drawSprocket(c,x,c.canvas.height-75,18,ang,br);
+  c.strokeStyle=br?'#4a2a2a':'#1a1a1a';c.lineWidth=6;
+  c.beginPath();
+  c.moveTo(x-12,42);
+  c.lineTo(x-18,c.canvas.height-75);
+  c.moveTo(x+12,42);
+  c.lineTo(x+18,c.canvas.height-75);
+  c.stroke();
+  c.strokeStyle=br?'#7a5a5a':'#3a4654';c.lineWidth=1;
+  var n=14;
+  for(var i=0;i<n;i++){
+    var t=i/n;
+    var lx=x-12+(x-18-x+12)*t;
+    var ly=42+(c.canvas.height-75-42)*t;
+    c.beginPath();c.moveTo(lx-3,ly);c.lineTo(lx+3,ly);c.stroke();
+    var rx=x+12+(x+18-x-12)*t;
+    c.beginPath();c.moveTo(rx-3,ly);c.lineTo(rx+3,ly);c.stroke();
+  }
+}
+
+/* ====================== ВЫХЛОП ====================== */
 function drawExhaust(c,x1,x2,y,cyls,br){
-  // горизонтальная труба
   var g=gradV(c,y-6,y+6,'#5a3a20','#3a2410','#2a1808');
   c.fillStyle=br?'#4a2a1a':g;
   c.fillRect(x1-10,y-6,x2-x1+20,12);
   c.strokeStyle='#0a1018';c.lineWidth=1.5;
   c.strokeRect(x1-10,y-6,x2-x1+20,12);
-  // патрубки вверх к цилиндрам
   for(var i=0;i<cyls.length;i++){
     var cx=cyls[i];
     c.fillStyle=br?'#4a2a1a':g;
     c.fillRect(cx-4,y-40,8,36);
     c.strokeStyle='#0a1018';c.lineWidth=1.5;
     c.strokeRect(cx-4,y-40,8,36);
-    // сварной шов
     c.strokeStyle='rgba(0,0,0,.5)';c.lineWidth=2;
     c.beginPath();c.moveTo(cx-4,y-14);c.lineTo(cx+4,y-14);c.stroke();
   }
 }
 
-/* ====================== ОБЩИЙ INLINE ====================== */
+/* ====================== INLINE (R4, I6, дизели) ====================== */
 function inlineDraw(c,S,n,r,spacing,label,col){
   var W=c.canvas.width,H=c.canvas.height,br=S.broken;
   c.clearRect(0,0,W,H);
@@ -331,7 +314,7 @@ function inlineDraw(c,S,n,r,spacing,label,col){
   var blockL=xs[0]-r-15;
   var blockR=xs[n-1]+r+15;
 
-  // ПОДДОН
+  /* поддон */
   var panG=gradV(c,panTop,H-10,'#2a3340','#1a232e','#0a0f15');
   c.fillStyle=br?'#2a1818':panG;
   c.beginPath();
@@ -342,42 +325,33 @@ function inlineDraw(c,S,n,r,spacing,label,col){
   c.closePath();c.fill();
   c.strokeStyle=br?'#5a3030':'#3a4a5c';c.lineWidth=2;c.stroke();
 
-  // БЛОК (светлый корпус)
+  /* блок */
   var blockG=gradV(c,cylTop,cylBot,'#a8b4c0','#6a7580','#3a4654');
   c.fillStyle=br?'#4a3030':blockG;
   c.fillRect(blockL-10,cylTop-15,blockR-blockL+20,cylBot-cylTop+25);
   c.strokeStyle=br?'#5a3030':'#2a3a4a';c.lineWidth=2.5;
   c.strokeRect(blockL-10,cylTop-15,blockR-blockL+20,cylBot-cylTop+25);
-  // внутренние рёбра (тёмные полосы)
   c.strokeStyle=br?'rgba(90,40,40,.5)':'rgba(30,40,52,.6)';c.lineWidth=1.5;
   for(var ri=0;ri<8;ri++){
     var ry=cylTop-10+ri*(cylBot-cylTop+15)/7;
     c.beginPath();c.moveTo(blockL-8,ry);c.lineTo(blockR+8,ry);c.stroke();
   }
 
-  // головка сверху
   drawHead(c,W,br);
-
-  // распредвал
   drawCamshaft(c,W,50,S.crankAngle,br);
 
-  // кулачки над каждым цилиндром
+  /* кулачки */
   for(var i=0;i<n;i++){
     var cx=xs[i];
     var camAng=S.crankAngle*0.5+i*Math.PI;
-    // левый кулачок
-    c.save();c.translate(cx-r*0.5,42);
-    c.rotate(camAng);
+    c.save();c.translate(cx-r*0.5,42);c.rotate(camAng);
     var cg=gradH(c,-6,6,'#5a6570','#c8d4e0','#3a4654');
     c.fillStyle=br?'#6a4a4a':cg;
-    c.beginPath();
-    c.arc(0,0,5,0,7);c.fill();
+    c.beginPath();c.arc(0,0,5,0,7);c.fill();
     c.beginPath();c.ellipse(0,-4,3,5,0,0,7);c.fill();
     c.strokeStyle='#0a1018';c.lineWidth=1;c.stroke();
     c.restore();
-    // правый кулачок
-    c.save();c.translate(cx+r*0.5,42);
-    c.rotate(camAng+Math.PI);
+    c.save();c.translate(cx+r*0.5,42);c.rotate(camAng+Math.PI);
     c.fillStyle=br?'#6a4a4a':cg;
     c.beginPath();c.arc(0,0,5,0,7);c.fill();
     c.beginPath();c.ellipse(0,-4,3,5,0,0,7);c.fill();
@@ -385,26 +359,20 @@ function inlineDraw(c,S,n,r,spacing,label,col){
     c.restore();
   }
 
-  // коленвал
+  /* коленвал */
   var pins=[];
   for(var i=0;i<n;i++)pins.push({x:xs[i],phase:S.crankAngle+i*Math.PI});
   drawCrankshaft(c,blockL,blockR,crankCY,crankR,pins,br);
 
-  // цилиндры
+  /* цилиндры */
   for(var i=0;i<n;i++){
     drawCyl(c,xs[i],cylTop,cylBot,r,S.crankAngle+i*Math.PI,crankCY,crankR,br,false,S.throttle,S);
   }
 
-  // выхлоп (горизонтальная труба под низом блока)
   drawExhaust(c,xs[0]-10,xs[n-1]+10,panTop+18,xs,br);
-
-  // ремень ГРМ слева
-  drawTiming(c,blockL-25,cylTop,crankCY,crankCY,S.crankAngle,br);
-
-  // маховик справа
+  drawTiming(c,blockL-25,S.crankAngle,br);
   drawFlywheel(c,blockR+35,crankCY,r*0.95,S.crankAngle,br);
 
-  // подпись
   c.fillStyle=br?'#8a5a5a':col;
   c.font='bold 13px Segoe UI, sans-serif';
   c.textAlign='left';c.textBaseline='top';
@@ -463,7 +431,7 @@ RE.drawScooter=function(c,S){
   drawCrankshaft(c,cx-110,cx+110,crankCY,crankR,pins,br);
   drawCyl(c,cx,cylTop,cylBot,r,S.crankAngle,crankCY,crankR,br,false,S.throttle,S);
 
-  drawTiming(c,cx-r-50,cylTop,crankCY,crankCY,S.crankAngle,br);
+  drawTiming(c,cx-r-50,S.crankAngle,br);
   drawFlywheel(c,cx+150,crankCY,44,S.crankAngle,br);
 
   c.fillStyle='#5d7189';c.font='bold 13px Segoe UI, sans-serif';
@@ -482,58 +450,47 @@ RE.drawV=function(c,S,n){
   var startX=W/2-(perRow-1)*sp/2;
   var crankR=r*0.9;
 
-  // поддон
   var panG=gradV(c,cyMid-15,cyMid+15,'#2a3340','#0a0f15');
   c.fillStyle=br?'#2a1818':panG;
   c.fillRect(startX-r*2,cyMid-15,perRow*sp+r*4,30);
 
-  // верхний блок
   var topBg=gradV(c,60,cyMid-40,'#a8b4c0','#6a7580');
   c.fillStyle=br?'#4a3030':topBg;
   c.fillRect(startX-r-15,cyMid-90,perRow*sp+30,80);
   c.strokeStyle='#2a3a4a';c.lineWidth=2.5;
   c.strokeRect(startX-r-15,cyMid-90,perRow*sp+30,80);
 
-  // нижний блок
   var botBg=gradV(c,cyMid+40,cyMid+120,'#a8b4c0','#6a7580');
   c.fillStyle=br?'#4a3030':botBg;
   c.fillRect(startX-r-15,cyMid+10,perRow*sp+30,80);
   c.strokeStyle='#2a3a4a';c.lineWidth=2.5;
   c.strokeRect(startX-r-15,cyMid+10,perRow*sp+30,80);
 
-  // верхняя головка
   c.fillStyle='#3a4654';
   c.fillRect(startX-r-15,cyMid-125,perRow*sp+30,35);
   c.strokeStyle='#4a5a6c';c.lineWidth=2;c.strokeRect(startX-r-15,cyMid-125,perRow*sp+30,35);
 
-  // нижняя головка
   c.fillStyle='#3a4654';
   c.fillRect(startX-r-15,cyMid+90,perRow*sp+30,35);
   c.strokeStyle='#4a5a6c';c.lineWidth=2;c.strokeRect(startX-r-15,cyMid+90,perRow*sp+30,35);
 
-  // распредвалы сверху и снизу
   drawCamshaft(c,W,cyMid-110,S.crankAngle,br);
   drawCamshaft(c,W,cyMid+108,S.crankAngle,br);
 
-  // цилиндры — верхние (наклонены чуть вверх, но рисуем вертикально)
   for(var i=0;i<perRow;i++){
     var cx=startX+i*sp;
     var ph=S.crankAngle+i*Math.PI*2/perRow;
     drawCyl(c,cx,cyMid-88,cyMid-30,r,ph,cyMid,crankR,br,false,S.throttle,S);
   }
-  // нижние цилиндры
   for(var j=0;j<perRow;j++){
     var cx2=startX+j*sp;
     var ph2=S.crankAngle+(j+perRow)*Math.PI*2/perRow;
     drawCyl(c,cx2,cyMid+30,cyMid+88,r,ph2,cyMid,crankR,br,false,S.throttle,S);
   }
 
-  // коленвал
   var pins=[];
   for(var i=0;i<perRow;i++)pins.push({x:startX+i*sp,phase:S.crankAngle+i*Math.PI*2/perRow});
   drawCrankshaft(c,startX-r-10,startX+(perRow-1)*sp+r+10,cyMid,crankR*0.7,pins,br);
-
-  // маховик
   drawFlywheel(c,W-50,cyMid,40,S.crankAngle,br);
 
   c.fillStyle='#5d7189';c.font='bold 13px Segoe UI, sans-serif';
@@ -549,40 +506,34 @@ RE.drawBoxer=function(c,S){
   var xs=[W/2-90,W/2+90];
   var r=32,crankR=34;
 
-  // верхний блок
   var topBg=gradV(c,70,cyMid-30,'#a8b4c0','#6a7580');
   c.fillStyle=br?'#4a3030':topBg;
   c.fillRect(xs[0]-50,cyMid-90,180,80);
   c.strokeStyle='#2a3a4a';c.lineWidth=2.5;c.strokeRect(xs[0]-50,cyMid-90,180,80);
-  // верхняя головка
+
   c.fillStyle='#3a4654';c.fillRect(xs[0]-50,cyMid-125,180,35);
   c.strokeStyle='#4a5a6c';c.strokeRect(xs[0]-50,cyMid-125,180,35);
 
-  // нижний блок
   var botBg=gradV(c,cyMid+30,cyMid+110,'#a8b4c0','#6a7580');
   c.fillStyle=br?'#4a3030':botBg;
   c.fillRect(xs[0]-50,cyMid+10,180,80);
   c.strokeStyle='#2a3a4a';c.lineWidth=2.5;c.strokeRect(xs[0]-50,cyMid+10,180,80);
-  // нижняя головка
-    c.fillStyle='#3a4654';c.fillRect(xs[0]-50,cyMid+90,180,35);
+
+  c.fillStyle='#3a4654';c.fillRect(xs[0]-50,cyMid+90,180,35);
   c.strokeStyle='#4a5a6c';c.strokeRect(xs[0]-50,cyMid+90,180,35);
 
-  // распредвалы
   drawCamshaft(c,W,cyMid-110,S.crankAngle,br);
   drawCamshaft(c,W,cyMid+108,S.crankAngle,br);
 
-  // верхние цилиндры
   for(var i=0;i<2;i++){
     var ph=S.crankAngle+i*Math.PI;
     drawCyl(c,xs[i],cyMid-88,cyMid-30,r,ph,cyMid,crankR,br,false,S.throttle,S);
   }
-  // нижние
   for(var j=0;j<2;j++){
     var ph2=S.crankAngle+(j+2)*Math.PI;
     drawCyl(c,xs[j],cyMid+30,cyMid+88,r,ph2,cyMid,crankR,br,false,S.throttle,S);
   }
 
-  // коленвал
   drawCrankshaft(c,xs[0]-40,xs[1]+40,cyMid,crankR*0.7,[
     {x:xs[0],phase:S.crankAngle},
     {x:xs[1],phase:S.crankAngle+Math.PI}
@@ -600,150 +551,4 @@ RE.drawRadial=function(c,S){
   c.clearRect(0,0,W,H);
   var cx=W/2,cy=H/2,R=Math.min(W,H)/2-65,n=9;
 
-  for(var i=0;i<n;i++){
-    var a=i*(Math.PI*2/n)-Math.PI/2;
-    var x=cx+Math.cos(a)*R;
-    var y=cy+Math.sin(a)*R;
-    c.save();c.translate(x,y);c.rotate(a+Math.PI/2);
-
-    var wallG=gradH(c,-16,16,'#0a0f15','#2a3340','#0a0f15');
-    c.fillStyle=wallG;c.fillRect(-16,-40,32,80);
-    c.strokeStyle='#3a4a5c';c.lineWidth=2;c.strokeRect(-16,-40,32,80);
-    c.strokeStyle='rgba(80,100,120,.4)';c.lineWidth=1;
-    for(var rr2=0;rr2<4;rr2++){
-      c.beginPath();c.moveTo(-14,-30+rr2*18);c.lineTo(14,-30+rr2*18);c.stroke();
-    }
-
-    c.fillStyle=br?'#4a3030':'#3a4654';
-    c.fillRect(-18,-52,36,14);
-    c.strokeStyle='#1a232e';c.lineWidth=1.5;c.strokeRect(-18,-52,36,14);
-
-    c.fillStyle='#e8e4dc';
-    c.fillRect(-2,-58,4,8);
-
-    var ph=S.crankAngle+i*Math.PI*2/n;
-    var pistonY=-25+Math.cos(ph)*12;
-    var pg=gradH(c,-11,11,'#4a5566','#e0e8f0','#2a3340');
-    c.fillStyle=br?'#6a5a5a':pg;
-    rr(c,-11,pistonY,22,20,3);c.fill();
-    c.strokeStyle='#0a1018';c.lineWidth=1.5;c.stroke();
-    c.strokeStyle='#1a252f';c.lineWidth=1.5;
-    for(var k=0;k<3;k++){
-      c.beginPath();c.moveTo(-9,pistonY+4+k*5);c.lineTo(9,pistonY+4+k*5);c.stroke();
-    }
-
-    var py=Math.sin(ph)*8;
-    c.strokeStyle='#0a1018';c.lineWidth=5;
-    c.beginPath();c.moveTo(0,pistonY+18);c.lineTo(py,30);c.stroke();
-    c.strokeStyle=br?'#7a5a5a':'#8894a2';c.lineWidth=3;
-    c.beginPath();c.moveTo(0,pistonY+18);c.lineTo(py,30);c.stroke();
-
-    c.restore();
-  }
-
-  var cg=c.createRadialGradient(cx-10,cy-10,5,cx,cy,R*0.35);
-  if(br){cg.addColorStop(0,'#6a4a4a');cg.addColorStop(1,'#2a1818');}
-  else{cg.addColorStop(0,'#b8c4d0');cg.addColorStop(.5,'#7a8695');cg.addColorStop(1,'#3a4654');}
-  c.fillStyle=cg;c.beginPath();c.arc(cx,cy,R*0.35,0,7);c.fill();
-  c.strokeStyle='#0a1018';c.lineWidth=2;c.stroke();
-
-  c.save();c.translate(cx,cy);c.rotate(S.crankAngle);
-  c.strokeStyle='#a8b4c0';c.lineWidth=6;c.lineCap='round';
-  c.beginPath();c.moveTo(-R*0.3,0);c.lineTo(R*0.3,0);c.stroke();
-  c.restore();
-
-  c.fillStyle='#5d7189';c.font='bold 13px Segoe UI, sans-serif';
-  c.textAlign='left';c.textBaseline='top';
-  c.fillText('RADIAL · Wright R-1820 · 9 цилиндров',20,H-28);
-};
-
-/* ====================== WANKEL ====================== */
-RE.drawWankel=function(c,S){
-  var W=c.canvas.width,H=c.canvas.height,br=S.broken;
-  c.clearRect(0,0,W,H);
-  var cy=H/2-15,R=Math.min(W/3,H/2)-30;
-  var cxL=W/2-R-15,cxR=W/2+R+15;
-  var ecc=R*0.3,rotR=R*0.62;
-  var ang=S.crankAngle||0;
-
-  c.fillStyle=br?'#1a0a0a':'#0a0f15';
-  c.fillRect(30,50,W-60,H-100);
-  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=2;c.strokeRect(30,50,W-60,H-100);
-
-  function rot(cx,phase){
-    c.save();c.translate(cx,cy);
-    var bg=c.createRadialGradient(cx,cy,5,cx,cy,R*1.1);
-    bg.addColorStop(0,br?'rgba(120,60,60,.12)':'rgba(120,180,240,.15)');
-    bg.addColorStop(1,br?'rgba(60,20,20,.05)':'rgba(40,80,120,.05)');
-    c.fillStyle=bg;
-    c.beginPath();
-    for(var i=0;i<=72;i++){
-      var t=i/72*Math.PI*2;
-      var r2=R*(1+0.25*Math.cos(3*t));
-      if(i===0)c.moveTo(Math.cos(t)*r2,Math.sin(t)*r2);
-      else c.lineTo(Math.cos(t)*r2,Math.sin(t)*r2);
-    }
-    c.closePath();c.fill();
-    c.strokeStyle=br?'#8a5a5a':'#5a8fc0';c.lineWidth=2.5;c.stroke();
-
-    c.save();
-    c.translate(Math.cos(phase)*ecc,Math.sin(phase)*ecc);
-    c.rotate(-phase/3);
-    c.beginPath();
-    for(var k=0;k<3;k++){
-      var a=k*Math.PI*2/3-Math.PI/2;
-      if(k===0)c.moveTo(Math.cos(a)*rotR,Math.sin(a)*rotR);
-      else c.lineTo(Math.cos(a)*rotR,Math.sin(a)*rotR);
-    }
-    c.closePath();
-    var rg=c.createRadialGradient(-rotR/3,-rotR/3,2,0,0,rotR);
-    if(br){rg.addColorStop(0,'#8a6a6a');rg.addColorStop(1,'#2a1818');}
-    else{rg.addColorStop(0,'#e8f0f8');rg.addColorStop(.5,'#8a95a3');rg.addColorStop(1,'#3a4654');}
-    c.fillStyle=rg;c.fill();
-    c.strokeStyle='#0a1018';c.lineWidth=3;c.stroke();
-    c.fillStyle='#1a232e';
-    for(var v=0;v<3;v++){
-      var va=v*Math.PI*2/3-Math.PI/2;
-      c.beginPath();c.arc(Math.cos(va)*rotR,Math.sin(va)*rotR,5,0,7);c.fill();
-    }
-    c.beginPath();c.arc(0,0,8,0,7);c.fill();
-    c.restore();c.restore();
-  }
-
-  rot(cxL,ang);
-  rot(cxR,ang+Math.PI);
-
-  c.strokeStyle='#a8b4c0';c.lineWidth=8;c.lineCap='round';
-  c.beginPath();c.moveTo(60,cy);c.lineTo(W-60,cy);c.stroke();
-  c.strokeStyle='#0a1018';c.lineWidth=2;
-  c.beginPath();c.moveTo(60,cy);c.lineTo(W-60,cy);c.stroke();
-
-  c.fillStyle='#5d7189';c.font='bold 13px Segoe UI, sans-serif';
-  c.textAlign='left';c.textBaseline='top';
-  c.fillText('WANKEL · 13B Renesis · 2 ротора',20,H-28);
-};
-
-/* ====================== ДИСПЕТЧЕР ====================== */
-RE.render=function(c,S){
-  var raw=(S.engineType||S.engine||'r4').toString().toLowerCase().replace(/\s+/g,'').replace(/-/g,'');
-  function has(){for(var i=0;i<arguments.length;i++)if(raw.indexOf(arguments[i])>=0)return true;return false;}
-  if(has('wankel','renesis','rotary'))       return RE.drawWankel(c,S);
-  if(has('radial','wright','r1820'))         return RE.drawRadial(c,S);
-  if(has('boxer','ej25','subaru'))           return RE.drawBoxer(c,S);
-  if(has('v22'))                             return RE.drawV(c,S,22);
-  if(has('v16'))                             return RE.drawV(c,S,16);
-  if(has('v12'))                             return RE.drawV(c,S,12);
-  if(has('v8'))                              return RE.drawV(c,S,8);
-  if(has('v6','galant'))                     return RE.drawV(c,S,6);
-  if(has('i6','2jz','inline6'))              return RE.drawInline6(c,S);
-  if(has('scooter'))                         return RE.drawScooter(c,S);
-  if(has('tdi'))                             return RE.drawTDI(c,S);
-  if(has('dci'))                             return RE.drawDCi(c,S);
-  if(has('passat'))                          return RE.drawPassatB3(c,S);
-  if(has('bluebird','ca20'))                 return RE.drawBluebird(c,S);
-  if(has('tractor','mtz','mt82','belarus'))  return RE.drawMTZ(c,S);
-  return RE.drawR4(c,S);
-};
-
-console.log('render-engines.js: reference style OK');
-})();
+  for(v
