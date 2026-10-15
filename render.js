@@ -42,7 +42,8 @@ function drawEngine(){
   else{bg.addColorStop(0,'#0e151d');bg.addColorStop(1,'#070a0e');}
   c.fillStyle=bg;c.fillRect(0,0,W,H);
 
-  var RE=RE0||window.RE;
+  /* merged — флаг из render-engines.js, когда он объединяет старый RE с новым */
+  var RE=(window.RE&&window.RE.merged)?window.RE:(RE0||window.RE);
   try{
     if(RE&&typeof RE.render==='function') RE.render(c,S);
     else if(RE&&typeof RE.drawR4==='function') RE.drawR4(c,S);
