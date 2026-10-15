@@ -486,4 +486,97 @@ RE.drawRadial=function(c,S){
   var cg=c.createRadialGradient(cx-10,cy-10,5,cx,cy,R*0.35);
   if(br){cg.addColorStop(0,'#6a4a4a');cg.addColorStop(1,'#2a1818');}
   else{cg.addColorStop(0,'#b8c4d0');cg.addColorStop(.5,'#7a8695');cg.addColorStop(1,'#3a4654');}
-  c.fillStyle=cg;c.beginPat
+  c.fillStyle=cg;c.beginPath();c.arc(cx,cy,R*0.35,0,7);c.fill();
+  c.strokeStyle='#0a1018';c.lineWidth=2;c.stroke();
+  c.save();c.translate(cx,cy);c.rotate(S.crankAngle);
+  c.strokeStyle='#a8b4c0';c.lineWidth=6;c.lineCap='round';
+  c.beginPath();c.moveTo(-R*0.3,0);c.lineTo(R*0.3,0);c.stroke();
+  c.restore();
+  c.fillStyle='#5d7189';c.font='bold 13px Segoe UI, sans-serif';
+  c.textAlign='left';c.textBaseline='top';
+  c.fillText('RADIAL · Wright R-1820 · 9 цилиндров',20,H-28);
+};
+
+RE.drawWankel=function(c,S){
+  var W=c.canvas.width,H=c.canvas.height,br=S.broken;
+  c.clearRect(0,0,W,H);
+  var cy=H/2-15,R=Math.min(W/3,H/2)-30;
+  var cxL=W/2-R-15,cxR=W/2+R+15;
+  var ecc=R*0.3,rotR=R*0.62;
+  var ang=S.crankAngle||0;
+  c.fillStyle=br?'#1a0a0a':'#0a0f15';
+  c.fillRect(30,50,W-60,H-100);
+  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=2;c.strokeRect(30,50,W-60,H-100);
+
+  function rot(cx,phase){
+    c.save();c.translate(cx,cy);
+    c.fillStyle=br?'rgba(120,60,60,.12)':'rgba(120,180,240,.15)';
+    c.beginPath();
+    for(var i=0;i<=72;i++){
+      var t=i/72*Math.PI*2;
+      var r2=R*(1+0.25*Math.cos(3*t));
+      if(i===0)c.moveTo(Math.cos(t)*r2,Math.sin(t)*r2);
+      else c.lineTo(Math.cos(t)*r2,Math.sin(t)*r2);
+    }
+    c.closePath();c.fill();
+    c.strokeStyle=br?'#8a5a5a':'#5a8fc0';c.lineWidth=2.5;c.stroke();
+
+    c.save();
+    c.translate(Math.cos(phase)*ecc,Math.sin(phase)*ecc);
+    c.rotate(-phase/3);
+    c.beginPath();
+    for(var k=0;k<3;k++){
+      var a=k*Math.PI*2/3-Math.PI/2;
+      if(k===0)c.moveTo(Math.cos(a)*rotR,Math.sin(a)*rotR);
+      else c.lineTo(Math.cos(a)*rotR,Math.sin(a)*rotR);
+    }
+    c.closePath();
+    var rg=c.createRadialGradient(-rotR/3,-rotR/3,2,0,0,rotR);
+    if(br){rg.addColorStop(0,'#8a6a6a');rg.addColorStop(1,'#2a1818');}
+    else{rg.addColorStop(0,'#e8f0f8');rg.addColorStop(.5,'#8a95a3');rg.addColorStop(1,'#3a4654');}
+    c.fillStyle=rg;c.fill();
+    c.strokeStyle='#0a1018';c.lineWidth=3;c.stroke();
+    c.fillStyle='#1a232e';
+    for(var v=0;v<3;v++){
+      var va=v*Math.PI*2/3-Math.PI/2;
+      c.beginPath();c.arc(Math.cos(va)*rotR,Math.sin(va)*rotR,5,0,7);c.fill();
+    }
+    c.beginPath();c.arc(0,0,8,0,7);c.fill();
+    c.restore();c.restore();
+  }
+  rot(cxL,ang);rot(cxR,ang+Math.PI);
+
+  c.strokeStyle='#a8b4c0';c.lineWidth=8;c.lineCap='round';
+  c.beginPath();c.moveTo(60,cy);c.lineTo(W-60,cy);c.stroke();
+  c.strokeStyle='#0a1018';c.lineWidth=2;
+  c.beginPath();c.moveTo(60,cy);c.lineTo(W-60,cy);c.stroke();
+
+  c.fillStyle='#5d7189';c.font='bold 13px Segoe UI, sans-serif';
+  c.textAlign='left';c.textBaseline='top';
+  c.fillText('WANKEL · 13B Renesis · 2 ротора',20,H-28);
+};
+
+RE.render=function(c,S){
+  var raw=(S.engineType||S.engine||'r4').toString().toLowerCase().replace(/\s+/g,'').replace(/-/g,'');
+  function has(){for(var i=0;i<arguments.length;i++)if(raw.indexOf(arguments[i])>=0)return true;return false;}
+  if(has('wankel','renesis','rotary'))       return RE.drawWankel(c,S);
+  if(has('radial','wright','r1820'))         return RE.drawRadial(c,S);
+  if(has('boxer','ej25','subaru'))           return RE.drawBoxer(c,S);
+  if(has('v22'))                             return RE.drawV(c,S,22);
+  if(has('v16'))                             return RE.drawV(c,S,16);
+  if(has('v12'))                             return RE.drawV(c,S,12);
+  if(has('v8'))                              return RE.drawV(c,S,8);
+  if(has('v6','galant'))                     return RE.drawV(c,S,6);
+  if(has('i6','2jz','inline6'))              return RE.drawInline6(c,S);
+  if(has('scooter'))                         return RE.drawScooter(c,S);
+  if(has('tdi'))                             return RE.drawTDI(c,S);
+  if(has('dci'))                             return RE.drawDCi(c,S);
+  if(has('passat'))                          return RE.drawPassatB3(c,S);
+  if(has('bluebird','ca20'))                 return RE.drawBluebird(c,S);
+  if(has('tractor','mtz','mt82','belarus'))  return RE.drawMTZ(c,S);
+  return RE.drawR4(c,S);
+};
+
+window.RE=RE;
+console.log('render-engines.js: FULL OK');
+})();
