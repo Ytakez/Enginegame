@@ -2,6 +2,10 @@
 "use strict";
 var S=window.S;
 if(!S)return;
+/* RE берём так же, как в оригинале: тот, что есть на момент загрузки render.js.
+   render-engines.js грузится позже и подменяет window.RE упрощённой версией,
+   её брать нельзя. Если RE на тот момент ещё нет, ищем позже. */
+var RE0=window.RE;
 var ecv,ectx,gcv,gctx;
 var MAXS=240;
 var GW=340,GH=190;   /* логические размеры приборной панели */
@@ -38,8 +42,7 @@ function drawEngine(){
   else{bg.addColorStop(0,'#0e151d');bg.addColorStop(1,'#070a0e');}
   c.fillStyle=bg;c.fillRect(0,0,W,H);
 
-  /* RE ищем в момент рисования: render-engines.js грузится позже render.js */
-  var RE=window.RE;
+  var RE=RE0||window.RE;
   try{
     if(RE&&typeof RE.render==='function') RE.render(c,S);
     else if(RE&&typeof RE.drawR4==='function') RE.drawR4(c,S);
