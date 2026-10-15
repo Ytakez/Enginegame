@@ -2,16 +2,13 @@
 "use strict";
 var S=window.S;if(!S)return;
 
-/* Радиус кривошипа: должен совпадать с Rc в анимации поршней (view3d.js). */
-var CRANK_R=0.8;
-/* Направление шейки по Z. Если фазы поршней и шеек выглядят зеркально — поставь 1. */
-var CRANK_Z=-1;
-
 function waitRef(){
   if(!window.DVS_3D_REF||!window.DVS_3D_BUILD){setTimeout(waitRef,150);return;}
   var R=window.DVS_3D_REF;
   var B=window.DVS_3D_BUILD;
   var cy=B.cy,bx=B.bx,m=B.m;
+  var CRANK_R=B.CRANK_R||0.8;   /* единый радиус кривошипа, задаётся в view3d.js */
+  var CRANK_Y=0.6;              /* высота оси коленвала */
 
   function pB(x){if(x&&R.pushBlock)R.pushBlock(x);}
   function pH(x){if(x&&R.pushHead)R.pushHead(x);}
@@ -21,12 +18,15 @@ function waitRef(){
   function sCr(x){if(R.setCrank)R.setCrank(x);}
   function sF(x){if(R.setFly)R.setFly(x);}
 
-  /* ============ КАМЕРА ЦИЛИНДРА ============ */
+  /* ============ ЦИЛИНДР ============
+     cc  — где ось коленвала относительно основания цилиндра (вдоль его оси);
+     rot — поворот ряда вокруг оси коленвала (для V и оппозитных).
+     Длина шатуна считается так, чтобы поршень в ВМТ упирался в головку. */
   function makeCylAss(o){
+    var cc=(o.cc===undefined)?-0.5:o.cc;
     var g=new THREE.Group();
     g.position.set(o.x,o.y,o.z);
 
-    /* Прозрачная гильза */
     var shell=new THREE.Mesh(
       new THREE.CylinderGeometry(o.r+0.15,o.r+0.15,o.h,20,1,true),
       new THREE.MeshStandardMaterial({
@@ -36,7 +36,6 @@ function waitRef(){
     shell.position.y=o.h/2;
     g.add(shell);
 
-    /* Поршень */
     var p=new THREE.Group();
     p.position.y=o.h*0.55;
     p.add(cy(o.r,o.r*0.9,18,0xd8e0e8,0.95,0.15));
@@ -48,11 +47,10 @@ function waitRef(){
     pin.rotation.z=Math.PI/2;p.add(pin);
     g.add(p);
 
-    /* Шатун */
-    var rod=bx(o.r*0.3,o.h*0.5,o.r*0.3,0x8894a2,0.9,0.25);
+    var rodH=o.h*0.5;
+    var rod=bx(o.r*0.3,rodH,o.r*0.3,0x8894a2,0.9,0.25);
     g.add(rod);
 
-    /* Свеча / форсунка */
     var ign=new THREE.Group();
     if(o.diesel){
       ign.add(cy(o.r*0.15,o.r*0.5,10,0x3a3a3a,0.7,0.4));
@@ -62,7 +60,6 @@ function waitRef(){
     ign.position.y=o.h+0.4;
     g.add(ign);
 
-    /* Клапаны: впуск (голубой) и выпуск (красный) */
     var vv=[];
     for(var s=0;s<2;s++){
       var vg=new THREE.Group();
@@ -71,18 +68,18 @@ function waitRef(){
       g.add(vg);vv.push(vg);
     }
 
-    return {g:g,p:p,rod:rod,vv:vv,x:o.x,y:o.y,z:o.z,h:o.h,r:o.r,off:o.off||0};
+    var L=o.h-o.r*0.45-cc-CRANK_R-0.05;   /* длина шатуна */
+    return {g:g,p:p,rod:rod,vv:vv,x:o.x,y:o.y,z:o.z,h:o.h,r:o.r,
+            off:o.off||0,cc:cc,rot:o.rot||0,L:L,rodH:rodH};
   }
 
   /* ============ КОЛЕНВАЛ + МАХОВИК ============
-     pins: [{x:позиция шейки по оси, off:фаза}] — фаза та же, что у поршня,
-     поэтому шейки теперь стоят точно под своими цилиндрами. */
+     pins: [{x, off}] — шейка стоит под своим цилиндром, фаза как у поршня. */
   function makeCrankAndFly(root,blockLen,y,pins,spacing,fwR){
     var cg=new THREE.Group();cg.position.y=y;
     var ax=cy(0.4,blockLen+1,20,0xa8b4c0,0.95,0.2);
     ax.rotation.z=Math.PI/2;cg.add(ax);
 
-    /* Коренные шейки: по краям и между шатунными */
     var mains=[pins[0].x-spacing/2];
     for(var mi=0;mi<pins.length-1;mi++)mains.push((pins[mi].x+pins[mi+1].x)/2);
     mains.push(pins[pins.length-1].x+spacing/2);
@@ -91,10 +88,10 @@ function waitRef(){
       mn.rotation.z=Math.PI/2;mn.position.x=mains[mj];cg.add(mn);
     }
 
-    /* Шатунные шейки со смещением и щёчками */
+    /* Шейка: y=R·cos(off), z=-R·sin(off). Так же считает анимация в view3d.js */
     for(var ci=0;ci<pins.length;ci++){
       var o=pins[ci].off;
-      var py=CRANK_R*Math.cos(o),pz=CRANK_Z*CRANK_R*Math.sin(o);
+      var py=CRANK_R*Math.cos(o),pz=-CRANK_R*Math.sin(o);
       var pin1=cy(0.3,0.5,12,0xd8e4f0,0.95,0.2);
       pin1.rotation.z=Math.PI/2;
       pin1.position.set(pins[ci].x,py,pz);cg.add(pin1);
@@ -106,25 +103,34 @@ function waitRef(){
     }
     root.add(cg);sCr(cg);
 
-    /* Маховик с зубьями */
+    /* Маховик. Зубья: радиально (rotation.x=+a) и тоньше диска, чтобы
+       грани не лежали в одной плоскости и не мерцали. */
     var fw=new THREE.Group();
     var fwD=cy(fwR,0.4,32,0x8a95a3,0.9,0.3);
     fwD.rotation.z=Math.PI/2;fw.add(fwD);
     for(var ft=0;ft<30;ft++){
-      var th=bx(0.4,0.3,0.14,0x6a7685,0.9,0.3);
+      var th=bx(0.34,0.3,0.14,0x6a7685,0.9,0.3);
       var a=(ft/30)*Math.PI*2;
       th.position.set(0,Math.cos(a)*(fwR+0.1),Math.sin(a)*(fwR+0.1));
-      th.rotation.x=-a;fw.add(th);
+      th.rotation.x=a;fw.add(th);
     }
     fw.position.set(blockLen/2+0.7,y,0);
     root.add(fw);sF(fw);
   }
 
-  /* Общий расчёт позиций цилиндров вдоль оси */
   function xsFor(n,spacing){
     var xs=[],tw=n*spacing;
     for(var i=0;i<n;i++)xs.push(-tw/2+spacing/2+i*spacing);
     return xs;
+  }
+
+  /* Ряд, повёрнутый вокруг оси коленвала (начало координат — на оси) */
+  function bank(root,rot){
+    var g=new THREE.Group();
+    g.position.y=CRANK_Y;
+    g.rotation.x=rot;
+    root.add(g);
+    return g;
   }
 
   /* ============ РЯДНЫЙ (R4, R6, скутер R1) ============ */
@@ -140,7 +146,7 @@ function waitRef(){
 
     var pins=[];
     for(var pi=0;pi<perRow;pi++)pins.push({x:xs[pi],off:pi*Math.PI});
-    makeCrankAndFly(root,blockLen,0.6,pins,spacing,2.2);
+    makeCrankAndFly(root,blockLen,CRANK_Y,pins,spacing,2.2);
 
     var bk=bx(blockLen,5,5,0x4a5566,0.85,0.4);
     bk.position.y=3.4;root.add(bk);pB(bk);
@@ -166,20 +172,21 @@ function waitRef(){
 
     var arr=[];
     for(var i=0;i<perRow;i++){
-      var a4=makeCylAss({x:xs[i],y:1.1,z:0,r:1.15,h:4.6,off:i*Math.PI});
+      var a4=makeCylAss({x:xs[i],y:1.1,z:0,r:1.15,h:4.6,off:pins[i].off,cc:-0.5});
       root.add(a4.g);arr.push(a4);
     }
     sA(arr);
   }
 
-  /* ============ V-ОБРАЗНЫЕ (V6, V8, V12, V16, V22) ============ */
+  /* ============ V-ОБРАЗНЫЕ (V6, V8, V12, V16, V22) ============
+     Каждый ряд — группа, повёрнутая вокруг оси коленвала, поэтому оси
+     цилиндров всегда проходят через коленвал. */
   function buildV(root,cfg){
     var perRow=Math.floor(cfg.n/2);
     var spacing=2.0;
     var totalWidth=perRow*spacing;
     var blockLen=totalWidth+1.8;
     var half=Math.PI/6;
-    var bankDist=1.8;
     var xs=xsFor(perRow,spacing);
 
     var pod=bx(blockLen+0.4,1.2,7.5,0x2a2a2a,0.7,0.5);
@@ -187,53 +194,40 @@ function waitRef(){
 
     var pins=[];
     for(var pi=0;pi<perRow;pi++)pins.push({x:xs[pi],off:pi*Math.PI*2/perRow});
-    makeCrankAndFly(root,blockLen,0.6,pins,spacing,2.4);
+    makeCrankAndFly(root,blockLen,CRANK_Y,pins,spacing,2.4);
 
+    /* Впускной коллектор — бронзовый, в развале между рядами */
+    var inMan=cy(0.45,blockLen*0.9,14,0x8b6a2b,0.9,0.35);
+    inMan.rotation.z=Math.PI/2;
+    inMan.position.set(0,5.2,0);root.add(inMan);
+
+    var arr=[];
     for(var side=0;side<2;side++){
-      var sign=side===0?-1:1;
+      var sg=side===0?-1:1;
+      var rot=sg*half;
+      var bk0=bank(root,rot);
 
       var bk=bx(blockLen,5,2.8,0x3a3a3a,0.85,0.4);
-      bk.position.set(0,3.4,sign*bankDist);
-      bk.rotation.x=sign*half;
-      root.add(bk);pB(bk);
+      bk.position.y=2.8;bk0.add(bk);pB(bk);
 
       for(var rr=0;rr<7;rr++){
         var rb=bx(blockLen+0.05,0.06,2.85,0x1a1a1a,0.6,0.6);
-        rb.position.set(0,1.2+rr*0.55,sign*bankDist);
-        rb.rotation.x=sign*half;
-        root.add(rb);pR(rb);
+        rb.position.y=0.6+rr*0.55;bk0.add(rb);pR(rb);
       }
 
       var hd=bx(blockLen+0.2,1.4,2.8,0x8894a2,0.9,0.25);
-      hd.position.set(0,6.4,sign*(bankDist+1.2));
-      hd.rotation.x=sign*half;
-      root.add(hd);pH(hd);
+      hd.position.y=5.8;bk0.add(hd);pH(hd);
 
       var cv=bx(blockLen,0.8,2.5,0x2a3340,0.75,0.4);
-      cv.position.set(0,7.5,sign*(bankDist+1.5));
-      cv.rotation.x=sign*half;
-      root.add(cv);pC(cv);
-
-      /* Впускной коллектор — бронзовый */
-      var inMan=cy(0.32,blockLen*0.9,14,0x8b6a2b,0.9,0.35);
-      inMan.rotation.z=Math.PI/2;
-      inMan.position.set(0,7.0,sign*(bankDist+2.2));
-      root.add(inMan);
+      cv.position.y=6.9;bk0.add(cv);pC(cv);
 
       var exMan=cy(0.36,blockLen*0.9,14,0x4a3a2a,0.85,0.5);
       exMan.rotation.z=Math.PI/2;
-      exMan.position.set(0,0.5,sign*0.5);
-      root.add(exMan);
-    }
+      exMan.position.set(0,3.0,sg*1.9);bk0.add(exMan);
 
-    var arr=[];
-    for(var s2=0;s2<2;s2++){
-      var sg=s2===0?-1:1;
       for(var j=0;j<perRow;j++){
-        var off=(j*Math.PI*2/perRow)+(s2===0?0:Math.PI);
-        var a=makeCylAss({x:xs[j],y:1.1,z:sg*bankDist,r:1.0,h:4.6,off:off});
-        a.g.rotation.x=sg*half;
-        root.add(a.g);arr.push(a);
+        var a=makeCylAss({x:xs[j],y:0.5,z:0,r:1.0,h:4.6,off:pins[j].off,cc:-0.5,rot:rot});
+        bk0.add(a.g);arr.push(a);
       }
     }
     sA(arr);
@@ -244,43 +238,33 @@ function waitRef(){
     var perRow=2,spacing=2.4;
     var totalWidth=perRow*spacing;
     var blockLen=totalWidth+1.8;
-    var bd=1.4,h=4;
+    var base=1.0,h=4;
     var xs=xsFor(perRow,spacing);
 
     var pod=bx(blockLen+0.3,1.2,3.4,0x2a3340,0.7,0.5);
     pod.position.y=-0.6;root.add(pod);
 
-    /* Две шейки, сдвинутые на 180° — противоположные цилиндры ходят зеркально */
     var pins=[{x:xs[0],off:0},{x:xs[1],off:Math.PI}];
-    makeCrankAndFly(root,blockLen,0.6,pins,spacing,2.2);
+    makeCrankAndFly(root,blockLen,CRANK_Y,pins,spacing,2.2);
 
+    var arr=[];
     for(var s=0;s<2;s++){
       var sg=s===0?-1:1;
       var rot=sg*Math.PI/2;
+      var bk0=bank(root,rot);
 
-      var bk=bx(blockLen,h*0.9,2.8,0x4a5566,0.85,0.4);
-      bk.position.set(0,0.6,sg*(bd+h*0.45));
-      bk.rotation.x=rot;
-      root.add(bk);pB(bk);
+      var bk=bx(blockLen,h,2.6,0x4a5566,0.85,0.4);
+      bk.position.y=base+h/2;bk0.add(bk);pB(bk);
 
       var hd=bx(blockLen+0.2,1.4,3.0,0x3a4756,0.85,0.35);
-      hd.position.set(0,0.6,sg*(bd+h+0.7));
-      hd.rotation.x=rot;
-      root.add(hd);pH(hd);
+      hd.position.y=base+h+0.7;bk0.add(hd);pH(hd);
 
       var cv=bx(blockLen,0.8,2.7,0x2a3340,0.75,0.4);
-      cv.position.set(0,0.6,sg*(bd+h+1.7));
-      cv.rotation.x=rot;
-      root.add(cv);pC(cv);
-    }
+      cv.position.y=base+h+1.7;bk0.add(cv);pC(cv);
 
-    var arr=[];
-    for(var s2=0;s2<2;s2++){
-      var sg2=s2===0?-1:1;
       for(var j=0;j<perRow;j++){
-        var a=makeCylAss({x:xs[j],y:0.6,z:sg2*bd,r:0.95,h:h,off:pins[j].off});
-        a.g.rotation.x=sg2*Math.PI/2;
-        root.add(a.g);arr.push(a);
+        var a=makeCylAss({x:xs[j],y:base,z:0,r:0.95,h:h,off:pins[j].off,cc:-base,rot:rot});
+        bk0.add(a.g);arr.push(a);
       }
     }
     sA(arr);
@@ -289,7 +273,7 @@ function waitRef(){
   /* ============ ЗВЕЗДА (radial, 9 цилиндров) ============
      Цилиндры расходятся в плоскости YZ вокруг оси вала (X). */
   function buildRadial(root){
-    var n=9,CY=3.4,R0=1.5,h=3.2;
+    var n=9,CY=3.4,R0=2.6,h=3.2;
 
     var ct=cy(3.0,1.0,32,0x3a3a3a,0.75,0.45);
     ct.rotation.z=Math.PI/2;
@@ -302,7 +286,7 @@ function waitRef(){
       var a=i*(Math.PI*2/n);
       var c=makeCylAss({
         x:0,y:CY+R0*Math.cos(a),z:R0*Math.sin(a),
-        r:0.9,h:h,off:a
+        r:0.9,h:h,off:0,cc:-R0,rot:a
       });
       c.g.rotation.x=a;
       var head=cy(1.15,0.5,20,0x8894a2,0.9,0.25);
@@ -324,7 +308,7 @@ function waitRef(){
 
     var pins=[];
     for(var pi=0;pi<perRow;pi++)pins.push({x:xs[pi],off:pi*Math.PI});
-    makeCrankAndFly(root,blockLen,0.6,pins,spacing,2.2);
+    makeCrankAndFly(root,blockLen,CRANK_Y,pins,spacing,2.2);
 
     var bk=bx(blockLen,5,5,0x3a3a3a,0.8,0.5);
     bk.position.y=3.4;root.add(bk);pB(bk);
@@ -348,7 +332,6 @@ function waitRef(){
     exMan.rotation.z=Math.PI/2;
     exMan.position.set(0,-0.2,-2.5);root.add(exMan);
 
-    /* Турбина */
     var turbo=new THREE.Group();
     var tb=cy(0.9,0.7,20,0x4a5566,0.85,0.4);
     tb.rotation.z=Math.PI/2;turbo.add(tb);
@@ -363,7 +346,7 @@ function waitRef(){
 
     var arr=[];
     for(var i=0;i<perRow;i++){
-      var a4=makeCylAss({x:xs[i],y:1.1,z:0,r:1.15,h:4.6,off:i*Math.PI,diesel:true});
+      var a4=makeCylAss({x:xs[i],y:1.1,z:0,r:1.15,h:4.6,off:pins[i].off,cc:-0.5,diesel:true});
       root.add(a4.g);arr.push(a4);
     }
     sA(arr);
@@ -381,7 +364,7 @@ function waitRef(){
 
     var pins=[];
     for(var pi=0;pi<perRow;pi++)pins.push({x:xs[pi],off:pi*Math.PI});
-    makeCrankAndFly(root,blockLen,0.6,pins,spacing,3.0);
+    makeCrankAndFly(root,blockLen,CRANK_Y,pins,spacing,3.0);
 
     var bk=bx(blockLen,5.5,6,0x3a3a3a,0.75,0.55);
     bk.position.y=3.7;root.add(bk);pB(bk);
@@ -414,7 +397,7 @@ function waitRef(){
 
     var arr=[];
     for(var i=0;i<perRow;i++){
-      var a4=makeCylAss({x:xs[i],y:1.1,z:0,r:1.35,h:5.0,off:i*Math.PI,diesel:true});
+      var a4=makeCylAss({x:xs[i],y:1.1,z:0,r:1.35,h:5.0,off:pins[i].off,cc:-0.5,diesel:true});
       root.add(a4.g);arr.push(a4);
     }
     sA(arr);
