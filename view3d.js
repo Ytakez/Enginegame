@@ -3,8 +3,12 @@
 var S=window.S;if(!S)return;
 var active=false,scene,camera,renderer,container,animId=null;
 var rotX=0.5,rotY=0.6,dist=18,isDown=false,lastX=0,lastY=0,pinch=0;
-var _ready=false;
+var tgt={x:0,y:3.5,z:0};
+var _ready=false,_seenRoot=null;
 var _blockM=[],_headM=[],_coverM=[],_ribM=[],_asm=[],_cranks=[],_flies=[];
+
+/* Радиус кривошипа — единый для анимации и модели (view3d-build.js читает его отсюда) */
+var CRANK_R=0.8;
 
 function m(c,mt,rg,op,tr){
   var o={color:c,metalness:mt===undefined?0.85:mt,roughness:rg===undefined?0.35:rg};
@@ -15,7 +19,7 @@ function m(c,mt,rg,op,tr){
 function cy(r,h,s,c,a,b){return new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,s||20),m(c,a,b));}
 function bx(w,h,d,c,a,b){return new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m(c,a,b));}
 
-window.DVS_3D_BUILD={m:m,cy:cy,bx:bx,bl:function(){return null;}};
+window.DVS_3D_BUILD={m:m,cy:cy,bx:bx,bl:function(){return null;},CRANK_R:CRANK_R};
 
 window.DVS_3D_REF={
   getScene:function(){return scene;},
@@ -31,12 +35,14 @@ window.DVS_3D_REF={
   pushRib:function(x){if(x)_ribM.push(x);},
   clearAll:function(){_blockM=[];_headM=[];_coverM=[];_ribM=[];_asm=[];_cranks=[];_flies=[];},
   getCfg:function(t){
+    /* n — общее число цилиндров. Раньше v8 давал 12, а v16 давал 22. */
     var CFG={
       scooter:{n:1,v:false}, tdi:{n:4,v:false}, dci:{n:4,v:false},
       mt82:{n:4,v:false}, passatb3:{n:4,v:false}, bluebird:{n:4,v:false},
       i6:{n:6,v:false}, galant6:{n:6,v:true},
       wankel:{n:2,v:false}, r4:{n:4,v:false},
-      v8:{n:12,v:true}, v16:{n:22,v:true}
+      v6:{n:6,v:true}, v8:{n:8,v:true}, v12:{n:12,v:true},
+      v16:{n:16,v:true}, v22:{n:22,v:true}
     };
     return CFG[t]||CFG.r4;
   }
@@ -46,16 +52,35 @@ function updCam(){
   var cx=dist*Math.sin(rotY)*Math.cos(rotX);
   var cy2=dist*Math.sin(rotX);
   var cz=dist*Math.cos(rotY)*Math.cos(rotX);
-  camera.position.set(cx,cy2+4,cz);
-  camera.lookAt(0,3.5,0);
+  camera.position.set(tgt.x+cx,tgt.y+cy2,tgt.z+cz);
+  camera.lookAt(tgt.x,tgt.y,tgt.z);
+}
+
+/* Камера сама подбирает расстояние и центр под размер двигателя */
+function fitCam(){
+  var root=window._3dRoot;
+  if(!root||!window.THREE||!camera)return;
+  try{
+    root.updateMatrixWorld(true);
+    var bb=new THREE.Box3().setFromObject(root);
+    if(bb.isEmpty())return;
+    var sz=new THREE.Vector3(),ct=new THREE.Vector3();
+    bb.getSize(sz);bb.getCenter(ct);
+    tgt.x=ct.x;tgt.y=ct.y;tgt.z=ct.z;
+    dist=Math.max(7,Math.min(70,sz.length()*1.15));
+    updCam();
+  }catch(e){console.warn('fitCam',e);}
 }
 
 function setGhost(on){
-  var L=_blockM.concat(_headM).concat(_coverM);
+  /* Рёбра теперь тоже становятся прозрачными: раньше они оставались
+     непрозрачными листами и закрывали весь двигатель в режиме «Скелет». */
+  var L=_blockM.concat(_headM).concat(_coverM).concat(_ribM);
   for(var i=0;i<L.length;i++){
     if(!L[i])continue;
     L[i].material.transparent=on;
     L[i].material.opacity=on?0.12:1;
+    L[i].material.needsUpdate=true;
   }
   var b=document.getElementById('ghostBtn');
   if(b)b.textContent=on?'👁 Скелет':'👁 Скрыто';
@@ -111,7 +136,7 @@ function ctrls(){
       var dx=e.touches[0].clientX-e.touches[1].clientX;
       var dy=e.touches[0].clientY-e.touches[1].clientY;
       var nd=Math.hypot(dx,dy);
-      dist*=pinch/nd;dist=Math.max(7,Math.min(45,dist));
+      dist*=pinch/nd;dist=Math.max(7,Math.min(70,dist));
       pinch=nd;updCam();
     }else if(!e.touches&&isDown){
       rotY+=(e.clientX-lastX)*0.012;
@@ -132,21 +157,38 @@ function ctrls(){
 function animate(){
   if(!active||!scene){animId=null;return;}
   animId=requestAnimationFrame(animate);
+
+  /* Двигатель пересобрали: вернуть режим «Скелет» и подогнать камеру */
+  if(window._3dRoot!==_seenRoot){
+    _seenRoot=window._3dRoot;
+    setGhost(ghostOn);
+    fitCam();
+  }
+
   var ang=S.crankAngle||0;
   for(var i=0;i<_asm.length;i++){
     var A=_asm[i];
     if(!A||!A.p||!A.g)continue;
-    var ph=ang+(A.off||0);
-    var Rc=0.8,L=3.5,cy0=1.0;
+    /* Геометрия кривошипно-шатунного механизма в системе координат цилиндра:
+       cc — где ось коленвала относительно основания цилиндра (по оси цилиндра),
+       L — длина шатуна, rot — поворот ряда (для V и оппозитных). */
+    var Rc=CRANK_R;
+    var cc=(A.cc===undefined)?-0.5:A.cc;
+    var L=A.L||3.8;
+    var ph=ang+(A.off||0)+(A.rot||0);
     var s=Math.sin(ph),c=Math.cos(ph);
     var sq=L*L-Rc*Rc*s*s;if(sq<0)sq=0;
-    var pinY=cy0+Rc*c+Math.sqrt(sq);
+    var rt=Math.sqrt(sq);
+    var cpY=cc+Rc*c;      /* шейка коленвала, вдоль цилиндра */
+    var cpZ=-Rc*s;        /* шейка коленвала, поперёк цилиндра */
+    var pinY=cpY+rt;      /* палец поршня */
     A.p.position.y=pinY;
     if(A.rod){
-      var cpX=Rc*s,cpY=cy0+Rc*c;
-      A.rod.position.x=cpX/2;
+      /* Шатун идёт от шейки к пальцу поршня и качается в плоскости YZ */
       A.rod.position.y=(pinY+cpY)/2;
-      A.rod.rotation.z=-Math.atan2(cpX,pinY-cpY);
+      A.rod.position.z=cpZ/2;
+      A.rod.rotation.x=Math.atan2(Rc*s,rt);
+      A.rod.scale.y=L/(A.rodH||2.3);
     }
   }
   var wR=window._dvsWankelRotors||[];
@@ -202,7 +244,7 @@ function attachBtn(){
 window.DVS_3D={
   show3D:show3D,hide3D:hide3D,
   toggle:function(){if(active)hide3D();else show3D();},
-  toggleGhost:toggleGhost,resize:resize,
+  toggleGhost:toggleGhost,resize:resize,fitCam:fitCam,
   isActive:function(){return active;},
   getScene:function(){return scene;}
 };
