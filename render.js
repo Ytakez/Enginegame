@@ -1,17 +1,32 @@
 (function(){
 "use strict";
-var S=window.S, RB=window.RB, RE=window.RE;
-if(!S||!RB||!RE)return;
+var S=window.S;
+if(!S)return;
 var ecv,ectx,gcv,gctx;
 var MAXS=240;
+var GW=340,GH=190;   /* логические размеры приборной панели */
+var _errShown={};
 
 function init(){
   ecv=document.getElementById('engineCv');
   if(ecv)ectx=ecv.getContext('2d');
   gcv=document.getElementById('gaugeCv');
-  if(gcv)gctx=gcv.getContext('2d');
+  if(gcv){gctx=gcv.getContext('2d');fitGauge();}
 }
 function safe(n){return (typeof n==='number'&&isFinite(n))?n:0;}
+function logOnce(key,e){if(_errShown[key])return;_errShown[key]=1;console.log(key+':',e);}
+
+/* Чёткая панель: холст увеличивается в целое число раз (пропорции 340:190
+   сохраняются), а рисуем по-прежнему в координатах 340×190. */
+function fitGauge(){
+  if(!gcv)return;
+  var rect=gcv.getBoundingClientRect();
+  var dpr=window.devicePixelRatio||1;
+  var need=(rect.width||GW)*dpr/GW;
+  var k=Math.max(1,Math.min(4,Math.ceil(need)));
+  if(gcv.width!==GW*k){gcv.width=GW*k;gcv.height=GH*k;}
+  gctx.setTransform(gcv.width/GW,0,0,gcv.height/GH,0,0);
+}
 
 /* ====================== ДВИГАТЕЛЬ ====================== */
 function drawEngine(){
@@ -23,10 +38,12 @@ function drawEngine(){
   else{bg.addColorStop(0,'#0e151d');bg.addColorStop(1,'#070a0e');}
   c.fillStyle=bg;c.fillRect(0,0,W,H);
 
+  /* RE ищем в момент рисования: render-engines.js грузится позже render.js */
+  var RE=window.RE;
   try{
-    if(typeof RE.render==='function') RE.render(c,S);
-    else if(typeof RE.drawR4==='function') RE.drawR4(c,S);
-  }catch(e){console.log('draw error:',e);}
+    if(RE&&typeof RE.render==='function') RE.render(c,S);
+    else if(RE&&typeof RE.drawR4==='function') RE.drawR4(c,S);
+  }catch(e){logOnce('draw error',e);}
 
   if(S.broken){c.fillStyle='rgba(200,20,20,0.06)';c.fillRect(0,0,W,H);}
 
@@ -101,8 +118,9 @@ function drawTempIcon(c,x,y,color){
   c.restore();
 }
 
-/* ====================== СПИДОМЕТР ====================== */
-function drawGauge(c,cx,cy,R,value,maxV,redline,label,bigNum){
+/* ====================== СПИДОМЕТР ======================
+   step — цена деления шкалы, div — на что делить подпись (1000 для оборотов) */
+function drawGauge(c,cx,cy,R,value,maxV,redline,label,bigNum,step,div){
   var a0=Math.PI*0.75,a1=Math.PI*2.25;
   c.lineCap='butt';c.lineWidth=9;
   c.strokeStyle='#1a1a1a';
@@ -115,21 +133,24 @@ function drawGauge(c,cx,cy,R,value,maxV,redline,label,bigNum){
   g.addColorStop(0,'#28d17c');g.addColorStop(.55,'#ffc93c');g.addColorStop(1,'#ff3b3b');
   c.strokeStyle=g;c.lineWidth=9;
   c.beginPath();c.arc(cx,cy,R,a0,curA);c.stroke();
-  for(var i=0;i<=8;i++){
-    var a=a0+(i/8)*(a1-a0);
-    c.strokeStyle=(i*maxV/8>=redline)?'#ff6b6b':'#555';
+
+  var n=Math.round(maxV/step);
+  for(var i=0;i<=n;i++){
+    var v=i*step;
+    var a=a0+(v/maxV)*(a1-a0);
+    var hot=v>=redline;
+    c.strokeStyle=hot?'#ff6b6b':'#555';
     c.lineWidth=1.5;
     c.beginPath();
     c.moveTo(cx+Math.cos(a)*(R-5),cy+Math.sin(a)*(R-5));
     c.lineTo(cx+Math.cos(a)*(R-11),cy+Math.sin(a)*(R-11));
     c.stroke();
-    c.fillStyle=(i*maxV/8>=redline)?'#ff8b8b':'#707070';
+    c.fillStyle=hot?'#ff8b8b':'#707070';
     c.font='bold 7px Segoe UI, sans-serif';
     c.textAlign='center';c.textBaseline='middle';
-    var lbl=Math.round(i*maxV/8);
-    if(maxV>=1000)lbl=(lbl/1000).toFixed(0);
-    c.fillText(String(lbl),cx+Math.cos(a)*(R-19),cy+Math.sin(a)*(R-19));
+    c.fillText(String(div?Math.round(v/div):v),cx+Math.cos(a)*(R-19),cy+Math.sin(a)*(R-19));
   }
+
   var na=a0+(rp/maxV)*(a1-a0);
   c.save();c.translate(cx,cy);c.rotate(na);
   c.fillStyle='#ff5b5b';
@@ -166,7 +187,7 @@ function drawRing(c,x,y,r,color,blinkOn){
 /* ====================== ПРИБОРКА ====================== */
 function drawDash(){
   if(!gctx)return;
-  var c=gctx,W=gcv.width,H=gcv.height;
+  var c=gctx,W=GW,H=GH;
   var blinkOn=Math.floor(performance.now()/350)%2===0;
   c.clearRect(0,0,W,H);
   var bg=c.createLinearGradient(0,0,0,H);
@@ -174,7 +195,7 @@ function drawDash(){
   c.fillStyle=bg;c.fillRect(0,0,W,H);
   c.strokeStyle='#1a1a1a';c.lineWidth=1;c.strokeRect(0.5,0.5,W-1,H-1);
 
-  var E=S.engines[S.engineType]||S.engines.r4;
+  var E=(S.engines&&(S.engines[S.engineType]||S.engines.r4))||{};
   var rpm=safe(S.rpm),spd=Math.abs(safe(S.speed));
 
   c.fillStyle='#4a4a4a';c.font='bold 6px Segoe UI, sans-serif';
@@ -187,9 +208,12 @@ function drawDash(){
   c.textAlign='right';c.textBaseline='top';
   c.fillText(wI+' '+wT,W-6,6);
 
-  var gMax=S.engineType==='wankel'?11000:10500;
-  drawGauge(c,78,90,56,rpm,gMax,E.redline,'об/мин ×1000',(rpm/1000).toFixed(1));
-  drawGauge(c,262,90,56,spd,MAXS,220,'км/ч',String(Math.round(spd)));
+  /* Красная зона: берём из двигателя, иначе 90% шкалы.
+     Шкала оборотов: на 1000 выше красной зоны, подписи через 1000. */
+  var redRpm=safe(E.redline)||8000;
+  var gMax=Math.max(8000,Math.min(12000,Math.ceil(redRpm/1000+1)*1000));
+  drawGauge(c,78,90,56,rpm,gMax,redRpm,'об/мин ×1000',(rpm/1000).toFixed(1),1000,1000);
+  drawGauge(c,262,90,56,spd,MAXS,220,'км/ч',String(Math.round(spd)),30,0);
 
   var gv=S.gear;
   var gt=gv===0?'N':(gv===-1?'R':(E.auto?'D':String(gv)));
@@ -248,10 +272,11 @@ function drawDash(){
 
 /* ====================== ЦИКЛ ====================== */
 function paint(){
-  if(!ecv)init();
-  if(!ecv)return;
-  try{drawEngine();drawDash();}catch(e){console.log(e);}
+  if(!ecv||!gcv)init();
+  if(ecv){try{drawEngine();}catch(e){logOnce('engine',e);}}
+  try{drawDash();}catch(e){logOnce('dash',e);}
 }
+window.addEventListener('resize',function(){fitGauge();});
 window.DVS_RENDER={draw:paint,init:init};
 init();
 })();
