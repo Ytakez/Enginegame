@@ -2,13 +2,9 @@
 "use strict";
 var S=window.S;
 if(!S)return;
-/* RE берём так же, как в оригинале: тот, что есть на момент загрузки render.js.
-   render-engines.js грузится позже и подменяет window.RE упрощённой версией,
-   её брать нельзя. Если RE на тот момент ещё нет, ищем позже. */
-var RE0=window.RE;
 var ecv,ectx,gcv,gctx;
 var MAXS=240;
-var GW=340,GH=190;   /* логические размеры приборной панели */
+var GW=340,GH=190;
 var _errShown={};
 
 function init(){
@@ -20,8 +16,6 @@ function init(){
 function safe(n){return (typeof n==='number'&&isFinite(n))?n:0;}
 function logOnce(key,e){if(_errShown[key])return;_errShown[key]=1;console.log(key+':',e);}
 
-/* Чёткая панель: холст увеличивается в целое число раз (пропорции 340:190
-   сохраняются), а рисуем по-прежнему в координатах 340×190. */
 function fitGauge(){
   if(!gcv)return;
   var rect=gcv.getBoundingClientRect();
@@ -42,8 +36,9 @@ function drawEngine(){
   else{bg.addColorStop(0,'#0e151d');bg.addColorStop(1,'#070a0e');}
   c.fillStyle=bg;c.fillRect(0,0,W,H);
 
-  /* merged — флаг из render-engines.js, когда он объединяет старый RE с новым */
-  var RE=(window.RE&&window.RE.merged)?window.RE:(RE0||window.RE);
+  /* Всегда берём СВЕЖИЙ window.RE — render-engines.js грузится позже
+     и подменяет его своим объектом с функциями drawInline6/V/Boxer/Radial/Wankel. */
+  var RE=window.RE;
   try{
     if(RE&&typeof RE.render==='function') RE.render(c,S);
     else if(RE&&typeof RE.drawR4==='function') RE.drawR4(c,S);
@@ -122,8 +117,7 @@ function drawTempIcon(c,x,y,color){
   c.restore();
 }
 
-/* ====================== СПИДОМЕТР ======================
-   step — цена деления шкалы, div — на что делить подпись (1000 для оборотов) */
+/* ====================== СПИДОМЕТР ====================== */
 function drawGauge(c,cx,cy,R,value,maxV,redline,label,bigNum,step,div){
   var a0=Math.PI*0.75,a1=Math.PI*2.25;
   c.lineCap='butt';c.lineWidth=9;
@@ -212,8 +206,6 @@ function drawDash(){
   c.textAlign='right';c.textBaseline='top';
   c.fillText(wI+' '+wT,W-6,6);
 
-  /* Красная зона: берём из двигателя, иначе 90% шкалы.
-     Шкала оборотов: на 1000 выше красной зоны, подписи через 1000. */
   var redRpm=safe(E.redline)||8000;
   var gMax=Math.max(8000,Math.min(12000,Math.ceil(redRpm/1000+1)*1000));
   drawGauge(c,78,90,56,rpm,gMax,redRpm,'об/мин ×1000',(rpm/1000).toFixed(1),1000,1000);
