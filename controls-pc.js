@@ -55,23 +55,27 @@ function ensureStyles(){
   'body.pc-mode .pedals{display:none !important}'+
   'body.pc-mode .gears-box,body.pc-mode .gears-auto{opacity:0.35}'+
   'body.pc-mode .pedal{pointer-events:none}'+
+
   /* ========== ПЛАНШЕТ ========== */
+  /* подсказка повернуть */
   '#rotateHint{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;display:none;padding:20px 28px;border-radius:16px;background:rgba(15,15,15,.9);color:#fff;font:700 16px/1.4 "Segoe UI",sans-serif;text-align:center;border:1px solid rgba(255,255,255,.15);pointer-events:none}'+
   '@media (orientation:portrait){body.tablet-mode #rotateHint{display:block}}'+
-  /* педали планшета — крупные, слева */
+
+  /* педали планшета — крупные, слева столбиком */
   'body.tablet-mode .pedals{position:fixed !important;left:14px;top:50%;transform:translateY(-50%);flex-direction:column;gap:14px;padding:0;margin:0;z-index:100;display:flex}'+
-  'body.tablet-mode .pedal{width:110px !important;height:110px !important;min-width:110px;font-size:15px;border-radius:22px}'+
+  'body.tablet-mode .pedal{width:110px !important;height:110px !important;min-width:110px;font-size:14px;border-radius:22px}'+
   'body.tablet-mode .pedal .icon{font-size:34px !important}'+
   'body.tablet-mode .pedal .sub{font-size:11px !important}'+
   'body.tablet-mode .pedal .bar{height:8px !important}'+
-  /* передачи планшета — крупные, справа */
-  'body.tablet-mode .gears-box,body.tablet-mode .gears-auto{position:fixed !important;right:14px;top:50%;transform:translateY(-50%);z-index:100;width:200px !important;height:200px !important}'+
-  'body.tablet-mode .gbtn{width:64px !important;height:64px !important;font-size:22px !important;border-radius:16px !important}'+
-  'body.tablet-mode .agbtn{width:70px !important;height:70px !important;font-size:22px !important}'+
-  /* отступы основного блока, чтобы не перекрывало педали/передачи */
-  'body.tablet-mode main{padding-left:140px !important;padding-right:220px !important;max-width:none !important}'+
-  /* убираем старую панель приборов на узких экранах планшета, если мешает */
-  'body.tablet-mode #dash{transform:scale(0.92);transform-origin:center top}';
+
+  /* передачи планшета — крупные, ВНИЗУ СПРАВА (не перекрывают приборку) */
+  'body.tablet-mode .gears-box,body.tablet-mode .gears-auto{position:fixed !important;right:20px;bottom:20px;top:auto;left:auto;transform:none;z-index:100;width:280px !important;height:280px !important}'+
+  'body.tablet-mode .gbtn{width:60px !important;height:60px !important;font-size:20px !important;border-radius:16px !important}'+
+  'body.tablet-mode .agbtn{width:66px !important;height:66px !important;font-size:20px !important}'+
+
+  /* основной блок по центру */
+  'body.tablet-mode main{padding-left:150px !important;padding-right:150px !important;max-width:none !important}'+
+  'body.tablet-mode #dash{max-width:420px !important;margin:20px auto !important}';
   document.head.appendChild(st);
 }
 
@@ -150,7 +154,6 @@ window.addEventListener('blur',function(){
   S.handbrake=false;
 });
 
-/* при смене ориентации — пересобрать раскладку */
 window.addEventListener('orientationchange',function(){setTimeout(applyMode,200);});
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyMode);
