@@ -29,7 +29,7 @@ function ensureHints(){
   h.innerHTML=
     '<div class="ph-row"><b>W</b>/<b>↑</b> газ <b>S</b>/<b>↓</b> тормоз <b>A</b>/<b>D</b> сцепление</div>'+
     '<div class="ph-row"><b>Space</b> зажигание <b>Q</b>/<b>E</b> передача вниз/вверх</div>'+
-    '<div class="ph-row"><b>1</b>–<b>6</b> передачи <b>R</b> задняя <b>N</b> нейтраль <b>Shift</b> ручник <b>H</b> гудок</div>';
+    ''<div class="ph-row"><b>1</b>–<b>6</b> передачи <b>R</b> задняя <b>N</b> нейтраль <b>Shift</b> ручник</div>';
   document.body.appendChild(h);
 }
 
