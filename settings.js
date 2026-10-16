@@ -342,4 +342,10 @@ function openLang(){
   document.body.appendChild(ov);
 }
 
-function init(){in
+function init(){injectStyles();addBtn();try{applyLang();}catch(e){}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+else init();
+setTimeout(init,500);
+
+console.log('settings.js: OK (с поддержкой проекта)');
+})();
