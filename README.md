@@ -3,7 +3,7 @@
 
 Welcome! **Enginegame** is my personal web project — a minimalist, interactive simulator of an internal combustion engine (ДВС) and car transmission that runs right in your browser.
 
-[🎮 Play the Game Live](https://github.io)
+[🎮 Play the Game Live](ytakez.github.io/Enginegame)
 
 ---
 
