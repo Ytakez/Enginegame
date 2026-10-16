@@ -431,3 +431,46 @@ body.broken #breakBanner{display:block !important}
   .pedal .icon{font-size:20px}
   .pedal .sub{display:none}
 }
+/* ==================== СТЕКЛО БЕЗ БЛИКОВ ====================
+   Вставь в КОНЕЦ style.css. Только прозрачность и размытие:
+   никаких белых бликов, светлых кромок по углам и внутреннего свечения.
+   Размеры и положение кнопок не меняются. */
+
+.eng-badge,
+#repairBtn,
+#view3dBtn,
+#ghostBtn,
+.gb-grid .gbtn,
+.agbtn,
+.pedal,
+.ignbtn,
+/* настройки: стили вставляет settings.js позже, поэтому с body */
+body .settings-btn,
+body .settings-item,
+body .settings-close,
+body .settings-back{
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.14);
+  -webkit-backdrop-filter:blur(16px) saturate(170%);
+  backdrop-filter:blur(16px) saturate(170%);
+  box-shadow:0 8px 22px rgba(0,0,0,.40);
+}
+
+/* оттенки */
+#repairBtn{
+  background:rgba(220,70,70,.30);
+  border-color:rgba(255,150,150,.40);
+}
+.pedal.brake{background:rgba(255,110,110,.10)}
+.pedal.clutch{background:rgba(255,200,110,.10)}
+
+/* если у системы выключена прозрачность — делаем плотнее */
+@media (prefers-reduced-transparency:reduce){
+  .eng-badge,#repairBtn,#view3dBtn,#ghostBtn,
+  .gb-grid .gbtn,.agbtn,.pedal,.ignbtn,
+  body .settings-btn,body .settings-item,body .settings-close,body .settings-back{
+    background:rgba(40,44,52,.92);
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+}
