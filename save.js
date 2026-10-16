@@ -3,75 +3,57 @@
 var S=window.S;if(!S)return;
 
 var KEY='dvs_save_v1';
-var save={coins:0,totalKm:0,starts:0,bestSpeed:0};
 
-try{
-  var raw=localStorage.getItem(KEY);
-  if(raw)save=JSON.parse(raw);
-}catch(e){}
-
-function persist(){
-  try{localStorage.setItem(KEY,JSON.stringify(save));}catch(e){}
+/* ==== СОХРАНЕНИЕ НАСТРОЕК ==== */
+function load(){
+  try{return JSON.parse(localStorage.getItem(KEY)||'{}');}catch(e){return {};}
 }
-window.DVS_SAVE=save;
-window.DVS_SAVE_PERSIST=persist;
-
-/* ==== АВТОЗАРАБОТОК (без бейджа) ==== */
-function rateFor(speed){
-  var s=Math.abs(speed||0);
-  if(s>=150)return 8;
-  if(s>=100)return 5;
-  if(s>=50)return 2;
-  if(s>=5)return 1;
-  return 0;
+function save(o){
+  try{localStorage.setItem(KEY,JSON.stringify(o));}catch(e){}
 }
 
-var acc=0,last=performance.now();
+var data=load();
+window.DVS_SAVE=data;
+window.DVS_SAVE_PERSIST=function(){save(data);};
 
-function tick(now){
-  var dt=(now-last)/1000;last=now;
-  if(dt>0.5)dt=0.5;
-
-  if(S.running&&!S.stalled&&!S.broken){
-    var rate=rateFor(S.speed);
-    if(rate>0){
-      acc+=rate*dt;
-      var gain=Math.floor(acc);
-      if(gain>0){
-        acc-=gain;
-        save.coins+=gain;
-        persist();
-        /* обновить значение в магазине, если открыт */
-        var sv=document.getElementById('shopCoinsVal');
-        if(sv)sv.textContent=save.coins;
-      }
-    } else { acc=0; }
-  } else { acc=0; }
-
-  var sp=Math.abs(S.speed||0);
-  if(sp>save.bestSpeed)save.bestSpeed=sp;
-
-  requestAnimationFrame(tick);
-}
-
-/* ==== СЧЁТЧИК ЗАПУСКОВ ==== */
-var wasRunning=false;
-function watchStart(){
-  if(S.running&&!wasRunning){
-    save.starts=(save.starts||0)+1;
-    persist();
+/* ==== ВОССТАНОВЛЕНИЕ ПРИ СТАРТЕ ==== */
+function restore(){
+  if(data.engine&&S.setEngine){
+    try{S.setEngine(data.engine);}catch(e){}
   }
-  wasRunning=S.running;
-  setTimeout(watchStart,500);
+  if(data.weather&&S.setWeather){
+    try{S.setWeather(data.weather);}catch(e){}
+  }
+  if(data.gear!==undefined)S.gear=data.gear;
 }
 
-/* ==== СТАРТ ==== */
+/* ==== СЛЕЖЕНИЕ ЗА ИЗМЕНЕНИЯМИ ==== */
+var lastEngine=null,lastWeather=null,lastGear=null;
+function watch(){
+  if(S.engineType&&S.engineType!==lastEngine){
+    lastEngine=S.engineType;
+    data.engine=S.engineType;
+    save(data);
+  }
+  if(S.weather&&S.weather!==lastWeather){
+    lastWeather=S.weather;
+    data.weather=S.weather;
+    save(data);
+  }
+  if(S.gear!==undefined&&S.gear!==lastGear){
+    lastGear=S.gear;
+    data.gear=S.gear;
+    save(data);
+  }
+  setTimeout(watch,500);
+}
+
+/* ==== ЗАПУСК ==== */
 function init(){
-  requestAnimationFrame(tick);
-  watchStart();
+  restore();
+  setTimeout(watch,1000);
+  console.log('save.js: OK, сохраняю движок/погоду/передачу');
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
 else init();
-
-console.log('save.js: OK (без бейджа), coins='+save.coins);
 })();
