@@ -12,14 +12,20 @@ bluebird:{name:'2.0 CA20',cyls:4,maxTorque:178,idle:850,redline:7000,breakRpm:78
 galant6:{name:'2.0 V6',cyls:6,maxTorque:179,idle:850,redline:7000,breakRpm:7800,stallRpm:350,fireDiv:20,lpBase:520,lpRpm:0.13,subGain:1.3,sawGain:0.58,sqGain:0.10,noiseBase:0.025,mass:1350,gears:5},
 wankel:{name:'13B Renesis',cyls:2,maxTorque:211,idle:900,redline:9000,breakRpm:10000,stallRpm:400,fireDiv:20,lpBase:800,lpRpm:0.10,subGain:0.4,sawGain:1.2,sqGain:0.15,noiseBase:0.008,mass:1400,gears:6},
 r4:{name:'R4',cyls:4,maxTorque:250,idle:900,redline:6800,breakRpm:8000,stallRpm:350,fireDiv:30,lpBase:700,lpRpm:0.15,subGain:0.9,sawGain:0.5,sqGain:0.15,noiseBase:0.015,mass:1250,gears:6},
-v8:{name:'V12',cyls:12,maxTorque:560,idle:900,redline:7600,breakRpm:9000,stallRpm:350,fireDiv:10,lpBase:400,lpRpm:0.11,subGain:1.8,sawGain:0.65,sqGain:0.07,noiseBase:0.038,mass:1500,gears:6},
-v16:{name:'V22',cyls:22,maxTorque:900,idle:900,redline:8200,breakRpm:9600,stallRpm:350,fireDiv:5.5,lpBase:230,lpRpm:0.07,subGain:2.6,sawGain:0.75,sqGain:0.04,noiseBase:0.065,mass:1800,gears:6},
+v8:{name:'V8',cyls:8,maxTorque:560,idle:900,redline:7600,breakRpm:9000,stallRpm:350,fireDiv:15,lpBase:400,lpRpm:0.11,subGain:1.8,sawGain:0.65,sqGain:0.07,noiseBase:0.038,mass:1500,gears:6},
+v16:{name:'V16',cyls:16,maxTorque:900,idle:900,redline:8200,breakRpm:9600,stallRpm:350,fireDiv:7.5,lpBase:230,lpRpm:0.07,subGain:2.6,sawGain:0.75,sqGain:0.04,noiseBase:0.065,mass:1800,gears:6},
 boxer4:{name:'EJ25 Boxer',cyls:4,maxTorque:230,idle:800,redline:7000,breakRpm:7800,stallRpm:350,fireDiv:30,lpBase:550,lpRpm:0.12,subGain:2.2,sawGain:0.55,sqGain:0.10,noiseBase:0.030,mass:1400,gears:5},
 i6:{name:'2JZ I6',cyls:6,maxTorque:440,idle:800,redline:7200,breakRpm:8000,stallRpm:350,fireDiv:20,lpBase:480,lpRpm:0.11,subGain:2.0,sawGain:0.60,sqGain:0.08,noiseBase:0.022,mass:1500,gears:6},
 radial9:{name:'Wright R-1820',cyls:9,maxTorque:1200,idle:600,redline:2500,breakRpm:2800,stallRpm:300,fireDiv:9,lpBase:150,lpRpm:0.04,subGain:4.5,sawGain:0.8,sqGain:0.15,noiseBase:0.090,mass:2500,gears:1}
 };
 var AMB={summer:25,autumn:8,winter:-15};
 var OVERHEAT_LIMIT=145;
+
+/* Остывание выключенного двигателя: доля разницы с воздухом в секунду.
+   Раньше было 0.15 (двигатель остывал за секунды). Теперь постоянная времени
+   ~2.5 мин летом и ~3.5 мин зимой. Меньше число — медленнее остывает. */
+var COOL_K={summer:0.007,autumn:0.006,winter:0.0045};
+var COOL_MIN=0.03;   /* °C/с — чтобы остывание не замирало у самой температуры воздуха */
 
 var RATIOS_5=[0, 3.40, 2.00, 1.40, 1.00, 0.80];
 var RATIOS_6=[0, 3.40, 2.10, 1.55, 1.20, 0.95, 0.78];
@@ -165,6 +171,8 @@ S.setEngine=function(type){
   try{if(navigator.vibrate)navigator.vibrate(15);}catch(e){}
 };
 
+/* Переключение передач. Хруста больше нет, можно переключать на любую
+   передачу напрямую (например, с 1 на 5), с педалью сцепления и без неё. */
 S.setGear=function(g){
   var E=curE();
   if(E.auto)return;
@@ -172,42 +180,11 @@ S.setGear=function(g){
   if(g>0 && g>(E.gears||6))return;
   if(g===S.gear)return;
 
-  var now=Date.now();
-  var delta=now - S._lastGearTime;
-  S._lastGearTime=now;
-
-  var clutchIn=(S.clutchPedal||0)>0.35;
-  var rpm=S.rpm||0;
-  var running=S.running&&!S.stalled;
-
-  var isFast=delta<250;
-  var willGrind=false;
-
-  if(running && rpm>700){
-    if(!clutchIn && isFast && g>0 && rpm>800){willGrind=true;}
-    if(!clutchIn && Math.abs(g - S._lastGearValue) >= 2 && rpm>800){willGrind=true;}
-    if(!clutchIn && delta<150){willGrind=true;}
-  }
-
+  S._lastGearTime=Date.now();
   S._lastGearValue=g;
-
-  if(willGrind){
-    if(window.DVS_SOUND && window.DVS_SOUND.gearCrunch){
-      try{ window.DVS_SOUND.gearCrunch(); }catch(e){}
-    }
-    try{ if(navigator.vibrate) navigator.vibrate([40,30,40,30,80]); }catch(e){}
-    var targetBtn=document.querySelector('.gbtn[data-g="'+g+'"]');
-    if(targetBtn){targetBtn.classList.add('grind');setTimeout(function(){targetBtn.classList.remove('grind');}, 450);}
-    var activeBtn=document.querySelector('.gbtn.on');
-    if(activeBtn){activeBtn.classList.add('grind');setTimeout(function(){activeBtn.classList.remove('grind');}, 450);}
-    if(rpm>3000 && running){S.stalled=true;S.running=false;}
-    if(window.DVS_GEARSTICK)try{window.DVS_GEARSTICK.moveTo(S.gear,true);}catch(e){}
-    return;
-  }
-
   S.gear=g;
 
-  if(clutchIn && window.DVS_SOUND && window.DVS_SOUND.gearClick){
+  if(window.DVS_SOUND && window.DVS_SOUND.gearClick){
     try{ window.DVS_SOUND.gearClick(); }catch(e){}
   }
 
@@ -260,8 +237,9 @@ S.physics=function(dt){
     if(S.rpm>E.redline*0.9&&S.throttle>0.7)S.engineTemp+=dt*0.5;
   } else {
     if(S.engineTemp>S.ambientTemp){
-      var coolRate=(S.engineTemp-S.ambientTemp)*0.15;
-      if(coolRate<0.5)coolRate=0.5;
+      var coolK=COOL_K[S.weather]||COOL_K.summer;
+      var coolRate=(S.engineTemp-S.ambientTemp)*coolK;
+      if(coolRate<COOL_MIN)coolRate=COOL_MIN;
       S.engineTemp-=dt*coolRate;
       if(S.engineTemp<S.ambientTemp)S.engineTemp=S.ambientTemp;
     }
