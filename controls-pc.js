@@ -21,7 +21,7 @@ window.DVS_SET_CONTROL_MODE=function(m){
   applyMode();
 };
 
-/* ========== ПОДСКАЗКИ ПК ========== */
+/* ==== ПОДСКАЗКИ ПК ==== */
 function ensureHints(){
   if(document.getElementById('pcHints'))return;
   var h=document.createElement('div');
@@ -33,7 +33,7 @@ function ensureHints(){
   document.body.appendChild(h);
 }
 
-/* ========== ПОДСКАЗКА ПЛАНШЕТА ========== */
+/* ==== ПОДСКАЗКА ПЛАНШЕТА ==== */
 function ensureRotateHint(){
   if(document.getElementById('rotateHint'))return;
   var h=document.createElement('div');
@@ -56,8 +56,7 @@ function ensureStyles(){
   'body.pc-mode .gears-box,body.pc-mode .gears-auto{opacity:0.35}'+
   'body.pc-mode .pedal{pointer-events:none}'+
 
-  /* ========== ПЛАНШЕТ ========== */
-  /* подсказка повернуть */
+  /* ==== ПЛАНШЕТ ==== */
   '#rotateHint{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;display:none;padding:20px 28px;border-radius:16px;background:rgba(15,15,15,.9);color:#fff;font:700 16px/1.4 "Segoe UI",sans-serif;text-align:center;border:1px solid rgba(255,255,255,.15);pointer-events:none}'+
   '@media (orientation:portrait){body.tablet-mode #rotateHint{display:block}}'+
 
@@ -68,7 +67,7 @@ function ensureStyles(){
   'body.tablet-mode .pedal .sub{font-size:11px !important}'+
   'body.tablet-mode .pedal .bar{height:8px !important}'+
 
-  /* передачи планшета — крупные, ВНИЗУ СПРАВА (не перекрывают приборку) */
+  /* передачи планшета — крупные, внизу справа */
   'body.tablet-mode .gears-box,body.tablet-mode .gears-auto{position:fixed !important;right:20px;bottom:20px;top:auto;left:auto;transform:none;z-index:100;width:280px !important;height:280px !important}'+
   'body.tablet-mode .gbtn{width:60px !important;height:60px !important;font-size:20px !important;border-radius:16px !important}'+
   'body.tablet-mode .agbtn{width:66px !important;height:66px !important;font-size:20px !important}'+
@@ -78,8 +77,6 @@ function ensureStyles(){
   'body.tablet-mode #dash{max-width:420px !important;margin:20px auto !important}';
   document.head.appendChild(st);
 }
-
-function isTabletMode(){return window.DVS_CONTROL_MODE==='tablet';}
 
 function applyMode(){
   ensureHints();
@@ -91,7 +88,7 @@ function applyMode(){
   else if(window.DVS_CONTROL_MODE==='phone')document.body.classList.add('phone-mode');
 }
 
-/* ========== КЛАВИАТУРА ========== */
+/* ==== КЛАВИАТУРА ==== */
 var keyMap={
   'KeyW':'gas','ArrowUp':'gas',
   'KeyS':'brake','ArrowDown':'brake',
@@ -122,11 +119,24 @@ function down(e){
     return;
   }
   if(k==='KeyQ'){e.preventDefault();if(S.setGear)S.setGear(Math.max(-1,(S.gear||0)-1));return;}
-  if(k==='KeyE'){e.preventDefault();var E=S.engines&&S.engines[S.engineType];var maxG=E?(E.gears||6):6;if(S.setGear)S.setGear(Math.min(maxG,(S.gear||0)+1));return;}
+  if(k==='KeyE'){
+    e.preventDefault();
+    var E=S.engines&&S.engines[S.engineType];
+    var maxG=E?(E.gears||6):6;
+    if(S.setGear)S.setGear(Math.min(maxG,(S.gear||0)+1));
+    return;
+  }
   if(k==='KeyR'){e.preventDefault();if(S.setGear)S.setGear(-1);return;}
   if(k==='KeyN'){e.preventDefault();if(S.setGear)S.setGear(0);return;}
-  if(k>='Digit1'&&k<='Digit6'){e.preventDefault();var g=parseInt(k.replace('Digit',''),10);if(S.setGear)S.setGear(g);return;}
-  if(k==='ShiftLeft'||k==='ShiftRight'){e.preventDefault();S.handbrake=true;return;}
+  if(k>='Digit1'&&k<='Digit6'){
+    e.preventDefault();
+    var g=parseInt(k.replace('Digit',''),10);
+    if(S.setGear)S.setGear(g);
+    return;
+  }
+  if(k==='ShiftLeft'||k==='ShiftRight'){
+    e.preventDefault();S.handbrake=true;return;
+  }
 }
 function up(e){
   if(!isPcActive())return;
