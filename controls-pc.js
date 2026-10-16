@@ -7,20 +7,55 @@ var mode='auto';
 try{mode=localStorage.getItem(MODE_KEY)||'auto';}catch(e){}
 window.DVS_CONTROL_MODE=mode;
 
-window.DVS_SET_CONTROL_MODE=function(m){
-  mode=m;
-  try{localStorage.setItem(MODE_KEY,m);}catch(e){}
-  window.DVS_CONTROL_MODE=m;
-};
-
 function isPcActive(){
   var m=window.DVS_CONTROL_MODE;
   if(m==='pc')return true;
   if(m==='phone'||m==='tablet')return false;
-  /* auto — определяем по устройству */
   return !('ontouchstart' in window) || navigator.maxTouchPoints===0;
 }
 
+window.DVS_SET_CONTROL_MODE=function(m){
+  mode=m;
+  try{localStorage.setItem(MODE_KEY,m);}catch(e){}
+  window.DVS_CONTROL_MODE=m;
+  applyMode();
+};
+
+/* ==== ПОДСКАЗКИ КЛАВИШ ==== */
+function ensureHints(){
+  if(document.getElementById('pcHints'))return;
+  var h=document.createElement('div');
+  h.id='pcHints';
+  h.innerHTML=
+    '<div class="ph-row"><b>W</b>/<b>↑</b> газ <b>S</b>/<b>↓</b> тормоз <b>A</b>/<b>D</b> сцепление</div>'+
+    '<div class="ph-row"><b>Space</b> зажигание <b>Q</b>/<b>E</b> передача вниз/вверх</div>'+
+    '<div class="ph-row"><b>1</b>–<b>6</b> передачи <b>R</b> задняя <b>N</b> нейтраль <b>Shift</b> ручник <b>H</b> гудок</div>';
+  document.body.appendChild(h);
+}
+
+function ensureHintsStyle(){
+  if(document.getElementById('pcHintsStyle'))return;
+  var st=document.createElement('style');
+  st.id='pcHintsStyle';
+  st.textContent=
+  '#pcHints{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:9997;display:none;flex-direction:column;gap:3px;padding:8px 14px;border-radius:12px;background:rgba(15,15,15,.8);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);color:#b8c0c8;font:600 10px/1.4 "Segoe UI",sans-serif;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.5);pointer-events:none;max-width:90vw}'+
+  '#pcHints .ph-row{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
+  '#pcHints b{color:#f0f0f0;font-weight:700;padding:0 2px}'+
+  'body.pc-mode #pcHints{display:flex}'+
+  'body.pc-mode .pedals{display:none !important}'+
+  'body.pc-mode .gears-box,body.pc-mode .gears-auto{opacity:0.35}'+
+  'body.pc-mode .pedal{pointer-events:none}';
+  document.head.appendChild(st);
+}
+
+function applyMode(){
+  ensureHints();
+  ensureHintsStyle();
+  if(isPcActive())document.body.classList.add('pc-mode');
+  else document.body.classList.remove('pc-mode');
+}
+
+/* ==== КЛАВИАТУРА ==== */
 var keyMap={
   'KeyW':'gas','ArrowUp':'gas',
   'KeyS':'brake','ArrowDown':'brake',
@@ -37,7 +72,8 @@ function down(e){
   if(keyMap[k]){
     e.preventDefault();
     S.pressed[keyMap[k]]=true;
-    var el=document.getElementById('p'+keyMap[k].charAt(0).toUpperCase()+keyMap[k].slice(1));
+    var idMap={gas:'pGas',brake:'pBrake',clutch:'pClutch'};
+    var el=document.getElementById(idMap[keyMap[k]]);
     if(el)el.classList.add('active');
     return;
   }
@@ -71,9 +107,7 @@ function down(e){
     return;
   }
   if(k==='ShiftLeft'||k==='ShiftRight'){
-    e.preventDefault();
-    S.handbrake=true;
-    return;
+    e.preventDefault();S.handbrake=true;return;
   }
   if(k==='KeyH'){
     e.preventDefault();
@@ -87,7 +121,8 @@ function up(e){
   var k=e.code;
   if(keyMap[k]){
     S.pressed[keyMap[k]]=false;
-    var el=document.getElementById('p'+keyMap[k].charAt(0).toUpperCase()+keyMap[k].slice(1));
+    var idMap={gas:'pGas',brake:'pBrake',clutch:'pClutch'};
+    var el=document.getElementById(idMap[keyMap[k]]);
     if(el)el.classList.remove('active');
   }
   if(k==='Space'){
@@ -106,6 +141,11 @@ window.addEventListener('blur',function(){
   S.pressed.gas=false;S.pressed.brake=false;S.pressed.clutch=false;
   S.handbrake=false;
 });
+
+/* Авто-определение при загрузке и ресайзе */
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyMode);
+else applyMode();
+window.addEventListener('resize',applyMode);
 
 console.log('controls-pc.js: OK, mode='+mode);
 })();
