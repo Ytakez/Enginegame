@@ -151,6 +151,7 @@ function drawCyl(c,x,yTop,yBot,r,phase,crankCY,crankR,br,thr,S){
   c.beginPath();c.arc(vInX,vTop+vH+3,3.5,0,7);c.fill();c.stroke();
   c.strokeStyle='#c8d4e0';c.lineWidth=1;
   for(var s=0;s<3;s++){c.beginPath();c.moveTo(vInX-3,vTop+3+s*3);c.lineTo(vInX+3,vTop+3+s*3);c.stroke();}
+  
   c.fillStyle=br?'#8a4a4a':'#ff8a6f';
   c.fillRect(vExX-2,vTop,4,vH);
   c.strokeStyle='#0a1018';c.lineWidth=1;
@@ -200,10 +201,8 @@ function drawTiming(c,x,ang,br,H){
   drawSprocket(c,x,42,12,ang*0.5,br);
   drawSprocket(c,x,H-75,18,ang,br);
   c.strokeStyle=br?'#4a2a2a':'#1a1a1a';c.lineWidth=6;
-  c.beginPath();
-  c.moveTo(x-12,42);c.lineTo(x-18,H-75);
-  c.moveTo(x+12,42);c.lineTo(x+18,H-75);
-  c.stroke();
+  c.beginPath();c.moveTo(x-12,42);c.lineTo(x-18,H-75);
+  c.moveTo(x+12,42);c.lineTo(x+18,H-75);c.stroke();
   c.strokeStyle=br?'#7a5a5a':'#3a4654';c.lineWidth=1;
   for(var i=0;i<14;i++){
     var t=i/14;
@@ -235,14 +234,8 @@ function drawExhaust(c,x1,x2,y,cyls,br){
 function inlineDraw(c,S,n,r,spacing,label,col){
   var W=c.canvas.width,H=c.canvas.height,br=S.broken;
   c.clearRect(0,0,W,H);
-  var crankCY=H-75;
-  var crankR=r*0.85;
-  var cylTop=95;
-  var cylBot=crankCY-crankR-8;
-  var panTop=cylBot+6;
-  var totalW=(n-1)*spacing;
-  var startX=W/2-totalW/2;
-  var xs=[];
+  var crankCY=H-75,crankR=r*0.85,cylTop=95,cylBot=crankCY-crankR-8,panTop=cylBot+6;
+  var totalW=(n-1)*spacing,startX=W/2-totalW/2,xs=[];
   for(var i=0;i<n;i++)xs.push(startX+i*spacing);
   var blockL=xs[0]-r-15,blockR=xs[n-1]+r+15;
 
@@ -265,43 +258,33 @@ function inlineDraw(c,S,n,r,spacing,label,col){
     c.beginPath();c.moveTo(blockL-8,ry);c.lineTo(blockR+8,ry);c.stroke();
   }
 
-  drawHead(c,W,br);
-  drawCamshaft(c,W,50,br);
+  drawHead(c,W,br);drawCamshaft(c,W,50,br);
 
   for(var i=0;i<n;i++){
-    var cx=xs[i];
-    var camAng=S.crankAngle*0.5+i*Math.PI;
+    var cx=xs[i],camAng=S.crankAngle*0.5+i*Math.PI;
     c.save();c.translate(cx-r*0.5,42);c.rotate(camAng);
     var cg=gH(c,-6,6,'#5a6570','#c8d4e0','#3a4654');
     c.fillStyle=br?'#6a4a4a':cg;
     c.beginPath();c.arc(0,0,5,0,7);c.fill();
     c.beginPath();c.ellipse(0,-4,3,5,0,0,7);c.fill();
-    c.strokeStyle='#0a1018';c.lineWidth=1;c.stroke();
-    c.restore();
+    c.strokeStyle='#0a1018';c.lineWidth=1;c.stroke();c.restore();
     c.save();c.translate(cx+r*0.5,42);c.rotate(camAng+Math.PI);
     c.fillStyle=br?'#6a4a4a':cg;
     c.beginPath();c.arc(0,0,5,0,7);c.fill();
     c.beginPath();c.ellipse(0,-4,3,5,0,0,7);c.fill();
-    c.strokeStyle='#0a1018';c.lineWidth=1;c.stroke();
-    c.restore();
+    c.strokeStyle='#0a1018';c.lineWidth=1;c.stroke();c.restore();
   }
 
-  var pins=[];
-  for(var i=0;i<n;i++)pins.push({x:xs[i],phase:S.crankAngle+i*Math.PI});
+  var pins=[];for(var i=0;i<n;i++)pins.push({x:xs[i],phase:S.crankAngle+i*Math.PI});
   drawCrankshaft(c,blockL,blockR,crankCY,crankR,pins,br);
 
-  for(var i=0;i<n;i++){
-    drawCyl(c,xs[i],cylTop,cylBot,r,S.crankAngle+i*Math.PI,crankCY,crankR,br,S.throttle,S);
-  }
-
+  for(var i=0;i<n;i++)drawCyl(c,xs[i],cylTop,cylBot,r,S.crankAngle+i*Math.PI,crankCY,crankR,br,S.throttle,S);
   drawExhaust(c,xs[0]-10,xs[n-1]+10,panTop+18,xs,br);
   drawTiming(c,blockL-25,S.crankAngle,br,H);
   drawFlywheel(c,blockR+35,crankCY,r*0.95,S.crankAngle,br);
 
-  c.fillStyle=br?'#8a5a5a':col;
-  c.font='bold 13px Segoe UI, sans-serif';
-  c.textAlign='left';c.textBaseline='top';
-  c.fillText(label,blockL-20,H-28);
+  c.fillStyle=br?'#8a5a5a':col;c.font='bold 13px "Segoe UI", sans-serif';
+  c.textAlign='left';c.textBaseline='top';c.fillText(label,blockL-20,H-28);
 }
 
 RE.drawR4=function(c,S){inlineDraw(c,S,4,34,130,'R4 · 4 цилиндра','#8fb5d8');};
@@ -315,139 +298,84 @@ RE.drawMTZ=function(c,S){inlineDraw(c,S,4,34,130,'Д-240 · МТЗ-82','#8fb5d8'
 RE.drawScooter=function(c,S){
   var W=c.canvas.width,H=c.canvas.height,br=S.broken;
   c.clearRect(0,0,W,H);
-  var cx=W/2,r=70;
-  var crankCY=H-85,crankR=50,cylTop=90,cylBot=crankCY-crankR-10;
-
+  var cx=W/2,r=70,crankCY=H-85,crankR=50,cylTop=90,cylBot=crankCY-crankR-10;
   var panG=gV(c,cylBot+6,H-10,'#2a3340','#1a232e','#0a0f15');
-  c.fillStyle=panG;
-  c.beginPath();
+  c.fillStyle=panG;c.beginPath();
   c.moveTo(cx-r-30,cylBot+6);c.lineTo(cx+r+30,cylBot+6);
-  c.lineTo(cx+r+10,H-10);c.lineTo(cx-r-10,H-10);
-  c.closePath();c.fill();
+  c.lineTo(cx+r+10,H-10);c.lineTo(cx-r-10,H-10);c.closePath();c.fill();
   c.strokeStyle='#3a4a5c';c.lineWidth=2;c.stroke();
-
   var bg=gV(c,cylTop,cylBot,'#a8b4c0','#6a7580','#3a4654');
   c.fillStyle=br?'#4a3030':bg;
   c.fillRect(cx-r-20,cylTop-15,r*2+40,cylBot-cylTop+25);
-  c.strokeStyle='#2a3a4a';c.lineWidth=2.5;
-  c.strokeRect(cx-r-20,cylTop-15,r*2+40,cylBot-cylTop+25);
+  c.strokeStyle='#2a3a4a';c.lineWidth=2.5;c.strokeRect(cx-r-20,cylTop-15,r*2+40,cylBot-cylTop+25);
   c.strokeStyle='rgba(30,40,52,.6)';c.lineWidth=1.5;
   for(var ri=0;ri<6;ri++){
     var ry=cylTop-10+ri*(cylBot-cylTop+15)/5;
     c.beginPath();c.moveTo(cx-r-18,ry);c.lineTo(cx+r+18,ry);c.stroke();
   }
-
-  drawHead(c,W,br);
-  drawCamshaft(c,W,50,br);
-
+  drawHead(c,W,br);drawCamshaft(c,W,50,br);
   var cg=gH(c,cx-6,cx+6,'#5a6570','#c8d4e0','#3a4654');
-  c.save();c.translate(cx-r*0.5,42);c.rotate(S.crankAngle*0.5);
-  c.fillStyle=cg;c.beginPath();c.arc(0,0,5,0,7);c.fill();
-  c.beginPath();c.ellipse(0,-4,3,5,0,0,7);c.fill();c.restore();
-  c.save();c.translate(cx+r*0.5,42);c.rotate(S.crankAngle*0.5+Math.PI);
-  c.fillStyle=cg;c.beginPath();c.arc(0,0,5,0,7);c.fill();
-  c.beginPath();c.ellipse(0,-4,3,5,0,0,7);c.fill();c.restore();
-
+  c.save();c.translate(cx-r*0.5,42);c.rotate(S.crankAngle*0.5);c.fillStyle=cg;
+  c.beginPath();c.arc(0,0,5,0,7);c.fill();c.beginPath();c.ellipse(0,-4,3,5,0,0,7);c.fill();c.restore();
+  c.save();c.translate(cx+r*0.5,42);c.rotate(S.crankAngle*0.5+Math.PI);c.fillStyle=cg;
+  c.beginPath();c.arc(0,0,5,0,7);c.fill();c.beginPath();c.ellipse(0,-4,3,5,0,0,7);c.fill();c.restore();
   var pins=[{x:cx,phase:S.crankAngle}];
   drawCrankshaft(c,cx-110,cx+110,crankCY,crankR,pins,br);
   drawCyl(c,cx,cylTop,cylBot,r,S.crankAngle,crankCY,crankR,br,S.throttle,S);
   drawTiming(c,cx-r-50,S.crankAngle,br,H);
   drawFlywheel(c,cx+150,crankCY,44,S.crankAngle,br);
-
-  c.fillStyle='#5d7189';c.font='bold 13px Segoe UI, sans-serif';
-  c.textAlign='left';c.textBaseline='top';
-  c.fillText('S1 · скутер 1 цилиндр',20,H-28);
+  c.fillStyle='#5d7189';c.font='bold 13px "Segoe UI", sans-serif';
+  c.textAlign='left';c.textBaseline='top';c.fillText('S1 · скутер 1 цилиндр',20,H-28);
 };
 
 RE.drawV=function(c,S,n){
   var W=c.canvas.width,H=c.canvas.height,br=S.broken;
   c.clearRect(0,0,W,H);
-  var cyMid=H/2;
-  var perRow=Math.floor(n/2);
-  var sp=Math.min(80,(W-120)/perRow);
-  var r=Math.min(20,sp*0.26);
-  var startX=W/2-(perRow-1)*sp/2;
-  var crankR=r*0.9;
-
+  var cyMid=H/2,perRow=Math.floor(n/2),sp=Math.min(80,(W-120)/perRow);
+  var r=Math.min(20,sp*0.26),startX=W/2-(perRow-1)*sp/2,crankR=r*0.9;
   var panG=gV(c,cyMid-15,cyMid+15,'#2a3340','#0a0f15');
-  c.fillStyle=br?'#2a1818':panG;
-  c.fillRect(startX-r*2,cyMid-15,perRow*sp+r*4,30);
-
+  c.fillStyle=br?'#2a1818':panG;c.fillRect(startX-r*2,cyMid-15,perRow*sp+r*4,30);
   var topBg=gV(c,60,cyMid-40,'#a8b4c0','#6a7580');
-  c.fillStyle=br?'#4a3030':topBg;
-  c.fillRect(startX-r-15,cyMid-90,perRow*sp+30,80);
-  c.strokeStyle='#2a3a4a';c.lineWidth=2.5;
-  c.strokeRect(startX-r-15,cyMid-90,perRow*sp+30,80);
-
+  c.fillStyle=br?'#4a3030':topBg;c.fillRect(startX-r-15,cyMid-90,perRow*sp+30,80);
+  c.strokeStyle='#2a3a4a';c.lineWidth=2.5;c.strokeRect(startX-r-15,cyMid-90,perRow*sp+30,80);
   var botBg=gV(c,cyMid+40,cyMid+120,'#a8b4c0','#6a7580');
-  c.fillStyle=br?'#4a3030':botBg;
-  c.fillRect(startX-r-15,cyMid+10,perRow*sp+30,80);
-  c.strokeStyle='#2a3a4a';c.lineWidth=2.5;
-  c.strokeRect(startX-r-15,cyMid+10,perRow*sp+30,80);
-
+  c.fillStyle=br?'#4a3030':botBg;c.fillRect(startX-r-15,cyMid+10,perRow*sp+30,80);
+  c.strokeStyle='#2a3a4a';c.lineWidth=2.5;c.strokeRect(startX-r-15,cyMid+10,perRow*sp+30,80);
   c.fillStyle='#3a4654';c.fillRect(startX-r-15,cyMid-125,perRow*sp+30,35);
   c.strokeStyle='#4a5a6c';c.lineWidth=2;c.strokeRect(startX-r-15,cyMid-125,perRow*sp+30,35);
   c.fillStyle='#3a4654';c.fillRect(startX-r-15,cyMid+90,perRow*sp+30,35);
   c.strokeStyle='#4a5a6c';c.lineWidth=2;c.strokeRect(startX-r-15,cyMid+90,perRow*sp+30,35);
-
-  drawCamshaft(c,W,cyMid-110,br);
-  drawCamshaft(c,W,cyMid+108,br);
-
-  for(var i=0;i<perRow;i++){
-    var cx=startX+i*sp;
-    drawCyl(c,cx,cyMid-88,cyMid-30,r,S.crankAngle+i*Math.PI*2/perRow,cyMid,crankR,br,S.throttle,S);
-  }
-  for(var j=0;j<perRow;j++){
-    var cx2=startX+j*sp;
-    drawCyl(c,cx2,cyMid+30,cyMid+88,r,S.crankAngle+(j+perRow)*Math.PI*2/perRow,cyMid,crankR,br,S.throttle,S);
-  }
-
-  var pins=[];
-  for(var i=0;i<perRow;i++)pins.push({x:startX+i*sp,phase:S.crankAngle+i*Math.PI*2/perRow});
+  drawCamshaft(c,W,cyMid-110,br);drawCamshaft(c,W,cyMid+108,br);
+  for(var i=0;i<perRow;i++)drawCyl(c,startX+i*sp,cyMid-88,cyMid-30,r,S.crankAngle+i*Math.PI*2/perRow,cyMid,crankR,br,S.throttle,S);
+  for(var j=0;j<perRow;j++)drawCyl(c,startX+j*sp,cyMid+30,cyMid+88,r,S.crankAngle+(j+perRow)*Math.PI*2/perRow,cyMid,crankR,br,S.throttle,S);
+  var pins=[];for(var i=0;i<perRow;i++)pins.push({x:startX+i*sp,phase:S.crankAngle+i*Math.PI*2/perRow});
   drawCrankshaft(c,startX-r-10,startX+(perRow-1)*sp+r+10,cyMid,crankR*0.7,pins,br);
   drawFlywheel(c,W-50,cyMid,40,S.crankAngle,br);
-
-  c.fillStyle='#5d7189';c.font='bold 13px Segoe UI, sans-serif';
-  c.textAlign='left';c.textBaseline='top';
-  c.fillText('V'+n+' · '+n+' цилиндров V-образно',20,H-28);
+  c.fillStyle='#5d7189';c.font='bold 13px "Segoe UI", sans-serif';
+  c.textAlign='left';c.textBaseline='top';c.fillText('V'+n+' · '+n+' цилиндров V-образно',20,H-28);
 };
 
 RE.drawBoxer=function(c,S){
   var W=c.canvas.width,H=c.canvas.height,br=S.broken;
   c.clearRect(0,0,W,H);
-  var cyMid=H/2;
-  var xs=[W/2-90,W/2+90];
-  var r=32,crankR=34;
-
+  var cyMid=H/2,xs=[W/2-90,W/2+90],r=32,crankR=34;
   var topBg=gV(c,70,cyMid-30,'#a8b4c0','#6a7580');
-  c.fillStyle=br?'#4a3030':topBg;
-  c.fillRect(xs[0]-50,cyMid-90,180,80);
+  c.fillStyle=br?'#4a3030':topBg;c.fillRect(xs[0]-50,cyMid-90,180,80);
   c.strokeStyle='#2a3a4a';c.lineWidth=2.5;c.strokeRect(xs[0]-50,cyMid-90,180,80);
   c.fillStyle='#3a4654';c.fillRect(xs[0]-50,cyMid-125,180,35);
   c.strokeStyle='#4a5a6c';c.strokeRect(xs[0]-50,cyMid-125,180,35);
-
   var botBg=gV(c,cyMid+30,cyMid+110,'#a8b4c0','#6a7580');
-  c.fillStyle=br?'#4a3030':botBg;
-  c.fillRect(xs[0]-50,cyMid+10,180,80);
+  c.fillStyle=br?'#4a3030':botBg;c.fillRect(xs[0]-50,cyMid+10,180,80);
   c.strokeStyle='#2a3a4a';c.lineWidth=2.5;c.strokeRect(xs[0]-50,cyMid+10,180,80);
   c.fillStyle='#3a4654';c.fillRect(xs[0]-50,cyMid+90,180,35);
   c.strokeStyle='#4a5a6c';c.strokeRect(xs[0]-50,cyMid+90,180,35);
-
-  drawCamshaft(c,W,cyMid-110,br);
-  drawCamshaft(c,W,cyMid+108,br);
-
+  drawCamshaft(c,W,cyMid-110,br);drawCamshaft(c,W,cyMid+108,br);
   for(var i=0;i<2;i++)drawCyl(c,xs[i],cyMid-88,cyMid-30,r,S.crankAngle+i*Math.PI,cyMid,crankR,br,S.throttle,S);
   for(var j=0;j<2;j++)drawCyl(c,xs[j],cyMid+30,cyMid+88,r,S.crankAngle+(j+2)*Math.PI,cyMid,crankR,br,S.throttle,S);
-
-  drawCrankshaft(c,xs[0]-40,xs[1]+40,cyMid,crankR*0.7,[
-    {x:xs[0],phase:S.crankAngle},
-    {x:xs[1],phase:S.crankAngle+Math.PI}
-  ],br);
+  drawCrankshaft(c,xs[0]-40,xs[1]+40,cyMid,crankR*0.7,[{x:xs[0],phase:S.crankAngle},{x:xs[1],phase:S.crankAngle+Math.PI}],br);
   drawFlywheel(c,W-50,cyMid,40,S.crankAngle,br);
-
-  c.fillStyle='#5d7189';c.font='bold 13px Segoe UI, sans-serif';
-  c.textAlign='left';c.textBaseline='top';
-  c.fillText('BOXER · Subaru EJ25',20,H-28);
+  c.fillStyle='#5d7189';c.font='bold 13px "Segoe UI", sans-serif';
+  c.textAlign='left';c.textBaseline='top';c.fillText('BOXER · Subaru EJ25',20,H-28);
 };
 
 RE.drawRadial=function(c,S){
@@ -455,32 +383,24 @@ RE.drawRadial=function(c,S){
   c.clearRect(0,0,W,H);
   var cx=W/2,cy=H/2,R=Math.min(W,H)/2-65,n=9;
   for(var i=0;i<n;i++){
-    var a=i*(Math.PI*2/n)-Math.PI/2;
-    var x=cx+Math.cos(a)*R,y=cy+Math.sin(a)*R;
+    var a=i*(Math.PI*2/n)-Math.PI/2,x=cx+Math.cos(a)*R,y=cy+Math.sin(a)*R;
     c.save();c.translate(x,y);c.rotate(a+Math.PI/2);
-    c.fillStyle=gH(c,-16,16,'#0a0f15','#2a3340','#0a0f15');
-    c.fillRect(-16,-40,32,80);
+    c.fillStyle=gH(c,-16,16,'#0a0f15','#2a3340','#0a0f15');c.fillRect(-16,-40,32,80);
     c.strokeStyle='#3a4a5c';c.lineWidth=2;c.strokeRect(-16,-40,32,80);
     c.strokeStyle='rgba(80,100,120,.4)';c.lineWidth=1;
-    for(var rr2=0;rr2<4;rr2++){
-      c.beginPath();c.moveTo(-14,-30+rr2*18);c.lineTo(14,-30+rr2*18);c.stroke();
-    }
+    for(var rr2=0;rr2<4;rr2++){c.beginPath();c.moveTo(-14,-30+rr2*18);c.lineTo(14,-30+rr2*18);c.stroke();}
     c.fillStyle=br?'#4a3030':'#3a4654';c.fillRect(-18,-52,36,14);
     c.strokeStyle='#1a232e';c.lineWidth=1.5;c.strokeRect(-18,-52,36,14);
     c.fillStyle='#e8e4dc';c.fillRect(-2,-58,4,8);
-    var ph=S.crankAngle+i*Math.PI*2/n;
-    var pistonY=-25+Math.cos(ph)*12;
+    var ph=S.crankAngle+i*Math.PI*2/n,pistonY=-25+Math.cos(ph)*12;
     var pg=gH(c,-11,11,'#4a5566','#e0e8f0','#2a3340');
-    c.fillStyle=br?'#6a5a5a':pg;
-    rr(c,-11,pistonY,22,20,3);c.fill();
+    c.fillStyle=br?'#6a5a5a':pg;rr(c,-11,pistonY,22,20,3);c.fill();
     c.strokeStyle='#0a1018';c.lineWidth=1.5;c.stroke();
     c.strokeStyle='#1a252f';c.lineWidth=1.5;
     for(var k=0;k<3;k++){c.beginPath();c.moveTo(-9,pistonY+4+k*5);c.lineTo(9,pistonY+4+k*5);c.stroke();}
     var py=Math.sin(ph)*8;
-    c.strokeStyle='#0a1018';c.lineWidth=5;
-    c.beginPath();c.moveTo(0,pistonY+18);c.lineTo(py,30);c.stroke();
-    c.strokeStyle=br?'#7a5a5a':'#8894a2';c.lineWidth=3;
-    c.beginPath();c.moveTo(0,pistonY+18);c.lineTo(py,30);c.stroke();
+    c.strokeStyle='#0a1018';c.lineWidth=5;c.beginPath();c.moveTo(0,pistonY+18);c.lineTo(py,30);c.stroke();
+    c.strokeStyle=br?'#7a5a5a':'#8894a2';c.lineWidth=3;c.beginPath();c.moveTo(0,pistonY+18);c.lineTo(py,30);c.stroke();
     c.restore();
   }
   var cg=c.createRadialGradient(cx-10,cy-10,5,cx,cy,R*0.35);
@@ -490,141 +410,5 @@ RE.drawRadial=function(c,S){
   c.strokeStyle='#0a1018';c.lineWidth=2;c.stroke();
   c.save();c.translate(cx,cy);c.rotate(S.crankAngle);
   c.strokeStyle='#a8b4c0';c.lineWidth=6;c.lineCap='round';
-  c.beginPath();c.moveTo(-R*0.3,0);c.lineTo(R*0.3,0);c.stroke();
-  c.restore();
-  c.fillStyle='#5d7189';c.font='bold 13px Segoe UI, sans-serif';
-  c.textAlign='left';c.textBaseline='top';
-  c.fillText('RADIAL · Wright R-1820 · 9 цилиндров',20,H-28);
-};
-RE.drawWankel=function(c,S){
-  var W=c.canvas.width,H=c.canvas.height,br=S.broken;
-  c.clearRect(0,0,W,H);
-  
-  var R=70; // Радиус корпуса
-  var e=12; // Эксцентриситет
-  var cy=H/2-15; // Центр по Y
-  var cxL=W*0.3; // Центр левого ротора
-  var cxR=W*0.7; // Центр правого ротора
-  var ang=S.crankAngle||0;
-
-  // 1. Рисуем корпуса (эпитрохоиды)
-  function drawHousing(cx){
-    c.beginPath();
-    for(var i=0;i<=100;i++){
-      var t=i/100*Math.PI*2;
-      // Правильная формула эпитрохоиды
-      var x = cx + R * Math.cos(t) + e * Math.cos(3*t);
-      var y = cy + R * Math.sin(t) + e * Math.sin(3*t);
-      if(i===0) c.moveTo(x,y);
-      else c.lineTo(x,y);
-    }
-    c.closePath();
-    c.fillStyle = br?'rgba(120,60,60,.15)':'rgba(80,140,200,.15)';
-    c.fill();
-    c.strokeStyle = br?'#8a5a5a':'#5a8fc0';
-    c.lineWidth = 2.5;
-    c.stroke();
-  }
-  
-  drawHousing(cxL);
-  drawHousing(cxR);
-
-  // 2. Рисуем роторы (треугольники)
-  function drawRotor(cx, phase){
-    c.save();
-    // Эксцентрик двигает ротор по кругу
-    c.translate(cx + Math.cos(phase)*e, cy + Math.sin(phase)*e);
-    // Ротор крутится в 3 раза медленнее вала в обратную сторону
-    c.rotate(-phase/3);
-    
-    var rotR = R * 0.72; // Размер ротора
-    
-    c.beginPath();
-    for(var i=0; i<3; i++){
-      var a = i * Math.PI * 2 / 3 - Math.PI / 2;
-      var x = Math.cos(a) * rotR;
-      var y = Math.sin(a) * rotR;
-      if(i===0) c.moveTo(x,y);
-      else c.lineTo(x,y);
-    }
-    c.closePath();
-    
-    // Заливка ротора
-    var rg = c.createRadialGradient(-rotR/3, -rotR/3, 2, 0, 0, rotR);
-    if(br){rg.addColorStop(0,'#8a6a6a');rg.addColorStop(1,'#2a1818');}
-    else{rg.addColorStop(0,'#e8f0f8');rg.addColorStop(.5,'#8a95a3');rg.addColorStop(1,'#3a4654');}
-    c.fillStyle = rg;
-    c.fill();
-    c.strokeStyle = '#0a1018';
-    c.lineWidth = 3;
-    c.stroke();
-    
-    // Уплотнения на углах ротора
-    c.fillStyle='#1a232e';
-    for(var j=0; j<3; j++){
-      var va = j * Math.PI * 2 / 3 - Math.PI / 2;
-      c.beginPath(); c.arc(Math.cos(va)*rotR, Math.sin(va)*rotR, 5, 0, 7); c.fill();
-    }
-    
-    // Центр ротора
-    c.fillStyle='#1a232e';
-    c.beginPath(); c.arc(0,0,8,0,7); c.fill();
-    c.strokeStyle='#4a5a6c';
-    c.lineWidth=2;
-    c.stroke();
-    
-    c.restore();
-  }
-  
-  // Рисуем 2 ротора в противофазе (один повернут на 180 градусов)
-  drawRotor(cxL, ang);
-  drawRotor(cxR, ang + Math.PI);
-
-  // 3. Ось вала
-  c.strokeStyle='#a8b4c0';
-  c.lineWidth=7;
-  c.lineCap='round';
-  c.beginPath(); 
-  c.moveTo(cxL - R, cy); 
-  c.lineTo(cxR + R, cy); 
-  c.stroke();
-  
-  // Тень на оси
-  c.strokeStyle='#0a1018';
-  c.lineWidth=1.5;
-  c.beginPath(); 
-  c.moveTo(cxL - R, cy); 
-  c.lineTo(cxR + R, cy); 
-  c.stroke();
-
-  // 4. Текст (сдвигаем выше, чтобы не обрезался)
-  c.fillStyle='#5d7189';
-  c.font='bold 13px "Segoe UI", sans-serif';
-  c.textAlign='left'; 
-  c.textBaseline='top';
-  c.fillText('WANKEL · 13B Renesis · 2 ротора', 20, 15);
-};
-RE.render=function(c,S){
-  var raw=(S.engineType||S.engine||'r4').toString().toLowerCase().replace(/\s+/g,'').replace(/-/g,'');
-  function has(){for(var i=0;i<arguments.length;i++)if(raw.indexOf(arguments[i])>=0)return true;return false;}
-  if(has('wankel','renesis','rotary'))       return RE.drawWankel(c,S);
-  if(has('radial','wright','r1820'))         return RE.drawRadial(c,S);
-  if(has('boxer','ej25','subaru'))           return RE.drawBoxer(c,S);
-  if(has('v22'))                             return RE.drawV(c,S,22);
-  if(has('v16'))                             return RE.drawV(c,S,16);
-  if(has('v12'))                             return RE.drawV(c,S,12);
-  if(has('v8'))                              return RE.drawV(c,S,8);
-  if(has('v6','galant'))                     return RE.drawV(c,S,6);
-  if(has('i6','2jz','inline6'))              return RE.drawInline6(c,S);
-  if(has('scooter'))                         return RE.drawScooter(c,S);
-  if(has('tdi'))                             return RE.drawTDI(c,S);
-  if(has('dci'))                             return RE.drawDCi(c,S);
-  if(has('passat'))                          return RE.drawPassatB3(c,S);
-  if(has('bluebird','ca20'))                 return RE.drawBluebird(c,S);
-  if(has('tractor','mtz','mt82','belarus'))  return RE.drawMTZ(c,S);
-  return RE.drawR4(c,S);
-};
-
-window.RE=RE;
-console.log('render-engines.js: FULL OK');
-})();
+  c.beginPath();c.moveTo(-R*0.3,0);c.lineTo(R*0.3,0);c.stroke();c.restore();
+  c.fillStyle='#5d7189';c.font='bold 13p
