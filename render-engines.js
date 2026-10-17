@@ -411,4 +411,85 @@ RE.drawRadial=function(c,S){
   c.save();c.translate(cx,cy);c.rotate(S.crankAngle);
   c.strokeStyle='#a8b4c0';c.lineWidth=6;c.lineCap='round';
   c.beginPath();c.moveTo(-R*0.3,0);c.lineTo(R*0.3,0);c.stroke();c.restore();
-  c.fillStyle='#5d7189';c.font='bold 13p
+    c.fillStyle='#5d7189';c.font='bold 13px "Segoe UI", sans-serif';
+  c.textAlign='left';c.textBaseline='top';
+  c.fillText('RADIAL · Wright R-1820 · 9 цилиндров',20,H-28);
+};
+
+RE.drawWankel=function(c,S){
+  var W=c.canvas.width,H=c.canvas.height,br=S.broken;
+  c.clearRect(0,0,W,H);
+  var R=70, e=12, cy=H/2-15, cxL=W*0.3, cxR=W*0.7, ang=S.crankAngle||0;
+  function drawHousing(cx){
+    c.beginPath();
+    for(var i=0;i<=100;i++){
+      var t=i/100*Math.PI*2;
+      var x=cx+R*Math.cos(t)+e*Math.cos(3*t);
+      var y=cy+R*Math.sin(t)+e*Math.sin(3*t);
+      if(i===0)c.moveTo(x,y);else c.lineTo(x,y);
+    }
+    c.closePath();
+    c.fillStyle=br?'rgba(120,60,60,.15)':'rgba(80,140,200,.15)';c.fill();
+    c.strokeStyle=br?'#8a5a5a':'#5a8fc0';c.lineWidth=2.5;c.stroke();
+  }
+  drawHousing(cxL);drawHousing(cxR);
+  function drawRotor(cx, phase){
+    c.save();
+    c.translate(cx+Math.cos(phase)*e, cy+Math.sin(phase)*e);
+    c.rotate(-phase/3);
+    var rotR=R*0.72;
+    c.beginPath();
+    for(var i=0;i<3;i++){
+      var a=i*Math.PI*2/3-Math.PI/2;
+      var x=Math.cos(a)*rotR,y=Math.sin(a)*rotR;
+      if(i===0)c.moveTo(x,y);else c.lineTo(x,y);
+    }
+    c.closePath();
+    var rg=c.createRadialGradient(-rotR/3,-rotR/3,2,0,0,rotR);
+    if(br){rg.addColorStop(0,'#8a6a6a');rg.addColorStop(1,'#2a1818');}
+    else{rg.addColorStop(0,'#e8f0f8');rg.addColorStop(.5,'#8a95a3');rg.addColorStop(1,'#3a4654');}
+    c.fillStyle=rg;c.fill();
+    c.strokeStyle='#0a1018';c.lineWidth=3;c.stroke();
+    c.fillStyle='#1a232e';
+    for(var j=0;j<3;j++){
+      var va=j*Math.PI*2/3-Math.PI/2;
+      c.beginPath();c.arc(Math.cos(va)*rotR,Math.sin(va)*rotR,5,0,7);c.fill();
+    }
+    c.fillStyle='#1a232e';c.beginPath();c.arc(0,0,8,0,7);c.fill();
+    c.strokeStyle='#4a5a6c';c.lineWidth=2;c.stroke();
+    c.restore();
+  }
+  drawRotor(cxL,ang);drawRotor(cxR,ang+Math.PI);
+  c.strokeStyle='#a8b4c0';c.lineWidth=7;c.lineCap='round';
+  c.beginPath();c.moveTo(cxL-R,cy);c.lineTo(cxR+R,cy);c.stroke();
+  c.strokeStyle='#0a1018';c.lineWidth=1.5;
+  c.beginPath();c.moveTo(cxL-R,cy);c.lineTo(cxR+R,cy);c.stroke();
+  c.fillStyle='#5d7189';c.font='bold 13px "Segoe UI", sans-serif';
+  c.textAlign='left';c.textBaseline='top';
+  c.fillText('WANKEL · 13B Renesis · 2 ротора',20,15);
+};
+
+RE.render=function(c,S){
+  var raw=(S.engineType||S.engine||'r4').toString().toLowerCase().replace(/\s+/g,'').replace(/-/g,'');
+  function has(){for(var i=0;i<arguments.length;i++)if(raw.indexOf(arguments[i])>=0)return true;return false;}
+  if(has('wankel','renesis','rotary'))       return RE.drawWankel(c,S);
+  if(has('radial','wright','r1820'))         return RE.drawRadial(c,S);
+  if(has('boxer','ej25','subaru'))           return RE.drawBoxer(c,S);
+  if(has('v22'))                             return RE.drawV(c,S,22);
+  if(has('v16'))                             return RE.drawV(c,S,16);
+  if(has('v12'))                             return RE.drawV(c,S,12);
+  if(has('v8'))                              return RE.drawV(c,S,8);
+  if(has('v6','galant'))                     return RE.drawV(c,S,6);
+  if(has('i6','2jz','inline6'))              return RE.drawInline6(c,S);
+  if(has('scooter'))                         return RE.drawScooter(c,S);
+  if(has('tdi'))                             return RE.drawTDI(c,S);
+  if(has('dci'))                             return RE.drawDCi(c,S);
+  if(has('passat'))                          return RE.drawPassatB3(c,S);
+  if(has('bluebird','ca20'))                 return RE.drawBluebird(c,S);
+  if(has('tractor','mtz','mt82','belarus'))  return RE.drawMTZ(c,S);
+  return RE.drawR4(c,S);
+};
+
+window.RE=RE;
+console.log('render-engines.js: ALL FIXED (wankel + others) OK');
+})();
