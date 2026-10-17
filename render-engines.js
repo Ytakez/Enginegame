@@ -496,66 +496,114 @@ RE.drawRadial=function(c,S){
   c.textAlign='left';c.textBaseline='top';
   c.fillText('RADIAL · Wright R-1820 · 9 цилиндров',20,H-28);
 };
-
 RE.drawWankel=function(c,S){
   var W=c.canvas.width,H=c.canvas.height,br=S.broken;
   c.clearRect(0,0,W,H);
-  var cy=H/2-15,R=Math.min(W/3,H/2)-30;
-  var cxL=W/2-R-15,cxR=W/2+R+15;
-  var ecc=R*0.3,rotR=R*0.62;
+  
+  var R=70; // Радиус корпуса
+  var e=12; // Эксцентриситет
+  var cy=H/2-15; // Центр по Y
+  var cxL=W*0.3; // Центр левого ротора
+  var cxR=W*0.7; // Центр правого ротора
   var ang=S.crankAngle||0;
-  c.fillStyle=br?'#1a0a0a':'#0a0f15';
-  c.fillRect(30,50,W-60,H-100);
-  c.strokeStyle=br?'#6a3a3a':'#3a4a5c';c.lineWidth=2;c.strokeRect(30,50,W-60,H-100);
 
-  function rot(cx,phase){
-    c.save();c.translate(cx,cy);
-    c.fillStyle=br?'rgba(120,60,60,.12)':'rgba(120,180,240,.15)';
+  // 1. Рисуем корпуса (эпитрохоиды)
+  function drawHousing(cx){
     c.beginPath();
-    for(var i=0;i<=72;i++){
-      var t=i/72*Math.PI*2;
-      var r2=R*(1+0.25*Math.cos(3*t));
-      if(i===0)c.moveTo(Math.cos(t)*r2,Math.sin(t)*r2);
-      else c.lineTo(Math.cos(t)*r2,Math.sin(t)*r2);
-    }
-    c.closePath();c.fill();
-    c.strokeStyle=br?'#8a5a5a':'#5a8fc0';c.lineWidth=2.5;c.stroke();
-
-    c.save();
-    c.translate(Math.cos(phase)*ecc,Math.sin(phase)*ecc);
-    c.rotate(-phase/3);
-    c.beginPath();
-    for(var k=0;k<3;k++){
-      var a=k*Math.PI*2/3-Math.PI/2;
-      if(k===0)c.moveTo(Math.cos(a)*rotR,Math.sin(a)*rotR);
-      else c.lineTo(Math.cos(a)*rotR,Math.sin(a)*rotR);
+    for(var i=0;i<=100;i++){
+      var t=i/100*Math.PI*2;
+      // Правильная формула эпитрохоиды
+      var x = cx + R * Math.cos(t) + e * Math.cos(3*t);
+      var y = cy + R * Math.sin(t) + e * Math.sin(3*t);
+      if(i===0) c.moveTo(x,y);
+      else c.lineTo(x,y);
     }
     c.closePath();
-    var rg=c.createRadialGradient(-rotR/3,-rotR/3,2,0,0,rotR);
+    c.fillStyle = br?'rgba(120,60,60,.15)':'rgba(80,140,200,.15)';
+    c.fill();
+    c.strokeStyle = br?'#8a5a5a':'#5a8fc0';
+    c.lineWidth = 2.5;
+    c.stroke();
+  }
+  
+  drawHousing(cxL);
+  drawHousing(cxR);
+
+  // 2. Рисуем роторы (треугольники)
+  function drawRotor(cx, phase){
+    c.save();
+    // Эксцентрик двигает ротор по кругу
+    c.translate(cx + Math.cos(phase)*e, cy + Math.sin(phase)*e);
+    // Ротор крутится в 3 раза медленнее вала в обратную сторону
+    c.rotate(-phase/3);
+    
+    var rotR = R * 0.72; // Размер ротора
+    
+    c.beginPath();
+    for(var i=0; i<3; i++){
+      var a = i * Math.PI * 2 / 3 - Math.PI / 2;
+      var x = Math.cos(a) * rotR;
+      var y = Math.sin(a) * rotR;
+      if(i===0) c.moveTo(x,y);
+      else c.lineTo(x,y);
+    }
+    c.closePath();
+    
+    // Заливка ротора
+    var rg = c.createRadialGradient(-rotR/3, -rotR/3, 2, 0, 0, rotR);
     if(br){rg.addColorStop(0,'#8a6a6a');rg.addColorStop(1,'#2a1818');}
     else{rg.addColorStop(0,'#e8f0f8');rg.addColorStop(.5,'#8a95a3');rg.addColorStop(1,'#3a4654');}
-    c.fillStyle=rg;c.fill();
-    c.strokeStyle='#0a1018';c.lineWidth=3;c.stroke();
+    c.fillStyle = rg;
+    c.fill();
+    c.strokeStyle = '#0a1018';
+    c.lineWidth = 3;
+    c.stroke();
+    
+    // Уплотнения на углах ротора
     c.fillStyle='#1a232e';
-    for(var v=0;v<3;v++){
-      var va=v*Math.PI*2/3-Math.PI/2;
-      c.beginPath();c.arc(Math.cos(va)*rotR,Math.sin(va)*rotR,5,0,7);c.fill();
+    for(var j=0; j<3; j++){
+      var va = j * Math.PI * 2 / 3 - Math.PI / 2;
+      c.beginPath(); c.arc(Math.cos(va)*rotR, Math.sin(va)*rotR, 5, 0, 7); c.fill();
     }
-    c.beginPath();c.arc(0,0,8,0,7);c.fill();
-    c.restore();c.restore();
+    
+    // Центр ротора
+    c.fillStyle='#1a232e';
+    c.beginPath(); c.arc(0,0,8,0,7); c.fill();
+    c.strokeStyle='#4a5a6c';
+    c.lineWidth=2;
+    c.stroke();
+    
+    c.restore();
   }
-  rot(cxL,ang);rot(cxR,ang+Math.PI);
+  
+  // Рисуем 2 ротора в противофазе (один повернут на 180 градусов)
+  drawRotor(cxL, ang);
+  drawRotor(cxR, ang + Math.PI);
 
-  c.strokeStyle='#a8b4c0';c.lineWidth=8;c.lineCap='round';
-  c.beginPath();c.moveTo(60,cy);c.lineTo(W-60,cy);c.stroke();
-  c.strokeStyle='#0a1018';c.lineWidth=2;
-  c.beginPath();c.moveTo(60,cy);c.lineTo(W-60,cy);c.stroke();
+  // 3. Ось вала
+  c.strokeStyle='#a8b4c0';
+  c.lineWidth=7;
+  c.lineCap='round';
+  c.beginPath(); 
+  c.moveTo(cxL - R, cy); 
+  c.lineTo(cxR + R, cy); 
+  c.stroke();
+  
+  // Тень на оси
+  c.strokeStyle='#0a1018';
+  c.lineWidth=1.5;
+  c.beginPath(); 
+  c.moveTo(cxL - R, cy); 
+  c.lineTo(cxR + R, cy); 
+  c.stroke();
 
-  c.fillStyle='#5d7189';c.font='bold 13px Segoe UI, sans-serif';
-  c.textAlign='left';c.textBaseline='top';
-  c.fillText('WANKEL · 13B Renesis · 2 ротора',20,H-28);
+  // 4. Текст (сдвигаем выше, чтобы не обрезался)
+  c.fillStyle='#5d7189';
+  c.font='bold 13px "Segoe UI", sans-serif';
+  c.textAlign='left'; 
+  c.textBaseline='top';
+  c.fillText('WANKEL · 13B Renesis · 2 ротора', 20, 15);
 };
-
 RE.render=function(c,S){
   var raw=(S.engineType||S.engine||'r4').toString().toLowerCase().replace(/\s+/g,'').replace(/-/g,'');
   function has(){for(var i=0;i<arguments.length;i++)if(raw.indexOf(arguments[i])>=0)return true;return false;}
