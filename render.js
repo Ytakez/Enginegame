@@ -26,18 +26,80 @@ function fitGauge(){
   gctx.setTransform(gcv.width/GW,0,0,gcv.height/GH,0,0);
 }
 
+/* ====================== СКЕЛЕТ МАШИНЫ ====================== */
+function drawCarSkeleton(c, W, H) {
+  if (localStorage.getItem('dvs_car_skeleton') !== 'true') return;
+  c.save();
+  c.globalAlpha = 0.3; // Полупрозрачный скелет
+
+  var wheelY = H - 60;
+  var dsStart = W/2 + 100; // Примерно где маховик
+  var dsEnd = W - 80;
+  var wheelR = 42;
+
+  // Рама/Карданный вал
+  c.beginPath();
+  c.moveTo(dsStart, wheelY + 30);
+  c.lineTo(dsEnd, wheelY);
+  c.strokeStyle = '#8894a2';
+  c.lineWidth = 8;
+  c.lineCap = 'round';
+  c.stroke();
+  c.strokeStyle = '#e0e8f0';
+  c.lineWidth = 2;
+  c.stroke();
+
+  // Задний мост
+  c.beginPath();
+  c.moveTo(dsEnd, wheelY);
+  c.lineTo(dsEnd, wheelY + 30);
+  c.lineTo(dsStart, wheelY + 30);
+  c.strokeStyle = '#8894a2';
+  c.lineWidth = 6;
+  c.stroke();
+
+  // Колёса
+  function drawWheel(x, y) {
+    // Резина
+    c.beginPath(); c.arc(x, y, wheelR, 0, Math.PI*2);
+    c.fillStyle = '#1a1d22'; c.fill();
+    c.strokeStyle = '#6a7580'; c.lineWidth = 5; c.stroke();
+    // Диск
+    c.beginPath(); c.arc(x, y, wheelR*0.5, 0, Math.PI*2);
+    c.fillStyle = '#4a5566'; c.fill();
+    c.strokeStyle = '#a8b4c0'; c.lineWidth = 3; c.stroke();
+
+    // Вращение (спицы) в такт с двигателем
+    var ang = (S && S.crankAngle) ? S.crankAngle : 0;
+    c.save(); c.translate(x, y); c.rotate(ang*0.5);
+    c.beginPath(); c.moveTo(-wheelR*0.4, 0); c.lineTo(wheelR*0.4, 0);
+    c.strokeStyle = '#a8b4c0'; c.lineWidth = 3; c.stroke();
+    c.beginPath(); c.moveTo(0, -wheelR*0.4); c.lineTo(0, wheelR*0.4);
+    c.stroke();
+    c.restore();
+  }
+
+  drawWheel(dsEnd - wheelR - 15, wheelY);
+  drawWheel(dsEnd + wheelR + 15, wheelY);
+
+  c.restore();
+}
+
 /* ====================== ДВИГАТЕЛЬ ====================== */
 function drawEngine(){
   var c=ectx,W=ecv.width,H=ecv.height;
   c.clearRect(0,0,W,H);
+  
   var bg=c.createLinearGradient(0,0,0,H);
   if(S.weather==='winter'){bg.addColorStop(0,'#0a1520');bg.addColorStop(1,'#050810');}
   else if(S.weather==='autumn'){bg.addColorStop(0,'#1a1210');bg.addColorStop(1,'#080404');}
   else{bg.addColorStop(0,'#0e151d');bg.addColorStop(1,'#070a0e');}
   c.fillStyle=bg;c.fillRect(0,0,W,H);
 
-  /* Всегда берём СВЕЖИЙ window.RE — render-engines.js грузится позже
-     и подменяет его своим объектом с функциями drawInline6/V/Boxer/Radial/Wankel. */
+  // ВЫЗОВ СКЕЛЕТА МАШИНЫ (рисуется ПОД двигателем)
+  drawCarSkeleton(c, W, H);
+
+  // РИСУЕМ САМ ДВИГАТЕЛЬ
   var RE=window.RE;
   try{
     if(RE&&typeof RE.render==='function') RE.render(c,S);
@@ -46,6 +108,7 @@ function drawEngine(){
 
   if(S.broken){c.fillStyle='rgba(200,20,20,0.06)';c.fillRect(0,0,W,H);}
 
+  // Иконка погоды
   var wx=W-40,wy=H-30;
   c.save();
   if(S.weather==='winter'){
@@ -74,7 +137,7 @@ function drawEngine(){
   c.restore();
 }
 
-/* ====================== ИКОНКИ ====================== */
+/* ====================== ИКОНКИ ПАНЕЛИ ====================== */
 function drawOilIcon(c,x,y,color){
   var fill=color==='red'?'#ff5b5b':(color==='yellow'?'#ffc93c':(color==='green'?'#43c98a':'#4a4a4a'));
   c.save();c.translate(x,y);c.fillStyle=fill;
