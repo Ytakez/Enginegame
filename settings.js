@@ -300,4 +300,50 @@ function openPicker(){
 function openWeather(){
   closeAll();
   var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
-  var h
+    var h=document.createElement('h2');h.textContent='🌦 '+t('weather');m.appendChild(h);
+  var back=document.createElement('button');back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
+  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
+  var S=window.S;var cur=S?S.weather:'summer';
+  WEATHERS.forEach(function(W){
+    var b=document.createElement('button');
+    b.type='button';b.className='settings-item'+(W.id===cur?' on':'');
+    b.innerHTML='<div class="txt"><span class="lbl">'+W.label+'</span><span class="sub">'+W.sub+'</span></div><span class="check">✓</span>';
+    b.addEventListener('click',function(){
+      if(S&&S.setWeather)S.setWeather(W.id);
+      var all=m.querySelectorAll('.settings-item');for(var i=0;i<all.length;i++)all[i].classList.remove('on');
+      b.classList.add('on');
+    });
+    m.appendChild(b);
+  });
+  var cls=document.createElement('button');cls.type='button';cls.className='settings-close';cls.textContent=t('close');cls.addEventListener('click',closeAll);m.appendChild(cls);
+  document.body.appendChild(ov);
+}
+
+function openLang(){
+  closeAll();
+  var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
+  var h=document.createElement('h2');h.textContent='🌐 '+t('language');m.appendChild(h);
+  var back=document.createElement('button');back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
+  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
+  Object.keys(LANGS).forEach(function(code){
+    var b=document.createElement('button');
+    b.type='button';b.className='settings-item'+(code===curLang?' on':'');
+    b.innerHTML='<div class="txt"><span class="lbl">'+LANGS[code].label+'</span></div><span class="check">✓</span>';
+    b.addEventListener('click',function(){
+      curLang=code;try{localStorage.setItem(LANG_KEY,code);}catch(e){}
+      applyLang();var all=m.querySelectorAll('.settings-item');
+      for(var i=0;i<all.length;i++)all[i].classList.remove('on');b.classList.add('on');
+    });
+    m.appendChild(b);
+  });
+  var cls=document.createElement('button');cls.type='button';cls.className='settings-close';cls.textContent=t('close');cls.addEventListener('click',closeAll);m.appendChild(cls);
+  document.body.appendChild(ov);
+}
+
+function init(){injectStyles();addBtn();try{applyLang();}catch(e){}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+else init();
+setTimeout(init,500);
+
+console.log('settings.js: OK (FULL)');
+})();
