@@ -39,6 +39,7 @@ var curLang='ru';
 try{curLang=localStorage.getItem(LANG_KEY)||'ru';}catch(e){}
 if(!LANGS[curLang])curLang='ru';
 function t(k){var L=LANGS[curLang]||LANGS.ru;return L[k]||(LANGS.ru[k]||k);}
+function fmtTime(ms){if(ms===null||ms===undefined||!isFinite(ms))return '--.--';return (ms/1000).toFixed(2)+' с';}
 
 function injectStyles(){
   if(document.getElementById('settingsStyle'))return;
@@ -88,8 +89,17 @@ function addBtn(){
 function makeOverlay(){var o=document.createElement('div');o.className='settings-overlay';o.addEventListener('click',function(e){if(e.target===o)closeAll();});return o;}
 function makeModal(){var m=document.createElement('div');m.className='settings-modal';return m;}
 function closeAll(){var ex=document.querySelector('.settings-overlay');if(ex)ex.remove();}
-
 function applyLang(){var h=document.querySelector('header');if(h)h.textContent=t('title');}
+
+function copyToClipboard(text){
+  if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(text);
+  return new Promise(function(res,rej){
+    var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-9999px';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');res();}catch(e){rej(e);}
+    document.body.removeChild(ta);
+  });
+}
 
 function openMain(){
   closeAll();
@@ -181,6 +191,7 @@ function openOther(){
     if(sub)sub.textContent=!now?'Включён':'Выключен';
   });
   m.appendChild(cs);
+  // =======================
 
   var best = (window.DVS_TIMER && window.DVS_TIMER.getBest) ? window.DVS_TIMER.getBest() : null;
   var tb=document.createElement('button');
@@ -197,18 +208,96 @@ function openOther(){
     m.appendChild(rb);
   }
 
-  var cb=document.createElement('button');
-  cb.type='button';cb.className='settings-close';cb.textContent=t('close');
-  cb.addEventListener('click',closeAll);m.appendChild(cb);
+  var cls=document.createElement('button');
+  cls.type='button';cls.className='settings-close';cls.textContent=t('close');
+  cls.addEventListener('click',closeAll);m.appendChild(cls);
   document.body.appendChild(ov);
 }
 
-/* Остальные функции (openSupport, openControls, openPicker, openWeather, openLang) оставь из предыдущего полного кода settings.js */
+function openSupport(){
+  closeAll();
+  var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
+  var h=document.createElement('h2');h.textContent='💝 '+t('support');m.appendChild(h);
+  var back=document.createElement('button');
+  back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
+  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
 
-function init(){injectStyles();addBtn();try{applyLang();}catch(e){}}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
-else init();
-setTimeout(init,500);
+  var wt=document.createElement('div');
+  wt.style.cssText='text-align:center;font-size:10px;letter-spacing:2px;color:#8a8a8a;text-transform:uppercase;margin-bottom:8px';
+  wt.textContent=t('walletTitle');m.appendChild(wt);
 
-console.log('settings.js: OK');
-})();
+  var wbox=document.createElement('div');
+  wbox.className='wallet-box';wbox.textContent=WALLET_ADDRESS;m.appendChild(wbox);
+
+  var btns=document.createElement('div');btns.className='wallet-btns';
+  var copyB=document.createElement('button');
+  copyB.type='button';copyB.className='primary';copyB.textContent='📋 '+t('copy');
+  copyB.addEventListener('click',function(){
+    copyToClipboard(WALLET_ADDRESS).then(function(){
+      copyB.textContent='✓ '+t('copied');copyB.style.background='rgba(120,200,120,.35)';
+      setTimeout(function(){copyB.textContent='📋 '+t('copy');copyB.style.background='';},1500);
+    }).catch(function(){
+      copyB.textContent='✗ Error';setTimeout(function(){copyB.textContent='📋 '+t('copy');},1500);
+    });
+  });
+  btns.appendChild(copyB);m.appendChild(btns);
+
+  var tut=document.createElement('div');tut.className='wallet-tutor';
+  tut.innerHTML='<h3>📖 '+t('howTo')+'</h3><ol><li>Открой приложение <b>Tonkeeper</b>, <b>Tonhub</b> или любой кошелёк <b>TON</b></li><li>Нажми <b>«Отправить»</b> или <b>«Send»</b></li><li>Вставь адрес <b>UQCug…duG</b> (нажми «Скопировать» выше)</li><li>Укажи сумму в <b>TON</b> (можно 0.5, 1, 5 — сколько не жалко 💛)</li><li>Подтверди транзакцию в кошельке</li></ol><div style="margin-top:10px;color:#8a8a8a;font-size:11px">⚠ Отправляй <b>только TON</b>. Другие монеты (USDT, BTC) потеряются.</div><div style="margin-top:8px;color:#8a8a8a;font-size:11px">💛 Спасибо за поддержку! Даже 1 TON помогает развивать проект.</div>';
+  m.appendChild(tut);
+
+  var cls=document.createElement('button');
+  cls.type='button';cls.className='settings-close';cls.textContent=t('close');
+  cls.addEventListener('click',closeAll);m.appendChild(cls);
+  document.body.appendChild(ov);
+}
+
+function openControls(){
+  closeAll();
+  var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
+  var h=document.createElement('h2');h.textContent='🎮 '+t('controls');m.appendChild(h);
+  var back=document.createElement('button');
+  back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
+  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
+  var cur=window.DVS_CONTROL_MODE||'auto';
+  CONTROLS.forEach(function(C){
+    var b=document.createElement('button');
+    b.type='button';b.className='settings-item'+(C.id===cur?' on':'');
+    b.innerHTML='<div class="txt"><span class="lbl">'+t(C.id)+'</span><span class="sub">'+C.sub+'</span></div><span class="check">✓</span>';
+    b.addEventListener('click',function(){
+      if(window.DVS_SET_CONTROL_MODE)window.DVS_SET_CONTROL_MODE(C.id);
+      var all=m.querySelectorAll('.settings-item');for(var i=0;i<all.length;i++)all[i].classList.remove('on');
+      b.classList.add('on');
+    });
+    m.appendChild(b);
+  });
+  var cls=document.createElement('button');cls.type='button';cls.className='settings-close';cls.textContent=t('close');cls.addEventListener('click',closeAll);m.appendChild(cls);
+  document.body.appendChild(ov);
+}
+
+function openPicker(){
+  closeAll();
+  var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
+  var h=document.createElement('h2');h.textContent='🏁 '+t('engine');m.appendChild(h);
+  var back=document.createElement('button');back.type='button';back.className='settings-back';back.textContent='‹ '+t('back');
+  back.addEventListener('click',function(){closeAll();openMain();});m.appendChild(back);
+  var S=window.S;var cur=S?S.engineType:'r4';
+  ENGINES_INFO.forEach(function(E){
+    var b=document.createElement('button');
+    b.type='button';b.className='settings-item'+(E.id===cur?' on':'');
+    b.innerHTML='<div class="txt"><span class="lbl">'+E.label+'</span><span class="sub">'+E.sub+'</span></div><span class="check">✓</span>';
+    b.addEventListener('click',function(){
+      if(S&&S.setEngine)S.setEngine(E.id);
+      var all=m.querySelectorAll('.settings-item');for(var i=0;i<all.length;i++)all[i].classList.remove('on');
+      b.classList.add('on');
+    });
+    m.appendChild(b);
+  });
+  var cls=document.createElement('button');cls.type='button';cls.className='settings-close';cls.textContent=t('close');cls.addEventListener('click',closeAll);m.appendChild(cls);
+  document.body.appendChild(ov);
+}
+
+function openWeather(){
+  closeAll();
+  var ov=makeOverlay();var m=makeModal();ov.appendChild(m);
+  var h
