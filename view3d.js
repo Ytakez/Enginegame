@@ -3,12 +3,8 @@
 var S=window.S;if(!S)return;
 var active=false,scene,camera,renderer,container,animId=null;
 var rotX=0.5,rotY=0.6,dist=18,isDown=false,lastX=0,lastY=0,pinch=0;
-var tgt={x:0,y:3.5,z:0};
-var _ready=false,_seenRoot=null;
-var _blockM=[],_headM=[],_coverM=[],_ribM=[],_asm=[],_cranks=[],_flies=[];
-
-/* Радиус кривошипа — единый для анимации и модели (view3d-build.js читает его отсюда) */
-var CRANK_R=0.8;
+var _ready=false;
+var _blockM=[],_headM=[],_coverM=[],_ribM=[],_asm=[],_cranks=[],_flies=[],_cams=[],_wheels=[];
 
 function m(c,mt,rg,op,tr){
   var o={color:c,metalness:mt===undefined?0.85:mt,roughness:rg===undefined?0.35:rg};
@@ -19,7 +15,7 @@ function m(c,mt,rg,op,tr){
 function cy(r,h,s,c,a,b){return new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,s||20),m(c,a,b));}
 function bx(w,h,d,c,a,b){return new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m(c,a,b));}
 
-window.DVS_3D_BUILD={m:m,cy:cy,bx:bx,bl:function(){return null;},CRANK_R:CRANK_R};
+window.DVS_3D_BUILD={m:m,cy:cy,bx:bx,bl:function(){return null;}};
 
 window.DVS_3D_REF={
   getScene:function(){return scene;},
@@ -27,63 +23,132 @@ window.DVS_3D_REF={
   setRoot:function(r){window._3dRoot=r;},
   setCrank:function(g){if(g)_cranks.push(g);},
   setFly:function(g){if(g)_flies.push(g);},
-  setCam:function(){},setCams:function(){},setBeltT:function(){},setBeltB:function(){},
+  setCam:function(g){if(g)_cams.push(g);},
+  setCams:function(c){},
+  setBeltT:function(){},setBeltB:function(){},
   setAsm:function(a){if(a)_asm=_asm.concat(a);},
   pushBlock:function(x){if(x)_blockM.push(x);},
   pushHead:function(x){if(x)_headM.push(x);},
   pushCover:function(x){if(x)_coverM.push(x);},
   pushRib:function(x){if(x)_ribM.push(x);},
-  clearAll:function(){_blockM=[];_headM=[];_coverM=[];_ribM=[];_asm=[];_cranks=[];_flies=[];},
+  clearAll:function(){
+    _blockM=[];_headM=[];_coverM=[];_ribM=[];_asm=[];_cranks=[];_flies=[];_cams=[];_wheels=[];
+  },
   getCfg:function(t){
-    /* n — общее число цилиндров. Раньше v8 давал 12, а v16 давал 22. */
     var CFG={
       scooter:{n:1,v:false}, tdi:{n:4,v:false}, dci:{n:4,v:false},
       mt82:{n:4,v:false}, passatb3:{n:4,v:false}, bluebird:{n:4,v:false},
       i6:{n:6,v:false}, galant6:{n:6,v:true},
       wankel:{n:2,v:false}, r4:{n:4,v:false},
-      v6:{n:6,v:true}, v8:{n:8,v:true}, v12:{n:12,v:true},
-      v16:{n:16,v:true}, v22:{n:22,v:true}
+      v8:{n:12,v:true}, v16:{n:22,v:true}
     };
     return CFG[t]||CFG.r4;
   }
 };
 
+/* ================= СКЕЛЕТ МАШИНЫ 3D ================= */
+function buildCarSkeleton(root){
+  // Рама
+  var frame=bx(14,0.4,3.5,0x1a1d22,0.8,0.4);frame.position.set(0,-0.5,0);root.add(frame);
+  var frame2=bx(8,0.4,0.4,0x1a1d22,0.8,0.4);frame2.position.set(3,-0.5,1.5);root.add(frame2);
+  var frame3=bx(8,0.4,0.4,0x1a1d22,0.8,0.4);frame3.position.set(3,-0.5,-1.5);root.add(frame3);
+  
+  // Карданный вал
+  var ds=cy(0.15,10,10,0xa8b4c0,0.9,0.2);
+  ds.rotation.z=Math.PI/2;ds.position.set(4,-0.5,0);root.add(ds);
+
+  // Мост
+  var ax=cy(0.2,6,10,0x8894a2,0.9,0.2);
+  ax.rotation.x=Math.PI/2;ax.position.set(8,-0.5,0);root.add(ax);
+
+  // Колеса
+  var wheelR=1.2;
+  var wheelPos=[
+    {x:6, z: 2}, // переднее левое
+    {x:6, z:-2}, // переднее правое
+    {x:8, z: 2}, // заднее левое
+    {x:8, z:-2}  // заднее правое
+  ];
+
+  wheelPos.forEach(function(p){
+    var wg=new THREE.Group();
+    wg.position.set(p.x,-0.5,p.z);
+    
+    // Шина
+    var tire=cy(wheelR,0.6,24,0x111111,0.1,0.9);
+    tire.rotation.x=Math.PI/2;wg.add(tire);
+    
+    // Диск
+    var rim=cy(wheelR*0.6,0.65,16,0x6a7580,0.9,0.3);
+    rim.rotation.x=Math.PI/2;wg.add(rim);
+
+    // Спицы для видимости вращения
+    var spoke1=bx(0.1,wheelR*1.2,0.7,0xa8b4c0,0.9,0.3);wg.add(spoke1);
+    var spoke2=bx(0.1,wheelR*1.2,0.7,0xa8b4c0,0.9,0.3);spoke2.rotation.x=Math.PI/2;wg.add(spoke2);
+
+    root.add(wg);
+    _wheels.push(wg);
+  });
+}
+
+/* ================= ПЕРЕСБОРКА ================= */
+function smartRebuild(){
+  var D=window.DVS_3D;if(!D)return;
+  var sc=D.getScene();if(!sc)return;
+  
+  var old=window._3dRoot;
+  if(old){
+    while(old.children.length){
+      var c=old.children.pop();
+      if(c.geometry)try{c.geometry.dispose();}catch(e){}
+      if(c.material)try{c.material.dispose();}catch(e){}
+    }
+    sc.remove(old);
+  }
+  
+  // Очищаем массивы (включая колеса)
+  window.DVS_3D_REF.clearAll();
+  _wheels=[];
+  window._dvsWankelRotors=[];window._dvsWankelPins=[];window._dvsWankelFlashes=[];
+  window._dciParts=null;
+
+  var root=new THREE.Group();sc.add(root);window._3dRoot=root;
+
+  var raw=(S.engineType||S.engine||'r4').toString().toLowerCase().replace(/\s+/g,'').replace(/-/g,'');
+  
+  // Собираем двигатель (используя билдеры из view3d-build.js)
+  try{
+    if(window.DVS_3D_BUILDERS && window.DVS_3D_BUILDERS[raw]){
+      window.DVS_3D_BUILDERS[raw](root);
+    } else if(window.DVS_3D_BUILDERS && window.DVS_3D_BUILDERS.r4){
+      window.DVS_3D_BUILDERS.r4(root);
+    }
+  }catch(e){console.warn('3D engine build crash:',e);}
+
+  // Собираем скелет машины, если включено в настройках
+  if(localStorage.getItem('dvs_car_skeleton')==='true'){
+    try{buildCarSkeleton(root);}catch(e){console.warn('Skeleton build error:',e);}
+  }
+}
+
+window.DVS_3D_REBUILD=smartRebuild;
+
+window.DVS_3D={
+  show3D:function(){try{show3D();}catch(e){console.warn(e);}},
+  hide3D:function(){try{hide3D();}catch(e){}},
+  toggle:function(){if(active)hide3D();else show3D();},
+  toggleGhost:function(){},
+  resize:function(){try{resize();}catch(e){}},
+  isActive:function(){return active;}
+};
+
+/* ================= КАМЕРА И УПРАВЛЕНИЕ ================= */
 function updCam(){
   var cx=dist*Math.sin(rotY)*Math.cos(rotX);
   var cy2=dist*Math.sin(rotX);
   var cz=dist*Math.cos(rotY)*Math.cos(rotX);
-  camera.position.set(tgt.x+cx,tgt.y+cy2,tgt.z+cz);
-  camera.lookAt(tgt.x,tgt.y,tgt.z);
-}
-
-/* Камера сама подбирает расстояние и центр под размер двигателя */
-function fitCam(){
-  var root=window._3dRoot;
-  if(!root||!window.THREE||!camera)return;
-  try{
-    root.updateMatrixWorld(true);
-    var bb=new THREE.Box3().setFromObject(root);
-    if(bb.isEmpty())return;
-    var sz=new THREE.Vector3(),ct=new THREE.Vector3();
-    bb.getSize(sz);bb.getCenter(ct);
-    tgt.x=ct.x;tgt.y=ct.y;tgt.z=ct.z;
-    dist=Math.max(7,Math.min(70,sz.length()*1.15));
-    updCam();
-  }catch(e){console.warn('fitCam',e);}
-}
-
-function setGhost(on){
-  /* Рёбра теперь тоже становятся прозрачными: раньше они оставались
-     непрозрачными листами и закрывали весь двигатель в режиме «Скелет». */
-  var L=_blockM.concat(_headM).concat(_coverM).concat(_ribM);
-  for(var i=0;i<L.length;i++){
-    if(!L[i])continue;
-    L[i].material.transparent=on;
-    L[i].material.opacity=on?0.12:1;
-    L[i].material.needsUpdate=true;
-  }
-  var b=document.getElementById('ghostBtn');
-  if(b)b.textContent=on?'👁 Скелет':'👁 Скрыто';
+  camera.position.set(cx,cy2+4,cz);
+  camera.lookAt(0,3.5,0);
 }
 
 function setup(){
@@ -136,11 +201,10 @@ function ctrls(){
       var dx=e.touches[0].clientX-e.touches[1].clientX;
       var dy=e.touches[0].clientY-e.touches[1].clientY;
       var nd=Math.hypot(dx,dy);
-      dist*=pinch/nd;dist=Math.max(7,Math.min(70,dist));
+      dist*=pinch/nd;dist=Math.max(7,Math.min(45,dist));
       pinch=nd;updCam();
     }else if(!e.touches&&isDown){
-      rotY+=(e.clientX-lastX)*0.012;
-      rotX+=(e.clientY-lastY)*0.012;
+      rotY+=(e.clientX-lastX)*0.012;rotX+=(e.clientY-lastY)*0.012;
       rotX=Math.max(-1.3,Math.min(1.3,rotX));
       lastX=e.clientX;lastY=e.clientY;updCam();
     }
@@ -154,43 +218,33 @@ function ctrls(){
   el.addEventListener('mouseup',u);
 }
 
+/* ================= АНИМАЦИЯ ================= */
 function animate(){
   if(!active||!scene){animId=null;return;}
   animId=requestAnimationFrame(animate);
-
-  /* Двигатель пересобрали: вернуть режим «Скелет» и подогнать камеру */
-  if(window._3dRoot!==_seenRoot){
-    _seenRoot=window._3dRoot;
-    setGhost(ghostOn);
-    fitCam();
-  }
-
   var ang=S.crankAngle||0;
+
+  // Анимация поршней
   for(var i=0;i<_asm.length;i++){
     var A=_asm[i];
     if(!A||!A.p||!A.g)continue;
-    /* Геометрия кривошипно-шатунного механизма в системе координат цилиндра:
-       cc — где ось коленвала относительно основания цилиндра (по оси цилиндра),
-       L — длина шатуна, rot — поворот ряда (для V и оппозитных). */
-    var Rc=CRANK_R;
-    var cc=(A.cc===undefined)?-0.5:A.cc;
-    var L=A.L||3.8;
-    var ph=ang+(A.off||0)+(A.rot||0);
+    var ph=ang+(A.off||0);
+    var Rc=A.crankR||0.8;
+    var L=A.rodLen||3.5;
+    var cy0=A.crankY||1.0;
     var s=Math.sin(ph),c=Math.cos(ph);
     var sq=L*L-Rc*Rc*s*s;if(sq<0)sq=0;
-    var rt=Math.sqrt(sq);
-    var cpY=cc+Rc*c;      /* шейка коленвала, вдоль цилиндра */
-    var cpZ=-Rc*s;        /* шейка коленвала, поперёк цилиндра */
-    var pinY=cpY+rt;      /* палец поршня */
+    var pinY=cy0+Rc*c+Math.sqrt(sq);
     A.p.position.y=pinY;
     if(A.rod){
-      /* Шатун идёт от шейки к пальцу поршня и качается в плоскости YZ */
+      var cpX=Rc*s,cpY=cy0+Rc*c;
+      A.rod.position.x=cpX/2;
       A.rod.position.y=(pinY+cpY)/2;
-      A.rod.position.z=cpZ/2;
-      A.rod.rotation.x=Math.atan2(Rc*s,rt);
-      A.rod.scale.y=L/(A.rodH||2.3);
+      A.rod.rotation.z=-Math.atan2(cpX,pinY-cpY);
     }
   }
+
+  // Анимация роторов Ванкеля
   var wR=window._dvsWankelRotors||[];
   for(var wr=0;wr<wR.length;wr++){
     var W=wR[wr];
@@ -198,12 +252,21 @@ function animate(){
     W.mesh.position.x=Math.cos(ang)*W.ecc;
     W.mesh.position.y=Math.sin(ang)*W.ecc;
   }
+
+  // Анимация валов/маховиков/турбин
   if(window._dciParts&&window._dciParts.turbo)window._dciParts.turbo.rotation.x=ang*2.5;
   for(var ci=0;ci<_cranks.length;ci++)_cranks[ci].rotation.x=-ang;
-  for(var fi=0;fi<_flies.length;fi++)_flies[fi].rotation.x=-ang;
+  for(var fi=0;ci<_flies.length;fi++)_flies[fi].rotation.x=-ang;
+  
+  // Анимация колес (крутятся медленнее)
+  for(var wi=0;wi<_wheels.length;wi++){
+    _wheels[wi].rotation.x = -ang * 0.2; 
+  }
+
   renderer.render(scene,camera);
 }
 
+/* ================= СЛУЖЕБНЫЕ ФУНКЦИИ ================= */
 function resize(){
   if(!renderer||!camera)return;
   var ecv=document.getElementById('engineCv');if(!ecv)return;
@@ -212,16 +275,13 @@ function resize(){
   if(w&&h){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}
 }
 
-var ghostOn=false;
-function toggleGhost(){ghostOn=!ghostOn;setGhost(ghostOn);}
-
 function show3D(){
   if(!setup())return;
   active=true;container.style.display='block';
   var gb=document.getElementById('ghostBtn');if(gb)gb.style.display='inline-block';
   var vb=document.getElementById('view3dBtn');if(vb)vb.textContent='📊 2D';
   resize();setTimeout(resize,150);setTimeout(resize,400);
-  setTimeout(function(){if(window.DVS_3D_REBUILD)try{window.DVS_3D_REBUILD();}catch(e){console.warn(e);}},50);
+  if(window.DVS_3D_REBUILD)try{window.DVS_3D_REBUILD();}catch(e){console.warn(e);}
   if(!animId)animate();
 }
 
@@ -233,21 +293,17 @@ function hide3D(){
   var vb=document.getElementById('view3dBtn');if(vb)vb.textContent='🎥 3D';
 }
 
+function toggleGhost(){
+  if(window.DVS_3D_TOGGLE_GHOST)window.DVS_3D_TOGGLE_GHOST();
+}
+
 function attachBtn(){
   var vb=document.getElementById('view3dBtn');
   if(vb)vb.addEventListener('click',function(e){e.preventDefault();if(active)hide3D();else show3D();});
   var gb=document.getElementById('ghostBtn');
   if(gb){gb.style.display='none';gb.addEventListener('click',function(e){e.preventDefault();toggleGhost();});}
-  console.log('view3d.js: OK');
+  console.log('view3d.js: OK (с 3D скелетом)');
 }
-
-window.DVS_3D={
-  show3D:show3D,hide3D:hide3D,
-  toggle:function(){if(active)hide3D();else show3D();},
-  toggleGhost:toggleGhost,resize:resize,fitCam:fitCam,
-  isActive:function(){return active;},
-  getScene:function(){return scene;}
-};
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attachBtn);
 else attachBtn();
